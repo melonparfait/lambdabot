@@ -26,3 +26,4 @@ export class Round {
     generateNewValue() {
         this.value = Math.floor(Math.random() * 100) + 1;
     }
+}

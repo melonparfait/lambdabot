@@ -11,3 +11,4 @@ export function execute(message, args) {
         message.client.game.end();
         return message.channel.send('I stopped the current game.');
     }
+}

@@ -20,3 +20,4 @@ export function execute(message, args) {
         game.start();
         sendNewRoundMessages(message.client, message.channel);
     }
+}

@@ -15,3 +15,4 @@ export function execute(message, args) {
         message.client.game.round.generateNewValue();
         sendNewRoundMessages(message.client, message.channel);
     }
+}

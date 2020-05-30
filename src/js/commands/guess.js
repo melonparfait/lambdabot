@@ -74,3 +74,4 @@ export function execute(message, args) {
                 });
         }
     }
+}
