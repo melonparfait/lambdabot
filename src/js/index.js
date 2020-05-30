@@ -3,6 +3,7 @@ import { bot_prefix, default_cooldown } from '../../config.json';
 import { AuthSession } from './auth';
 import * as djs from 'discord.js';
 import * as fs from 'fs';
+const neatCSV = require('csv-parser');
 
 const session = new AuthSession(bot_token);
 session.client.commands = new djs.Collection();
@@ -14,6 +15,13 @@ for (const file of commandFiles) {
 	session.client.commands.set(command.name, command);
 }
 
+const results = [];
+fs.createReadStream('./data.csv')
+  .pipe(neatCSV())
+  .on('data', (data) => results.push(data))
+  .on('end', () => {
+    session.client.data = results;
+  });
 session.client.on('ready', () => {
   console.log(`Logged in as ${session.client.user.tag}!`);
 });

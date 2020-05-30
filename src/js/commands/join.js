@@ -1,6 +1,3 @@
-import * as djs from 'discord.js';
-import { Game } from '../models/game';
-
 export const name = 'join';
 export const aliases = [];
 export const cooldown = 5;
@@ -11,8 +8,13 @@ export function execute(message, args) {
     if (!message.client.game || message.client.game.status === 'finished') {
         return message.reply('No one has started a game yet. Use the \`newgame\` command to start one!');
     } else if (message.client.game.status !== 'team_formation') {
-        return message.reply('The game is currently not open .');
+        return message.reply('Sorry, it looks like the game is already running.');
+        // TODO: allow joining an in-progress game
     } else {
-        message.client.game = new Game();
+        if (message.client.game.join(message.author.id)) {
+            return message.channel.send(`${message.author} joined the game!`);
+        } else {
+            return message.channel.send(`${message.author} is already in the game.`);
+        }
     }
 }
