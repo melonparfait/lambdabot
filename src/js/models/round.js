@@ -12,7 +12,7 @@ export class Round {
         this.clueGiver = oTeam.clueGiver();
         this.oTeam = oTeam;
         this.dTeam = dTeam;
-        this.value = Math.floor(Math.random() * 100) + 1;
+        this.generateNewValue();
     }
 
     makeOGuess(guess) {
@@ -22,4 +22,7 @@ export class Round {
     makeDGuess(guess) {
         this.dGuess = guess;
     }
-}
+
+    generateNewValue() {
+        this.value = Math.floor(Math.random() * 100) + 1;
+    }

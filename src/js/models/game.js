@@ -38,7 +38,6 @@ export class Game {
             
             // TODO: Other ways of creating teams
             this.assignRandomTeams();
-            this.team2.players = this.team1.players;
         }
     }
 
@@ -61,43 +60,42 @@ export class Game {
         }
     }
 
-    endRound(channel) {
-        this.score(channel);
+    endRound(channel, scoreDefense = true) {
+        this.score(channel, scoreDefense);
         if (this.clueCounter % 2 === 0) {
             this.team1.clueGiverCounter++;
         } else {
             this.team2.clueGiverCounter++;
         }
         this.clueCounter++;
-        if (this.isOver()) {
+        if (this.isOver(channel)) {
             this.end();
             return true;
         } else {
-            this.round.dTeam.clueGiverCounter++;
             this.newRound();
             return false;
         }
     }
 
-    score(channel) {
+    score(channel, scoreDefense) {
         let team1Pts = 0;
         let team2Pts = 0;
 
         // Offense scoring
         if (Math.abs(this.round.oGuess - this.round.value) < 3) {
-            if (this.clueCounter % 2 === 0) {
+            if (this.guessingTeam() === 1) {
                 team1Pts = 4;
             } else {
                 team2Pts = 4;
             }
         } else if (Math.abs(this.round.oGuess - this.round.value) <= 5) {
-            if (this.clueCounter % 2 === 0) {
+            if (this.guessingTeam() === 1) {
                 team1Pts = 3;
             } else {
                 team2Pts = 3;
             }
         } else if (Math.abs(this.round.oGuess - this.round.value) <= 10) {
-            if (this.clueCounter % 2 === 0) {
+            if (this.guessingTeam() === 1) {
                 team1Pts = 2;
             } else {
                 team2Pts = 2;
@@ -105,15 +103,15 @@ export class Game {
         }
 
         // Defense scoring
-        if (this.round.oGuess - this.round.value > 4) {
+        if ((Math.abs(this.round.oGuess - this.round.value) > 2) && scoreDefense) {
             if (this.round.value > this.round.oGuess && this.round.dGuess) {
-                if (this.clueCounter % 2 === 1) {
+                if (this.guessingTeam() === 2) {
                     team1Pts = 1;
                 } else {
                     team2Pts = 1;
                 }
             } else if (this.round.value < this.round.oGuess && !this.round.dGuess) {
-                if (this.clueCounter % 2 === 1) {
+                if (this.guessingTeam() === 2) {
                     team1Pts = 1;
                 } else {
                     team2Pts = 1;
@@ -127,15 +125,29 @@ export class Game {
             + `\nTeam 2 gains ${team2Pts} points! (total points: ${this.team2.points})`);
     }
 
-    isOver() {
+    isOver(channel) {
         const team1Won = this.team1.points >= this.victoryThreshold;
         const team2Won = this.team2.points >= this.victoryThreshold;
         if (team1Won && !team2Won) {
             this.winner = 'Team 1';
+            return true;
         } else if (team2Won && !team1Won) {
             this.winner = 'Team 2';
+            return true;
+        } else if (team1Won && team2Won) {
+            if (this.team1.points > this.team2.points) {
+                this.winner = 'Team 1'
+                return true;
+            } else if (this.team1.points < this.team2.points) {
+                this.winner = 'Team 2'
+                return true;
+            } else {
+                channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
+                return false;
+            }
+        } else {
+            return false;
         }
-        return team1Won !== team2Won;
     }
 
     reset() {
@@ -162,7 +174,7 @@ export class Game {
 
     assignRandomTeams() {
         shuffleArray(this.players);
-        const splitIndex = this.players.length;
+        const splitIndex = this.players.length / 2;
         this.players.forEach((userId, index) => {
             if (index < splitIndex) {
                 this.team1.players.push(userId);
@@ -171,4 +183,3 @@ export class Game {
             }
         });
     }
-}

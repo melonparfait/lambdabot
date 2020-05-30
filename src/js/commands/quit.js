@@ -9,6 +9,5 @@ export function execute(message, args) {
         return message.channel.send('No one has started a game yet. Use the \`newgame\` command to start one!');
     } else {
         message.client.game.end();
-        return message.reply('stopped the current game.');
+        return message.channel.send('I stopped the current game.');
     }
-}
