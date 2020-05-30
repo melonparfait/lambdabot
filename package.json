@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/melonparfait/lamdabot#readme",
   "dependencies": {
+    "csv-parser": "^2.3.2",
     "discord.js": "^12.2.0"
   },
   "devDependencies": {
