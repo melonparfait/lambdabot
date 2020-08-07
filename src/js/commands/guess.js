@@ -38,7 +38,7 @@ export function execute(message, args) {
                 return !isBot && isGuess && isPlayerOnDTeam;
             }
 
-            const countdownCounter = 1;
+            var countdownCounter = 1;
             const timer = setInterval(() =>  {
                     if (countdownCounter === 3) {
                         clearInterval(timer)
