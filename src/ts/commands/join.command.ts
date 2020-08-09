@@ -39,7 +39,7 @@ export function execute(message: DiscordMessage, args: string[]) {
           game.team2.players.push(message.author.id);
           response += '2.';
         }
-        return message.reply(response);
+        return message.channel.send(response);
       }
     } else {
       if (game.join(message.author.id)) {
