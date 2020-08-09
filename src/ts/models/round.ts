@@ -1,25 +1,27 @@
-export class Round {
-    clueGiver;
-    oTeam;
-    dTeam;
-    leftClue;
-    rightClue;
-    value;
-    oGuess;
-    dGuess;
+import { GameTeam } from "./team";
 
-    constructor(oTeam, dTeam) {
+export class Round {
+    clueGiver: string;
+    oTeam: GameTeam;
+    dTeam: GameTeam;
+    leftClue: string;
+    rightClue: string;
+    value: number;
+    oGuess: number;
+    dGuess: boolean;
+
+    constructor(oTeam: GameTeam, dTeam: GameTeam) {
         this.clueGiver = oTeam.clueGiver();
         this.oTeam = oTeam;
         this.dTeam = dTeam;
         this.generateNewValue();
     }
 
-    makeOGuess(guess) {
+    makeOGuess(guess: number) {
         this.oGuess = guess;
     }
 
-    makeDGuess(guess) {
+    makeDGuess(guess: boolean) {
         this.dGuess = guess;
     }
 

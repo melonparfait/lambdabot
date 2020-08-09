@@ -1,11 +1,11 @@
-export class Team {
+export class GameTeam {
     points = 0;
-    players = []
+    players: string[] = [];
     clueGiverCounter = 0;
 
     constructor() { }
 
-    clueGiver() {
+    clueGiver(): string {
         return this.players[this.clueGiverCounter % (this.players.length)];
     }
 }

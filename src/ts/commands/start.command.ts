@@ -1,4 +1,7 @@
 import { sendNewRoundMessages } from "../helpers/newround";
+import { DiscordMessage } from "../helpers/lambda.interface";
+import { TextChannel } from "discord.js";
+import { gameSettings } from "../helpers/print.gameinfo";
 
 export const name = 'startgame';
 export const aliases = ['start'];
@@ -6,7 +9,7 @@ export const cooldown = 5;
 export const description = 'Starts the game using the current teams';
 export const guildOnly = true;
 export const usage = ''
-export function execute(message, args) {
+export function execute(message: DiscordMessage, args: string[]) {
     const game = message.client.game;
     if (!game) {
         return message.channel.send('No one has started a game yet. Use the \`newgame\` command to start one!');
@@ -18,6 +21,7 @@ export function execute(message, args) {
         return message.channel.send('We need 4 or more players to start a game. Let\'s find some more!'); 
     } else {
         game.start();
-        sendNewRoundMessages(message.client, message.channel);
+        message.channel.send(gameSettings(game));
+        sendNewRoundMessages(message.client, message.channel as TextChannel);
     }
 }

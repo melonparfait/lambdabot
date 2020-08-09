@@ -1,10 +1,12 @@
+import { DiscordMessage } from "../helpers/lambda.interface";
+
 export const name = 'quit';
 export const aliases = ['stop'];
 export const cooldown = 5;
 export const description = 'Stops the current game';
 export const guildOnly = true;
 export const usage = ''
-export function execute(message, args) {
+export function execute(message: DiscordMessage, args: string[]) {
     if (!message.client.game) {
         return message.channel.send('No one has started a game yet. Use the \`newgame\` command to start one!');
     } else {

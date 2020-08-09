@@ -1,5 +1,7 @@
 import { sendNewRoundMessages } from "../helpers/newround";
 import { sendGameEndScoreboard } from "../helpers/gameend";
+import { DiscordMessage } from "../helpers/lambda.interface";
+import { TextChannel } from "discord.js";
 
 export const name = 'guess';
 export const aliases = [];
@@ -8,15 +10,15 @@ export const description = 'Submits a guess for the guessing team';
 export const guildOnly = true;
 export const args = true;
 export const usage = '<integer between 1 and 100>'
-export function execute(message, args) {
+export function execute(message: DiscordMessage, args: string[]) {
     const game = message.client.game;
     if (!game || game.status === 'finished') {
         return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
     } else if (game.status !== 'playing') {
         return message.reply('it looks like the game isn\'t in progress yet.');
-    } else if (message.author.id === game.round.clueGiver
-            || !game.round.oTeam.players.includes(message.author.id)) {
-        return message.reply('you\'re not eligible to make a vote right now.');
+    // } else if (message.author.id === game.round.clueGiver
+    //         || !game.round.oTeam.players.includes(message.author.id)) {
+    //     return message.reply('you\'re not eligible to make a vote right now.');
     } else if (game.round.oGuess) {
         return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
     } else {
@@ -56,9 +58,9 @@ export function execute(message, args) {
                         + `\nThe real answer was ${game.round.value}!`);
                     game.endRound(message.channel);
                     if (game.status !== 'finished') {
-                        sendNewRoundMessages(message.client, message.channel);
+                        sendNewRoundMessages(message.client, message.channel as TextChannel);
                     } else {
-                        sendGameEndScoreboard(message.channel, game);
+                        sendGameEndScoreboard(message.channel as TextChannel, game);
                     }
                 })
                 .catch((err) => {
@@ -67,11 +69,17 @@ export function execute(message, args) {
                         + `\nThe real answer was ${game.round.value}!`);
                     game.endRound(message.channel, false);
                     if (game.status !== 'finished') {
-                        sendNewRoundMessages(message.client, message.channel);
+                        sendNewRoundMessages(message.client, message.channel as TextChannel);
                     } else {
-                        sendGameEndScoreboard(message.channel, game);
+                        sendGameEndScoreboard(message.channel as TextChannel, game);
                     }
                 });
+            } else {
+
+            }
+
+
+
         }
     }
 }

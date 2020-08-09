@@ -3,7 +3,7 @@ A Discord bot that hosts Wavelength games over chat. There is both a Javascript 
 
 ## Prerequisites
 1. [Create a bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) (you can skip this if you already have access to a bot)
-1. Replace the placeholder in `keys.json` with the bot token
+1. Replace the placeholder in `keys.json` with the bot token.
 
 ## Running the Python bot
 1. Make sure you have dependencies installed by running `pip install -r requirements.txt`
@@ -15,7 +15,7 @@ If you want to use a [virtual environment](https://docs.python.org/3/tutorial/ve
 
 You can leave the virtual environment with `deactivate`.
 
-## Running the Javascript bot
+## Running the TypeScript bot
 
 1. Make sure you have [NodeJS](https://nodejs.org/en/) installed with a version >=12
 2. Run `npm install`
