@@ -7,7 +7,7 @@ export const cooldown = 5;
 export const description = 'Creates teams for the current game';
 export const guildOnly = true;
 export const args = true;
-export const usage = '<\'random\'>';
+export const usage = '<random>';
 export function execute(message: DiscordMessage, args: string[]) {
   const game = message.client.game;
   if (!game || game.status === 'finished') {
