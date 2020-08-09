@@ -9,7 +9,7 @@ export function roundStatus(game: Game): string {
 
 export function gameSettings(game: Game): string {
   const asyncLabel = game.asyncPlay ? 'enabled' : 'disabled';
-  const counterGuess = game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
+  const counterGuess = !game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
   return '**Settings**'
     + `\n├─ Points to win: ${game.threshold}`
     + counterGuess
