@@ -1,7 +1,7 @@
 import { sendNewRoundMessages } from "../helpers/newround";
-import { sendGameEndScoreboard } from "../helpers/gameend";
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { TextChannel } from "discord.js";
+import { sendGameEndScoreboard, clue } from "../helpers/print.gameinfo";
 
 const TIMER_TICK = 30 * 1000;
 const dTeamReply = (msg: DiscordMessage) => {
@@ -26,9 +26,9 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
   } else if (game.status !== 'playing') {
     return message.reply('it looks like the game isn\'t in progress yet.');
-  // } else if (message.author.id === game.round.clueGiver
-  //     || !game.round.oTeam.players.includes(message.author.id)) {
-  //   return message.reply('you\'re not eligible to make a vote right now.');
+  } else if (message.author.id === game.round.clueGiver
+      || !game.round.oTeam.players.includes(message.author.id)) {
+    return message.reply('you\'re not eligible to make a vote right now.');
   } else if (game.round.oGuess) {
     return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
   } else {
@@ -38,6 +38,7 @@ export function execute(message: DiscordMessage, args: string[]) {
     } else {
       game.round.makeOGuess(guess);
       let response = `Team ${game.guessingTeam()} guessed ${guess}.`
+        + '\n' + clue(game.round, guess)
         + `\nTeam ${game.otherTeam()}, do you think the target is \`!higher\` or \`!lower\`?`;
       if (!game.asyncPlay) {
         response += `\nYou have ${game.dGuessTime / 1000} seconds to answer!`;

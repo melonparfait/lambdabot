@@ -1,10 +1,12 @@
 import { Game } from "../models/game";
 import { Round } from "../models/round";
+import { TextChannel } from "discord.js";
 
 export function roundStatus(game: Game): string {
   return `Round: ${game.clueCounter + 1}`
     + `\nTeam ${game.guessingTeam()} guesses.`
     + `\n<@${game.round.clueGiver}> is the clue giver.`
+    + `\n${clue(game.round)}`;
 }
 
 export function gameSettings(game: Game): string {
@@ -16,10 +18,28 @@ export function gameSettings(game: Game): string {
     + `\n└─ Asynchronous play: ${asyncLabel}`;
 }
 
-export function clue(round: Round): String {
+export function spectrumBar(target?: number): string {
+  let spectrumBar = '='.repeat(25);
+  if (target) {
+    const marker = Math.floor(target / 4);
+    spectrumBar = spectrumBar.substring(0, marker) + `[${target}]`
+      + spectrumBar.substring(marker, spectrumBar.length - 1);
+  }
+  return spectrumBar;
+}
+
+export function clue(round: Round, guess?: number): string {
   return 'The clue is:'
+  + `\n${round.leftClue} 0 [${spectrumBar(guess)}] 100 ${round.rightClue}`;
   + `\n├─ Lower: ${round.leftClue}`
   + `\n└─ Higher: ${round.rightClue}`
+}
+
+export function sendGameEndScoreboard(channel: TextChannel, game: Game) {
+  channel.send(game.winner + ' has won the game!'
+    + '\nFinal stats:'
+    + `\nRounds played: ${game.clueCounter}` + '\n'
+    + scoreboard(game));
 }
 
 export function scoreboard(game: Game): string {
