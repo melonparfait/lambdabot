@@ -9,7 +9,8 @@ import { exit } from 'process';
 
 const session = new AuthSession(bot_token);
 session.client.commands = new Collection<string, Command>();
-const cooldowns = new Collection<string, Collection<string, number>>();
+const userCooldowns = new Collection<string, Collection<string, number>>();
+const globalCooldowns = new Collection<string, number>();
 
 async function loadCommands() {
   const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.command.ts'));
@@ -61,25 +62,40 @@ session.client.on('message', (message: DiscordMessage) => {
     return message.channel.send(reply);
   }
 
-  if (!cooldowns.has(command.name)) {
-    cooldowns.set(command.name, new Collection<string, number>());
-  }
-
-  const now = Date.now();
-  const timestamps = cooldowns.get(command.name);
   const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
 
   if (cooldownAmount !== 0) {
-    if (timestamps.has(message.author.id)) {
-      const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-      
-      if (now < expirationTime) {
-        const timeLeft = (expirationTime - now) / 1000;
-        return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+    const now = Date.now();
+    if (command.globalCooldown) {
+      if (!globalCooldowns.has(command.name)) {
+        globalCooldowns.set(command.name, now);
+      } else {
+        const timestamp = globalCooldowns.get(command.name);
+        const expirationTime = timestamp + cooldownAmount;
+        if (now < expirationTime) {
+          const timeLeft = (expirationTime - now) / 1000;
+          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+        } else {
+          globalCooldowns.set(command.name, now);
+          setTimeout(() => globalCooldowns.delete(command.name));
+        }
       }
     } else {
-      timestamps.set(message.author.id, now);
-      setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+      if (!userCooldowns.has(command.name)) {
+        userCooldowns.set(command.name, new Collection<string, number>());
+      }
+      const timestamps = userCooldowns.get(command.name);
+      if (timestamps.has(message.author.id)) {
+        const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+        
+        if (now < expirationTime) {
+          const timeLeft = (expirationTime - now) / 1000;
+          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+        }
+      } else {
+        timestamps.set(message.author.id, now);
+        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+      }
     }
   }
 
@@ -89,7 +105,6 @@ session.client.on('message', (message: DiscordMessage) => {
     console.error(error);
     message.reply('there was an error trying to execute that command!');
   }
-
 });
 
 loadCommands().then(

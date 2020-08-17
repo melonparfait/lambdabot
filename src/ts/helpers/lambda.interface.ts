@@ -9,6 +9,7 @@ export interface Command {
   name: string,
   aliases: any[],
   cooldown: number,
+  globalCooldown: boolean,
   description: string,
   guildOnly: boolean,
   usage: string,
