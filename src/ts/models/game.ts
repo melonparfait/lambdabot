@@ -1,6 +1,6 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { TextChannel } from 'discord.js';
+import { TextChannel, Team } from 'discord.js';
 import { GameSettings } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
@@ -20,6 +20,7 @@ export class Game {
   clueCounter: number;
   round: Round;
   winner: string;
+  currentClue: string;
 
   private _settings: GameSettings;
   get threshold(): number {
@@ -79,6 +80,7 @@ export class Game {
   }
 
   endRound(channel: TextChannel, scoreDefense = true) {
+    this.currentClue = undefined;
     this.score(channel, scoreDefense);
     if (this.clueCounter % 2 === 0) {
       this.team1.clueGiverCounter++;
@@ -101,19 +103,19 @@ export class Game {
 
     // Offense scoring
     if (Math.abs(this.round.oGuess - this.round.value) < 3) {
-      if (this.guessingTeam() === 1) {
+      if (this.offenseTeamNumber() === 1) {
         team1Pts = 4;
       } else {
         team2Pts = 4;
       }
     } else if (Math.abs(this.round.oGuess - this.round.value) <= 5) {
-      if (this.guessingTeam() === 1) {
+      if (this.offenseTeamNumber() === 1) {
         team1Pts = 3;
       } else {
         team2Pts = 3;
       }
     } else if (Math.abs(this.round.oGuess - this.round.value) <= 10) {
-      if (this.guessingTeam() === 1) {
+      if (this.offenseTeamNumber() === 1) {
         team1Pts = 2;
       } else {
         team2Pts = 2;
@@ -123,13 +125,13 @@ export class Game {
     // Defense scoring
     if ((Math.abs(this.round.oGuess - this.round.value) > 2) && scoreDefense) {
       if (this.round.value > this.round.oGuess && this.round.dGuess) {
-        if (this.guessingTeam() === 2) {
+        if (this.offenseTeamNumber() === 2) {
           team1Pts = 1;
         } else {
           team2Pts = 1;
         }
       } else if (this.round.value < this.round.oGuess && !this.round.dGuess) {
-        if (this.guessingTeam() === 2) {
+        if (this.offenseTeamNumber() === 2) {
           team1Pts = 1;
         } else {
           team2Pts = 1;
@@ -178,15 +180,39 @@ export class Game {
     this.winner = undefined;
   }
 
-  guessingTeam() {
+  offenseTeamNumber(): number {
     return (this.clueCounter % 2) + 1;
   }
 
-  otherTeam() {
-    if (this.guessingTeam() === 1) {
+  offenseTeam(): GameTeam {
+    if (this.offenseTeamNumber() === 1) {
+      return this.team1;
+    } else {
+      return this.team2;
+    }
+  }
+
+  defenseTeamNumber(): number {
+    if (this.offenseTeamNumber() === 1) {
       return 2;
     } else {
       return 1;
+    }
+  }
+
+  defenseTeam(): GameTeam {
+    if (this.offenseTeamNumber() === 1) {
+      return this.team2;
+    } else {
+      return this.team1;
+    }
+  }
+
+  clueGiver(): string {
+    if (this.offenseTeamNumber() === 1) {
+      return this.team1.clueGiver();
+    } else {
+      return this.team2.clueGiver();
     }
   }
 

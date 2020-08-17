@@ -1,31 +1,31 @@
 import { GameTeam } from "./team";
 
 export class Round {
-    clueGiver: string;
-    oTeam: GameTeam;
-    dTeam: GameTeam;
-    leftClue: string;
-    rightClue: string;
-    value: number;
-    oGuess: number;
-    dGuess: boolean;
+  clueGiver: string;
+  oTeam: GameTeam;
+  dTeam: GameTeam;
+  leftClue: string;
+  rightClue: string;
+  value: number;
+  oGuess: number;
+  dGuess: boolean;
 
-    constructor(oTeam: GameTeam, dTeam: GameTeam) {
-        this.clueGiver = oTeam.clueGiver();
-        this.oTeam = oTeam;
-        this.dTeam = dTeam;
-        this.generateNewValue();
-    }
+  constructor(oTeam: GameTeam, dTeam: GameTeam) {
+    this.clueGiver = oTeam.clueGiver();
+    this.oTeam = oTeam;
+    this.dTeam = dTeam;
+    this.generateNewValue();
+  }
 
-    makeOGuess(guess: number) {
-        this.oGuess = guess;
-    }
+  makeOGuess(guess: number) {
+    this.oGuess = guess;
+  }
 
-    makeDGuess(guess: boolean) {
-        this.dGuess = guess;
-    }
+  makeDGuess(guess: boolean) {
+    this.dGuess = guess;
+  }
 
-    generateNewValue() {
-        this.value = Math.floor(Math.random() * 100) + 1;
-    }
+  generateNewValue() {
+    this.value = Math.floor(Math.random() * 100) + 1;
+  }
 }

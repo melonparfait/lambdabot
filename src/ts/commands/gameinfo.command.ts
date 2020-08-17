@@ -1,9 +1,10 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
-import { scoreboard, roundStatus, roster, gameSettings } from "../helpers/print.gameinfo";
+import { scoreboard, roundStatus, roster, gameSettings, currentClue } from "../helpers/print.gameinfo";
 
 export const name = 'gameinfo';
 export const aliases = ['info'];
 export const cooldown = 5;
+export const globalCooldown = true;
 export const description = 'Posts information about the current game into chat';
 export const guildOnly = true;
 export const usage = '';
@@ -19,7 +20,11 @@ export function execute(message: DiscordMessage, args: string[]) {
         response += (gameSettings(game) + '\n' + roster(game));
         break;
       case 'playing':
-        response += (roundStatus(game) + '\n' + scoreboard(game));
+        response += roundStatus(game);
+        if (game.currentClue) {
+          response += ('\n' + currentClue(game));
+        }
+        response += ('\n' + scoreboard(game));
         break;
       default:
         response += scoreboard(game);
