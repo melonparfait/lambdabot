@@ -1,7 +1,7 @@
 import { sendNewRoundMessages } from "../helpers/newround";
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { TextChannel } from "discord.js";
-import { gameSettings } from "../helpers/print.gameinfo";
+import { gameSettings, roster } from "../helpers/print.gameinfo";
 
 export const name = 'startgame';
 export const aliases = ['start'];
@@ -21,7 +21,11 @@ export function execute(message: DiscordMessage, args: string[]) {
         return message.channel.send('We need 4 or more players to start a game. Let\'s find some more!'); 
     } else {
         game.start();
-        message.channel.send(gameSettings(game));
+        message.channel.send(gameSettings(game) + '\n' + roster(game))
+          .then(() => {
+            message.channel.lastMessage.pin()
+              .catch(err => console.log(err));
+          });
         sendNewRoundMessages(message.client, message.channel as TextChannel);
     }
 }
