@@ -4,7 +4,7 @@ import { TextChannel } from "discord.js";
 
 export function roundStatus(game: Game): string {
   return `Round: ${game.clueCounter + 1}`
-    + `\nTeam ${game.guessingTeam()} guesses.`
+    + `\nTeam ${game.offenseTeamNumber()} guesses.`
     + `\n<@${game.round.clueGiver}> is the clue giver.`
     + `\n${clue(game.round)}`;
 }
@@ -18,12 +18,18 @@ export function gameSettings(game: Game): string {
     + `\n└─ Asynchronous play: ${asyncLabel}`;
 }
 
-export function spectrumBar(target?: number): string {
-  let spectrumBar = '='.repeat(25);
+export function spectrumBar(target?: number, side?: 'higher' | 'lower'): string {
+  let length = 25;
+  let spectrumBar = '='.repeat(length);
   if (target) {
     const marker = Math.floor(target / 4);
-    spectrumBar = spectrumBar.substring(0, marker) + `[${target}]`
-      + spectrumBar.substring(marker, spectrumBar.length - 1);
+    const leftSide = side === 'lower'
+      ? '<'.repeat(marker)
+      : spectrumBar.substring(0, marker);
+    const rightSide = side === 'higher'
+      ? '>'.repeat(length - marker - 1)
+      : spectrumBar.substring(marker, spectrumBar.length - 1);
+    spectrumBar = leftSide + `[${target}]` + rightSide;
   }
   return spectrumBar;
 }
@@ -31,8 +37,14 @@ export function spectrumBar(target?: number): string {
 export function clue(round: Round, guess?: number): string {
   return 'The clue is:'
   + `\n${round.leftClue} 0 [${spectrumBar(guess)}] 100 ${round.rightClue}`;
-  + `\n├─ Lower: ${round.leftClue}`
-  + `\n└─ Higher: ${round.rightClue}`
+}
+
+export function currentClue(game: Game): string {
+  if (game.currentClue) {
+    return `<@${game.clueGiver()}> gave this clue: ${game.currentClue}`;
+  } else {
+    return undefined;
+  }
 }
 
 export function sendGameEndScoreboard(channel: TextChannel, game: Game) {
