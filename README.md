@@ -1,5 +1,5 @@
 # lambdabot
-A Discord bot that hosts Wavelength games over chat. There is both a Javascript and a Python implementation.
+A Discord bot that hosts Wavelength games over chat. There is both a Javascript (TODO: and a Python implementation).
 
 ## Prerequisites
 1. [Create a bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) (you can skip this if you already have access to a bot)
