@@ -1,12 +1,13 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { TextChannel, Team } from 'discord.js';
+import { TextChannel, Message } from 'discord.js';
 import { GameSettings } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
+import { isUndefined } from 'lodash';
 
 const DEFAULT_SETTINGS: GameSettings = {
-  threshold: 10,
+  threshold: 'default',
   asyncPlay: false,
   oGuessTime: 180 * 1000,
   dGuessTime: 120 * 1000
@@ -19,12 +20,17 @@ export class Game {
   team2: GameTeam;
   clueCounter: number;
   round: Round;
-  winner: string;
+  winner: 'Team 1' | 'Team 2';
   currentClue: string;
+  pinnedInfo: Message;
 
   private _settings: GameSettings;
   get threshold(): number {
-    return this._settings.threshold;
+    if (this._settings.threshold === 'default') {
+      return Math.floor(this.players.length / 2) * 5;
+    } else {
+      return this._settings.threshold;
+    }
   }
   get asyncPlay(): boolean {
     return this._settings.asyncPlay;
@@ -34,11 +40,19 @@ export class Game {
   }
 
   constructor(settings?: GameSettings) {
-    this._settings = settings ?? DEFAULT_SETTINGS;
+    if (isUndefined(settings)) {
+      this._settings = DEFAULT_SETTINGS;
+    } else {
+      this.setSettings(settings);
+    }
     this.resetTeams();
   }
 
-  join(userId: string) {
+  /**
+   * Adds the `userId` to the game. This does not assign them to a team.
+   * @return `true` if the player was added to the game, `false` otherwise.
+   */
+  join(userId: string): boolean {
     if (!this.players.includes(userId)) {
       this.players.push(userId);
       return true
@@ -47,6 +61,7 @@ export class Game {
     }
   }
 
+  /** Clears both teams in the game */
   resetTeams() {
     if (this.status === 'setup') {
       this.team1 = new GameTeam();
@@ -61,6 +76,9 @@ export class Game {
   }
 
   start() {
+    if (this._settings.threshold === 'default') {
+      this._settings.threshold = this.threshold;
+    }
     this.status = 'playing'
     this.clueCounter = 0;
     this.winner = undefined;
@@ -102,7 +120,7 @@ export class Game {
     let team2Pts = 0;
 
     // Offense scoring
-    if (Math.abs(this.round.oGuess - this.round.value) < 3) {
+    if (Math.abs(this.round.oGuess - this.round.value) <= 2) {
       if (this.offenseTeamNumber() === 1) {
         team1Pts = 4;
       } else {

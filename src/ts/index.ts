@@ -62,42 +62,42 @@ session.client.on('message', (message: DiscordMessage) => {
     return message.channel.send(reply);
   }
 
-  const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
+  // const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
 
-  if (cooldownAmount !== 0) {
-    const now = Date.now();
-    if (command.globalCooldown) {
-      if (!globalCooldowns.has(command.name)) {
-        globalCooldowns.set(command.name, now);
-      } else {
-        const timestamp = globalCooldowns.get(command.name);
-        const expirationTime = timestamp + cooldownAmount;
-        if (now < expirationTime) {
-          const timeLeft = (expirationTime - now) / 1000;
-          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-        } else {
-          globalCooldowns.set(command.name, now);
-          setTimeout(() => globalCooldowns.delete(command.name));
-        }
-      }
-    } else {
-      if (!userCooldowns.has(command.name)) {
-        userCooldowns.set(command.name, new Collection<string, number>());
-      }
-      const timestamps = userCooldowns.get(command.name);
-      if (timestamps.has(message.author.id)) {
-        const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+  // if (cooldownAmount !== 0) {
+  //   const now = Date.now();
+  //   if (command.globalCooldown) {
+  //     if (!globalCooldowns.has(command.name)) {
+  //       globalCooldowns.set(command.name, now);
+  //     } else {
+  //       const timestamp = globalCooldowns.get(command.name);
+  //       const expirationTime = timestamp + cooldownAmount;
+  //       if (now < expirationTime) {
+  //         const timeLeft = (expirationTime - now) / 1000;
+  //         return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+  //       } else {
+  //         globalCooldowns.set(command.name, now);
+  //         setTimeout(() => globalCooldowns.delete(command.name));
+  //       }
+  //     }
+  //   } else {
+  //     if (!userCooldowns.has(command.name)) {
+  //       userCooldowns.set(command.name, new Collection<string, number>());
+  //     }
+  //     const timestamps = userCooldowns.get(command.name);
+  //     if (timestamps.has(message.author.id)) {
+  //       const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
         
-        if (now < expirationTime) {
-          const timeLeft = (expirationTime - now) / 1000;
-          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-        }
-      } else {
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-      }
-    }
-  }
+  //       if (now < expirationTime) {
+  //         const timeLeft = (expirationTime - now) / 1000;
+  //         return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+  //       }
+  //     } else {
+  //       timestamps.set(message.author.id, now);
+  //       setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+  //     }
+  //   }
+  // }
 
   try {
     command.execute(message, args);

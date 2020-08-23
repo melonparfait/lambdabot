@@ -17,7 +17,14 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('only the clue giver can use this command!');
   } else {
     game.currentClue = args.join(' ');
-    return message.channel.send(currentClue(game)
+    const clueMsg = currentClue(game);
+    game.pinnedInfo.edit(game.pinnedInfo.content 
+        + '\n' + clueMsg)
+      .catch(err => {
+        message.channel.send('I couldn\'t edit the pinned game info on this channel. Do I have permission to manage messages on this channel?');
+        console.log(err);
+    });
+    return message.channel.send(clueMsg
       + ` ${game.offenseTeam().players
           .filter(id => id !== message.author.id)
           .map(id => `<@${id}>`).join(', ')}`);

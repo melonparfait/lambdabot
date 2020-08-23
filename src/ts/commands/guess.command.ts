@@ -69,9 +69,10 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
   } else if (game.status !== 'playing') {
     return message.reply('it looks like the game isn\'t in progress yet.');
-  } else if (message.author.id === game.round.clueGiver
-      || !game.round.oTeam.players.includes(message.author.id)) {
-    return message.reply('you\'re not eligible to make a vote right now.');
+  } else if (message.author.id === game.round.clueGiver) {
+    return message.reply('the clue giver cannot guess! No cheating!');
+  } else if (!game.round.oTeam.players.includes(message.author.id)) {
+    return message.reply(`only members from Team ${game.offenseTeamNumber} can guess!`);
   } else if (game.round.oGuess) {
     return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
   } else {

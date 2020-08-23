@@ -3,7 +3,7 @@ import { Round } from "../models/round";
 import { TextChannel } from "discord.js";
 
 export function roundStatus(game: Game): string {
-  return `Round: ${game.clueCounter + 1}`
+  return `**Round: ${game.clueCounter + 1}**`
     + `\nTeam ${game.offenseTeamNumber()} guesses.`
     + `\n<@${game.round.clueGiver}> is the clue giver.`
     + `\n${clue(game.round)}`;

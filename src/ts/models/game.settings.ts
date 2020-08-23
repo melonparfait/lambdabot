@@ -1,5 +1,5 @@
 export interface GameSettings {
-  threshold: number;
+  threshold: number | 'default';
   asyncPlay: boolean;
   oGuessTime: number;
   dGuessTime: number;
