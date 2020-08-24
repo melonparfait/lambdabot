@@ -13,7 +13,7 @@ export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel
   game.round.rightClue = client.data[clueIndex].Higher;
 
   const user = client.users.cache.get(game.round.clueGiver);
-  user.send(`\n**Round ${game.clueCounter + 1}:**`
+  user.send(`\n**Round ${game.roundCounter + 1}:**`
     + '\nYou\'re the clue giver!\n'
     + clue(game.round, game.round.value)
     + `\nThe target number is: ${game.round.value}`)

@@ -30,7 +30,7 @@ export function execute(message: DiscordMessage, args: string[]) {
     const asyncPlayArg = args[1] === 'async';
 
     const dGuessTimeArg = parseInt(args[2]);
-    const dGuessTime = isNaN(dGuessTimeArg) ? undefined : dGuessTimeArg * 1000;
+    const dGuessTime = (isNaN(dGuessTimeArg) || dGuessTimeArg < 1 ) ? undefined : dGuessTimeArg * 1000;
 
     message.client.game.setSettings({
       threshold: threshold,

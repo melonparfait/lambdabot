@@ -12,7 +12,7 @@ export class Game {
   status: GamePhase = 'setup';
   team1: GameTeam;
   team2: GameTeam;
-  clueCounter: number;
+  roundCounter: number;
   round: Round;
   currentClue: string;
   pinnedInfo: Message;
@@ -73,7 +73,7 @@ export class Game {
       this._settings.threshold = this.threshold;
     }
     this.status = 'playing'
-    this.clueCounter = 0;
+    this.roundCounter = 0;
     this.newRound();
   }
 
@@ -82,7 +82,7 @@ export class Game {
   }
 
   newRound() {
-    if (this.clueCounter % 2 === 0) {
+    if (this.offenseTeamNumber() === 1) {
       this.round = new Round(this.team1, this.team2);
     } else {
       this.round = new Round(this.team2, this.team1);
@@ -91,12 +91,12 @@ export class Game {
 
   endRound() {
     this.currentClue = undefined;
-    if (this.clueCounter % 2 === 0) {
+    if (this.offenseTeamNumber() === 1) {
       this.team1.clueGiverCounter++;
     } else {
       this.team2.clueGiverCounter++;
     }
-    this.clueCounter++;
+    this.roundCounter++;
   }
 
   /** 
@@ -119,6 +119,8 @@ export class Game {
         oResult = OffenseScore.strong;
       } else if (delta <= 10) {
         oResult = OffenseScore.medium;
+      } else {
+        oResult = OffenseScore.nothing;
       }
       if (scoreDefense && dCorrect) {
         dResult = true;
@@ -133,13 +135,11 @@ export class Game {
       t2Pts = oResult;
     }
     this.team1.points += t1Pts;
-    this.team2.points = t2Pts
-      ? this.team2.points + 1
-      : this.team2.points;
+    this.team2.points += t2Pts;
 
     return {
       offenseResult: oResult,
-      defenseResult: scoreDefense && dCorrect,
+      defenseResult: dResult,
       team1PointChange: t1Pts,
       team2PointChange: t2Pts
     };
@@ -167,12 +167,12 @@ export class Game {
     this.status = 'setup';
     this.team1 = undefined;
     this.team2 = undefined;
-    this.clueCounter = 0;
+    this.roundCounter = 0;
     this.round = undefined;
   }
 
   offenseTeamNumber(): number {
-    return (this.clueCounter % 2) + 1;
+    return (this.roundCounter % 2) + 1;
   }
 
   offenseTeam(): GameTeam {
