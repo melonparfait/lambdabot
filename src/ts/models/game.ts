@@ -1,21 +1,14 @@
 import { GameTeam } from './team';
 import { Round } from './round';
 import { Message } from 'discord.js';
-import { GameSettings } from './game.settings';
+import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
-import { isUndefined } from 'lodash';
+import { isUndefined, cloneDeep } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
 
-const DEFAULT_SETTINGS: GameSettings = {
-  threshold: 'default',
-  asyncPlay: false,
-  oGuessTime: 180 * 1000,
-  dGuessTime: 120 * 1000
-}
-
 export class Game {
-  players: string[] = [];
+  players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
   team2: GameTeam;
@@ -27,7 +20,7 @@ export class Game {
   private _settings: GameSettings;
   get threshold(): number {
     if (this._settings.threshold === 'default') {
-      return Math.floor(this.players.length / 2) * 5;
+      return Math.max(this.team1.players.length, this.team2.players.length) * 5;
     } else {
       return this._settings.threshold;
     }
@@ -41,9 +34,9 @@ export class Game {
 
   constructor(settings?: GameSettings) {
     if (isUndefined(settings)) {
-      this._settings = DEFAULT_SETTINGS;
+      this._settings = cloneDeep(DEFAULT_SETTINGS);
     } else {
-      this.setSettings(settings);
+      this._settings = cloneDeep(settings);
     }
     this.resetTeams();
   }
@@ -53,8 +46,8 @@ export class Game {
    * @return `true` if the player was added to the game, `false` otherwise.
    */
   join(userId: string): boolean {
-    if (!this.players.includes(userId)) {
-      this.players.push(userId);
+    if (!this.players.has(userId)) {
+      this.players.add(userId);
       return true
     } else {
       return false
@@ -170,7 +163,7 @@ export class Game {
   }
 
   reset() {
-    this.players = [];
+    this.players = new Set<string>();
     this.status = 'setup';
     this.team1 = undefined;
     this.team2 = undefined;
@@ -214,11 +207,15 @@ export class Game {
     }
   }
 
+  /**
+   * Splits the players in the game evenly into two teams at random
+   */
   assignRandomTeams() {
-    if (this.players.length > 1) {
-      shuffleArray(this.players);
-      const splitIndex = this.players.length / 2;
-      this.players.forEach((userId, index) => {
+    const players = Array.from(this.players);
+    if (this.players.size > 1) {
+      shuffleArray(players);
+      const splitIndex = players.length / 2;
+      players.forEach((userId, index) => {
         if (index < splitIndex) {
           this.team1.players.push(userId);
         } else {
@@ -227,9 +224,9 @@ export class Game {
       });
     } else {
       if (Math.random() > 0.5) {
-        this.team1.players.push(this.players[0]);
+        this.team1.players.push(players[0]);
       } else {
-        this.team2.players.push(this.players[0]);
+        this.team2.players.push(players[0]);
       }
     }
   }

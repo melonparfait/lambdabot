@@ -4,3 +4,10 @@ export interface GameSettings {
   oGuessTime: number;
   dGuessTime: number;
 }
+
+export const DEFAULT_SETTINGS: GameSettings = {
+  threshold: 'default',
+  asyncPlay: false,
+  oGuessTime: 180 * 1000,
+  dGuessTime: 120 * 1000
+}
