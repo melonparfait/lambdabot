@@ -1,10 +1,11 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { TextChannel, Message } from 'discord.js';
+import { Message } from 'discord.js';
 import { GameSettings } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
 import { isUndefined } from 'lodash';
+import { ScoringResults, OffenseScore } from './scoring.results';
 
 const DEFAULT_SETTINGS: GameSettings = {
   threshold: 'default',
@@ -20,7 +21,6 @@ export class Game {
   team2: GameTeam;
   clueCounter: number;
   round: Round;
-  winner: 'Team 1' | 'Team 2';
   currentClue: string;
   pinnedInfo: Message;
 
@@ -81,11 +81,10 @@ export class Game {
     }
     this.status = 'playing'
     this.clueCounter = 0;
-    this.winner = undefined;
     this.newRound();
   }
 
-  end() {
+  endGame() {
     this.status = 'finished';
   }
 
@@ -97,95 +96,77 @@ export class Game {
     }
   }
 
-  endRound(channel: TextChannel, scoreDefense = true) {
+  endRound() {
     this.currentClue = undefined;
-    this.score(channel, scoreDefense);
     if (this.clueCounter % 2 === 0) {
       this.team1.clueGiverCounter++;
     } else {
       this.team2.clueGiverCounter++;
     }
     this.clueCounter++;
-    if (this.isOver(channel)) {
-      this.end();
-      return true;
+  }
+
+  /** 
+   * Scores the current round and returns the scoring results.
+   * @param scoreDefense Whether or not to score the defense guess
+   */
+  score(scoreDefense = true): ScoringResults {
+    let oResult: OffenseScore;
+    let dResult = false;
+    let t1Pts: number;
+    let t2Pts: number;
+    const dCorrect = ((this.round.value > this.round.oGuess) && this.round.dGuess)
+      || ((this.round.value < this.round.oGuess) && !this.round.dGuess);
+
+    const delta = Math.abs(this.round.oGuess - this.round.value);
+    if (delta <= 2) {
+      oResult = OffenseScore.bullseye;
     } else {
-      this.newRound();
-      return false;
+      if (delta <= 5) {
+        oResult = OffenseScore.strong;
+      } else if (delta <= 10) {
+        oResult = OffenseScore.medium;
+      }
+      if (scoreDefense && dCorrect) {
+        dResult = true;
+      }
     }
+
+    if (this.offenseTeamNumber() === 1) {
+      t1Pts = oResult;
+      t2Pts = dResult ? 1 : 0;
+    } else {
+      t1Pts = dResult ? 1 : 0;
+      t2Pts = oResult;
+    }
+    this.team1.points += t1Pts;
+    this.team2.points = t2Pts
+      ? this.team2.points + 1
+      : this.team2.points;
+
+    return {
+      offenseResult: oResult,
+      defenseResult: scoreDefense && dCorrect,
+      team1PointChange: t1Pts,
+      team2PointChange: t2Pts
+    };
   }
 
-  score(channel: TextChannel, scoreDefense: boolean) {
-    let team1Pts = 0;
-    let team2Pts = 0;
-
-    // Offense scoring
-    if (Math.abs(this.round.oGuess - this.round.value) <= 2) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 4;
-      } else {
-        team2Pts = 4;
-      }
-    } else if (Math.abs(this.round.oGuess - this.round.value) <= 5) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 3;
-      } else {
-        team2Pts = 3;
-      }
-    } else if (Math.abs(this.round.oGuess - this.round.value) <= 10) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 2;
-      } else {
-        team2Pts = 2;
-      }
-    }
-
-    // Defense scoring
-    if ((Math.abs(this.round.oGuess - this.round.value) > 2) && scoreDefense) {
-      if (this.round.value > this.round.oGuess && this.round.dGuess) {
-        if (this.offenseTeamNumber() === 2) {
-          team1Pts = 1;
-        } else {
-          team2Pts = 1;
-        }
-      } else if (this.round.value < this.round.oGuess && !this.round.dGuess) {
-        if (this.offenseTeamNumber() === 2) {
-          team1Pts = 1;
-        } else {
-          team2Pts = 1;
-        }
-      }
-    }
-
-    this.team1.points += team1Pts;
-    this.team2.points += team2Pts;
-    channel.send(`Team 1 gains ${team1Pts} points! (total points: ${this.team1.points})`
-      + `\nTeam 2 gains ${team2Pts} points! (total points: ${this.team2.points})`);
-  }
-
-  isOver(channel: TextChannel) {
+  determineWinner(): 'Team 1' | 'Team 2' | false {
     const team1Won = this.team1.points >= this._settings.threshold;
     const team2Won = this.team2.points >= this._settings.threshold;
     if (team1Won && !team2Won) {
-      this.winner = 'Team 1';
-      return true;
+      return 'Team 1';
     } else if (team2Won && !team1Won) {
-      this.winner = 'Team 2';
-      return true;
+      return 'Team 2';
     } else if (team1Won && team2Won) {
       if (this.team1.points > this.team2.points) {
-        this.winner = 'Team 1'
-        return true;
+        return 'Team 1';
       } else if (this.team1.points < this.team2.points) {
-        this.winner = 'Team 2'
-        return true;
-      } else {
-        channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
-        return false;
+        return 'Team 2';
       }
-    } else {
-      return false;
     }
+    return false;
   }
 
   reset() {
@@ -195,7 +176,6 @@ export class Game {
     this.team2 = undefined;
     this.clueCounter = 0;
     this.round = undefined;
-    this.winner = undefined;
   }
 
   offenseTeamNumber(): number {
