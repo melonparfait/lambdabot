@@ -1,30 +1,29 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { TextChannel, Team } from 'discord.js';
-import { GameSettings } from './game.settings';
+import { Message } from 'discord.js';
+import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
-
-const DEFAULT_SETTINGS: GameSettings = {
-  threshold: 10,
-  asyncPlay: false,
-  oGuessTime: 180 * 1000,
-  dGuessTime: 120 * 1000
-}
+import { isUndefined, cloneDeep } from 'lodash';
+import { ScoringResults, OffenseScore } from './scoring.results';
 
 export class Game {
-  players: string[] = [];
+  players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
   team2: GameTeam;
-  clueCounter: number;
+  roundCounter: number;
   round: Round;
-  winner: string;
   currentClue: string;
+  pinnedInfo: Message;
 
   private _settings: GameSettings;
   get threshold(): number {
-    return this._settings.threshold;
+    if (this._settings.threshold === 'default') {
+      return Math.max(this.team1.players.length, this.team2.players.length) * 5;
+    } else {
+      return this._settings.threshold;
+    }
   }
   get asyncPlay(): boolean {
     return this._settings.asyncPlay;
@@ -34,19 +33,28 @@ export class Game {
   }
 
   constructor(settings?: GameSettings) {
-    this._settings = settings ?? DEFAULT_SETTINGS;
+    if (isUndefined(settings)) {
+      this._settings = cloneDeep(DEFAULT_SETTINGS);
+    } else {
+      this._settings = cloneDeep(settings);
+    }
     this.resetTeams();
   }
 
-  join(userId: string) {
-    if (!this.players.includes(userId)) {
-      this.players.push(userId);
+  /**
+   * Adds the `userId` to the game. This does not assign them to a team.
+   * @return `true` if the player was added to the game, `false` otherwise.
+   */
+  join(userId: string): boolean {
+    if (!this.players.has(userId)) {
+      this.players.add(userId);
       return true
     } else {
       return false
     }
   }
 
+  /** Clears both teams in the game */
   resetTeams() {
     if (this.status === 'setup') {
       this.team1 = new GameTeam();
@@ -61,127 +69,110 @@ export class Game {
   }
 
   start() {
+    if (this._settings.threshold === 'default') {
+      this._settings.threshold = this.threshold;
+    }
     this.status = 'playing'
-    this.clueCounter = 0;
-    this.winner = undefined;
+    this.roundCounter = 0;
     this.newRound();
   }
 
-  end() {
+  endGame() {
     this.status = 'finished';
   }
 
   newRound() {
-    if (this.clueCounter % 2 === 0) {
+    if (this.offenseTeamNumber() === 1) {
       this.round = new Round(this.team1, this.team2);
     } else {
       this.round = new Round(this.team2, this.team1);
     }
   }
 
-  endRound(channel: TextChannel, scoreDefense = true) {
+  endRound() {
     this.currentClue = undefined;
-    this.score(channel, scoreDefense);
-    if (this.clueCounter % 2 === 0) {
+    if (this.offenseTeamNumber() === 1) {
       this.team1.clueGiverCounter++;
     } else {
       this.team2.clueGiverCounter++;
     }
-    this.clueCounter++;
-    if (this.isOver(channel)) {
-      this.end();
-      return true;
+    this.roundCounter++;
+  }
+
+  /** 
+   * Scores the current round and returns the scoring results.
+   * @param scoreDefense Whether or not to score the defense guess
+   */
+  score(scoreDefense = true): ScoringResults {
+    let oResult: OffenseScore;
+    let dResult = false;
+    let t1Pts: number;
+    let t2Pts: number;
+    const dCorrect = ((this.round.value > this.round.oGuess) && this.round.dGuess)
+      || ((this.round.value < this.round.oGuess) && !this.round.dGuess);
+
+    const delta = Math.abs(this.round.oGuess - this.round.value);
+    if (delta <= 2) {
+      oResult = OffenseScore.bullseye;
     } else {
-      this.newRound();
-      return false;
+      if (delta <= 5) {
+        oResult = OffenseScore.strong;
+      } else if (delta <= 10) {
+        oResult = OffenseScore.medium;
+      } else {
+        oResult = OffenseScore.nothing;
+      }
+      if (scoreDefense && dCorrect) {
+        dResult = true;
+      }
     }
+
+    if (this.offenseTeamNumber() === 1) {
+      t1Pts = oResult;
+      t2Pts = dResult ? 1 : 0;
+    } else {
+      t1Pts = dResult ? 1 : 0;
+      t2Pts = oResult;
+    }
+    this.team1.points += t1Pts;
+    this.team2.points += t2Pts;
+
+    return {
+      offenseResult: oResult,
+      defenseResult: dResult,
+      team1PointChange: t1Pts,
+      team2PointChange: t2Pts
+    };
   }
 
-  score(channel: TextChannel, scoreDefense: boolean) {
-    let team1Pts = 0;
-    let team2Pts = 0;
-
-    // Offense scoring
-    if (Math.abs(this.round.oGuess - this.round.value) < 3) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 4;
-      } else {
-        team2Pts = 4;
-      }
-    } else if (Math.abs(this.round.oGuess - this.round.value) <= 5) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 3;
-      } else {
-        team2Pts = 3;
-      }
-    } else if (Math.abs(this.round.oGuess - this.round.value) <= 10) {
-      if (this.offenseTeamNumber() === 1) {
-        team1Pts = 2;
-      } else {
-        team2Pts = 2;
-      }
-    }
-
-    // Defense scoring
-    if ((Math.abs(this.round.oGuess - this.round.value) > 2) && scoreDefense) {
-      if (this.round.value > this.round.oGuess && this.round.dGuess) {
-        if (this.offenseTeamNumber() === 2) {
-          team1Pts = 1;
-        } else {
-          team2Pts = 1;
-        }
-      } else if (this.round.value < this.round.oGuess && !this.round.dGuess) {
-        if (this.offenseTeamNumber() === 2) {
-          team1Pts = 1;
-        } else {
-          team2Pts = 1;
-        }
-      }
-    }
-
-    this.team1.points += team1Pts;
-    this.team2.points += team2Pts;
-    channel.send(`Team 1 gains ${team1Pts} points! (total points: ${this.team1.points})`
-      + `\nTeam 2 gains ${team2Pts} points! (total points: ${this.team2.points})`);
-  }
-
-  isOver(channel: TextChannel) {
+  determineWinner(): 'Team 1' | 'Team 2' | false {
     const team1Won = this.team1.points >= this._settings.threshold;
     const team2Won = this.team2.points >= this._settings.threshold;
     if (team1Won && !team2Won) {
-      this.winner = 'Team 1';
-      return true;
+      return 'Team 1';
     } else if (team2Won && !team1Won) {
-      this.winner = 'Team 2';
-      return true;
+      return 'Team 2';
     } else if (team1Won && team2Won) {
       if (this.team1.points > this.team2.points) {
-        this.winner = 'Team 1'
-        return true;
+        return 'Team 1';
       } else if (this.team1.points < this.team2.points) {
-        this.winner = 'Team 2'
-        return true;
-      } else {
-        channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
-        return false;
+        return 'Team 2';
       }
-    } else {
-      return false;
     }
+    return false;
   }
 
   reset() {
-    this.players = [];
+    this.players = new Set<string>();
     this.status = 'setup';
     this.team1 = undefined;
     this.team2 = undefined;
-    this.clueCounter = 0;
+    this.roundCounter = 0;
     this.round = undefined;
-    this.winner = undefined;
   }
 
   offenseTeamNumber(): number {
-    return (this.clueCounter % 2) + 1;
+    return (this.roundCounter % 2) + 1;
   }
 
   offenseTeam(): GameTeam {
@@ -216,11 +207,15 @@ export class Game {
     }
   }
 
+  /**
+   * Splits the players in the game evenly into two teams at random
+   */
   assignRandomTeams() {
-    if (this.players.length > 1) {
-      shuffleArray(this.players);
-      const splitIndex = this.players.length / 2;
-      this.players.forEach((userId, index) => {
+    const players = Array.from(this.players);
+    if (this.players.size > 1) {
+      shuffleArray(players);
+      const splitIndex = players.length / 2;
+      players.forEach((userId, index) => {
         if (index < splitIndex) {
           this.team1.players.push(userId);
         } else {
@@ -229,9 +224,9 @@ export class Game {
       });
     } else {
       if (Math.random() > 0.5) {
-        this.team1.players.push(this.players[0]);
+        this.team1.players.push(players[0]);
       } else {
-        this.team2.players.push(this.players[0]);
+        this.team2.players.push(players[0]);
       }
     }
   }

@@ -1,11 +1,11 @@
 export class GameTeam {
-    points = 0;
-    players: string[] = [];
-    clueGiverCounter = 0;
+  points = 0;
+  clueGiverCounter = 0;
 
-    constructor() { }
+  constructor(public players: string[] = []) {
+  }
 
-    clueGiver(): string {
-        return this.players[this.clueGiverCounter % (this.players.length)];
-    }
+  clueGiver(): string {
+    return this.players[this.clueGiverCounter % (this.players.length)];
+  }
 }

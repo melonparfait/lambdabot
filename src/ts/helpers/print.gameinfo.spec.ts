@@ -38,13 +38,13 @@ describe('Printing output tests', () => {
       round.rightClue = "bar";
     });
 
-    it('should print the clue', () => {
+    xit('should print the clue', () => {
       console.log(clue(round, 30));
     });
   });
 
   describe('spectrum bar', () => {
-    it ('should print the spectrum bar', () => {
+    xit ('should print the spectrum bar', () => {
       console.log(spectrumBar(50));
       console.log(spectrumBar(20, 'lower'));
     });

@@ -2,59 +2,7 @@ import { sendNewRoundMessages } from "../helpers/newround";
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { TextChannel, Collection, Message } from "discord.js";
 import { sendGameEndScoreboard, clue, currentClue } from "../helpers/print.gameinfo";
-
-const TIMER_TICK = 30 * 1000;
-const dTeamReply = (msg: DiscordMessage) => {
-  const isBot = msg.author.bot;
-  const isGuess = (msg.content.toLowerCase() === '!higher'
-    || msg.content.toLowerCase() === '!lower');
-  const isPlayerOnDTeam = msg.client.game.round.dTeam.players
-    .includes(msg.author.id);
-  return !isBot && isGuess && isPlayerOnDTeam;
-}
-
-function processReply(messages: Collection<string, Message>, message: DiscordMessage) {
-  const game = message.client.game;
-  const isHigher = messages.last().content.toLowerCase() === '!higher';
-  game.round.makeDGuess(isHigher);
-
-  const dGuess = isHigher ? 'higher' : 'lower';
-  let response: string
-  let wereTheyRight: boolean;
-  if (isHigher) {
-    wereTheyRight = game.round.value > game.round.oGuess;
-  } else {
-    wereTheyRight = game.round.value < game.round.oGuess;
-  }
-
-  const correctness = wereTheyRight
-    ? '\n...and they were right! '
-    : '\n...but they were wrong! ';
-    
-  const accuracy = Math.abs(game.round.oGuess - game.round.value) < 3
-    ? `\n...but Team ${game.offenseTeamNumber()}'s guess was too good.`
-    : undefined;
-  
-  const result = accuracy ?? correctness;
-
-  response = `Team ${game.defenseTeamNumber()} thought the answer was ${dGuess}...`
-    + result + `\nThe real answer was ${game.round.value}!`;
-
-  message.channel.send(response);
-  closeRound(message);
-}
-
-function closeRound(message: DiscordMessage) {
-  message.client.game.endRound(message.channel as TextChannel);
-  if (message.client.game.status !== 'finished') {
-    sendNewRoundMessages(message.client, message.channel as TextChannel);
-  } else {
-    sendGameEndScoreboard(message.channel as TextChannel, message.client.game);
-    message.channel.messages.fetchPinned()
-      .then(messages => messages.forEach(message => message.unpin()))
-      .catch(err => console.log(err));
-  }
-}
+import { ScoringResults, OffenseScore } from "../models/scoring.results";
 
 export const name = 'guess';
 export const aliases = ['g'];
@@ -69,9 +17,10 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
   } else if (game.status !== 'playing') {
     return message.reply('it looks like the game isn\'t in progress yet.');
-  } else if (message.author.id === game.round.clueGiver
-      || !game.round.oTeam.players.includes(message.author.id)) {
-    return message.reply('you\'re not eligible to make a vote right now.');
+  } else if (message.author.id === game.round.clueGiver) {
+    return message.reply('the clue giver cannot guess! No cheating!');
+  } else if (!game.round.oTeam.players.includes(message.author.id)) {
+    return message.reply(`only members from Team ${game.offenseTeamNumber} can guess!`);
   } else if (game.round.oGuess) {
     return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
   } else {
@@ -113,14 +62,76 @@ export function execute(message: DiscordMessage, args: string[]) {
           })
           .catch((err) => {
             console.log('Timeout error: ', err);
+            const scoreResult = game.score(false);
             message.channel.send(`Team ${game.defenseTeamNumber()} ran out of time!`
               + `\nThe real answer was ${game.round.value}!`);
-            closeRound(message);
+            closeRound(message, scoreResult);
           });
       } else {
         message.channel.awaitMessages(dTeamReply, { max: 1 })
           .then((messages: Collection<string, Message>) => processReply(messages, message));
       }
     }
+  }
+}
+
+const TIMER_TICK = 30 * 1000;
+const dTeamReply = (msg: DiscordMessage) => {
+  const isBot = msg.author.bot;
+  const isGuess = (msg.content.toLowerCase() === '!higher'
+    || msg.content.toLowerCase() === '!lower');
+  const isPlayerOnDTeam = msg.client.game.round.dTeam.players
+    .includes(msg.author.id);
+  return !isBot && isGuess && isPlayerOnDTeam;
+}
+
+function processReply(messages: Collection<string, Message>, message: DiscordMessage) {
+  const game = message.client.game;
+  const isHigher = messages.last().content.toLowerCase() === '!higher';
+  game.round.makeDGuess(isHigher);
+
+  const scoreResult = game.score();
+  const dGuess = isHigher ? 'higher' : 'lower';
+  let response = `Team ${game.defenseTeamNumber()} thought the answer was ${dGuess}...`;
+
+  const correctness = scoreResult.defenseResult
+    ? '\n...and they were right!'
+    : '\n...but they were wrong!';
+    
+  const accuracy = scoreResult.offenseResult === OffenseScore.bullseye
+    ? `\n...but Team ${game.offenseTeamNumber()}'s guess was too good.`
+    : undefined;
+  
+  const result = accuracy ?? correctness;
+
+  response += result + `\nThe real answer was ${game.round.value}!`;
+
+  message.channel.send(response);
+  closeRound(message, scoreResult);
+}
+
+function closeRound(message: DiscordMessage, results: ScoringResults) {
+  message.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${this.team1.points})`
+    + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${this.team2.points})`);
+  
+  // End the round
+  message.client.game.endRound();
+
+  // Check if the game has ended
+  const winner = message.client.game.determineWinner();
+  if (winner) {
+    message.client.game.endGame();
+    sendGameEndScoreboard(message.channel as TextChannel, message.client.game, winner);
+    message.client.game.pinnedInfo.unpin()
+      .catch(err => {
+        message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
+        console.log(err);
+    });
+  } else {
+    if (message.client.game.team1.points > message.client.game.threshold
+        && message.client.game.team2.points > message.client.game.threshold) {
+      message.channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
+    }
+    sendNewRoundMessages(message.client, message.channel as TextChannel);
   }
 }

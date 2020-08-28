@@ -3,7 +3,7 @@ import { Round } from "../models/round";
 import { TextChannel } from "discord.js";
 
 export function roundStatus(game: Game): string {
-  return `Round: ${game.clueCounter + 1}`
+  return `**Round: ${game.roundCounter + 1}**`
     + `\nTeam ${game.offenseTeamNumber()} guesses.`
     + `\n<@${game.round.clueGiver}> is the clue giver.`
     + `\n${clue(game.round)}`;
@@ -47,10 +47,10 @@ export function currentClue(game: Game): string {
   }
 }
 
-export function sendGameEndScoreboard(channel: TextChannel, game: Game) {
-  channel.send(game.winner + ' has won the game!'
+export function sendGameEndScoreboard(channel: TextChannel, game: Game, winner: string) {
+  channel.send(winner + ' has won the game!'
     + '\nFinal stats:'
-    + `\nRounds played: ${game.clueCounter}` + '\n'
+    + `\nRounds played: ${game.roundCounter}` + '\n'
     + scoreboard(game));
 }
 
