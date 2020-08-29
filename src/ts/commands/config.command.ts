@@ -1,6 +1,6 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { checkForGame, checkGamePhase } from "../helpers/command.errorchecks";
-import { gameSettings } from "../helpers/print.gameinfo";
+import { gameSettings, updateGameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'config';
 export const aliases = ['c'];
@@ -38,7 +38,8 @@ export function execute(message: DiscordMessage, args: string[]) {
       oGuessTime: 0,
       dGuessTime: dGuessTime
     });
-
+    
+    updateGameInfo(message);
     return message.channel.send('Changed the settings to:\n'
       + gameSettings(message.client.game));
   }

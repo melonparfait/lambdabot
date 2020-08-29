@@ -1,6 +1,7 @@
 import { Game } from "../models/game";
 import { Round } from "../models/round";
-import { TextChannel } from "discord.js";
+import { TextChannel, Message } from "discord.js";
+import { DiscordMessage } from "./lambda.interface";
 
 export function roundStatus(game: Game): string {
   return `**Round: ${game.roundCounter + 1}**`
@@ -10,10 +11,11 @@ export function roundStatus(game: Game): string {
 }
 
 export function gameSettings(game: Game): string {
+  const threshold = game.isDefaultThreshold ? 'default' : game.threshold;
   const asyncLabel = game.asyncPlay ? 'enabled' : 'disabled';
   const counterGuess = !game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
   return '**Settings**'
-    + `\n├─ Points to win: ${game.threshold}`
+    + `\n├─ Points to win: ${threshold}`
     + counterGuess
     + `\n└─ Asynchronous play: ${asyncLabel}`;
 }
@@ -71,10 +73,46 @@ export function roster(game: Game): string {
   const team2Players = game.team2.players.length
     ? game.team2.players.map(id => `<@${id}>`).join(', ')
     : 'No one is currently on Team 2.';
-
-  return '**Roster**'
+  
+  let output = '**Roster**'
     + '\nTeam 1'
     + `\n└─ Players: ${team1Players}`
     + '\nTeam 2'
     + `\n└─ Players: ${team2Players}`;
+
+  const unassigned = game.unassignedPlayers;
+  if (unassigned.length) {
+    output += `\nUnassigned\n└─ Players: ${unassigned.map(id => `<@${id}>`).join(', ')}`;
+  }
+
+  return output;
+}
+
+export function gameInfo(game: Game): string {
+  let response =  `**Game Status**: ${game.status}\n`;
+  switch(game.status) {
+    case 'setup':
+      response += (gameSettings(game) + '\n' + roster(game));
+      break;
+    case 'playing':
+      response += (gameSettings(game) + '\n' + roundStatus(game));
+      if (game.currentClue) {
+        response += ('\n' + currentClue(game));
+      }
+      response += ('\n' + scoreboard(game));
+      break;
+    default:
+      response += scoreboard(game);
+  }
+  return response;
+}
+
+export function updateGameInfo(message: DiscordMessage) {
+  if (message.client?.game?.pinnedInfo) {
+    message.client.game.pinnedInfo.edit(gameInfo(message.client.game))
+      .catch(err => {
+        message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+        console.log(err);
+    });
+  }
 }

@@ -1,6 +1,7 @@
 import { sendNewRoundMessages } from "../helpers/newround";
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { TextChannel } from "discord.js";
+import { updateGameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'skip';
 export const aliases = [];
@@ -18,6 +19,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       return message.reply('your team already made a guess, so you can\'t skip anymore!');
     } else {
       message.client.game.round.generateNewValue();
-      sendNewRoundMessages(message.client, message.channel as TextChannel);
+      updateGameInfo(message);
+      return sendNewRoundMessages(message.client, message.channel as TextChannel);
     }
 }

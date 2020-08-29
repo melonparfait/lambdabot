@@ -1,5 +1,5 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
-import { roster } from "../helpers/print.gameinfo";
+import { roster, updateGameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'maketeams';
 export const aliases = ['teams'];
@@ -23,6 +23,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       default:
 
     }
+    updateGameInfo(message);
     return message.channel.send(roster(game));
   }
 }

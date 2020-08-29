@@ -8,6 +8,7 @@ import { isUndefined, cloneDeep } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
 
 export class Game {
+  private _settings: GameSettings;
   players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
@@ -17,7 +18,16 @@ export class Game {
   currentClue: string;
   pinnedInfo: Message;
 
-  private _settings: GameSettings;
+  get unassignedPlayers(): string[] {
+    const players = [];
+    this.players.forEach(player => {
+      if (!this.team1.players.includes(player) && !this.team2.players.includes(player)) {
+        players.push(player);
+      }
+    })
+    return players;
+  }
+
   get threshold(): number {
     if (this._settings.threshold === 'default') {
       return Math.max(this.team1.players.length, this.team2.players.length) * 5;
@@ -25,6 +35,11 @@ export class Game {
       return this._settings.threshold;
     }
   }
+
+  get isDefaultThreshold(): boolean {
+    return this._settings.threshold === 'default'
+  }
+
   get asyncPlay(): boolean {
     return this._settings.asyncPlay;
   }

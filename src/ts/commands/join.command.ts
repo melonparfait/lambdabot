@@ -1,5 +1,6 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { remove } from "lodash";
+import { gameSettings, roster, updateGameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'join';
 export const aliases = [];
@@ -39,10 +40,12 @@ export function execute(message: DiscordMessage, args: string[]) {
           game.team2.players.push(message.author.id);
           response += '2.';
         }
+        updateGameInfo(message);
         return message.channel.send(response);
       }
     } else {
       if (game.join(message.author.id)) {
+        updateGameInfo(message);
         return message.channel.send(`${message.author} joined the game!`);
       } else {
         return message.channel.send(`${message.author} is already in the game.`);

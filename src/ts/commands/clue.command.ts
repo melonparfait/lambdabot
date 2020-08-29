@@ -1,6 +1,6 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
 import { checkForGame, checkGamePhase } from "../helpers/command.errorchecks";
-import { currentClue } from "../helpers/print.gameinfo";
+import { currentClue, updateGameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'clue';
 export const aliases = ['giveclue', 'c'];
@@ -18,12 +18,7 @@ export function execute(message: DiscordMessage, args: string[]) {
   } else {
     game.currentClue = args.join(' ');
     const clueMsg = currentClue(game);
-    game.pinnedInfo.edit(game.pinnedInfo.content 
-        + '\n' + clueMsg)
-      .catch(err => {
-        message.channel.send('I couldn\'t edit the pinned game info on this channel. Do I have permission to manage messages on this channel?');
-        console.log(err);
-    });
+    updateGameInfo(message);
     return message.channel.send(clueMsg
       + ` ${game.offenseTeam().players
           .filter(id => id !== message.author.id)

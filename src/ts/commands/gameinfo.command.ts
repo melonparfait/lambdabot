@@ -1,5 +1,5 @@
 import { DiscordMessage } from "../helpers/lambda.interface";
-import { scoreboard, roundStatus, roster, gameSettings, currentClue } from "../helpers/print.gameinfo";
+import { scoreboard, roundStatus, roster, gameSettings, currentClue, gameInfo } from "../helpers/print.gameinfo";
 
 export const name = 'gameinfo';
 export const aliases = ['info'];
@@ -14,21 +14,6 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('No one has started a game yet. Use the \`newgame\` command to start one!');
   } else {
     const game = message.client.game;
-    let response =  `**Game Status**: ${game.status}\n`;
-    switch(game.status) {
-      case 'setup':
-        response += (gameSettings(game) + '\n' + roster(game));
-        break;
-      case 'playing':
-        response += roundStatus(game);
-        if (game.currentClue) {
-          response += ('\n' + currentClue(game));
-        }
-        response += ('\n' + scoreboard(game));
-        break;
-      default:
-        response += scoreboard(game);
-    }
-    return message.channel.send(response);
+    return message.channel.send(gameInfo(game));
   }
 }

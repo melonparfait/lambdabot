@@ -3,6 +3,7 @@ import { DiscordMessage } from "../helpers/lambda.interface";
 import { TextChannel, Collection, Message } from "discord.js";
 import { sendGameEndScoreboard, clue, currentClue } from "../helpers/print.gameinfo";
 import { ScoringResults, OffenseScore } from "../models/scoring.results";
+import { owner_id } from '../../../keys.json';
 
 export const name = 'guess';
 export const aliases = ['g'];
@@ -69,7 +70,13 @@ export function execute(message: DiscordMessage, args: string[]) {
           });
       } else {
         message.channel.awaitMessages(dTeamReply, { max: 1 })
-          .then((messages: Collection<string, Message>) => processReply(messages, message));
+          .then((messages: Collection<string, Message>) => processReply(messages, message))
+          .catch(err => {
+            console.log(err);
+            message.channel.send('Sorry, there was an error processing that reply. I notified the admin about this.');
+            message.client.users.cache.get(owner_id).send(`Got an error: ${err}`)
+              .catch(err => console.log(`Couldn\'t send this error: \n${err}`));
+          });
       }
     }
   }
@@ -111,27 +118,29 @@ function processReply(messages: Collection<string, Message>, message: DiscordMes
 }
 
 function closeRound(message: DiscordMessage, results: ScoringResults) {
-  message.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${this.team1.points})`
-    + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${this.team2.points})`);
+  const game = message.client.game;
+  message.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${game.team1.points})`
+    + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${game.team2.points})`);
   
   // End the round
-  message.client.game.endRound();
+  game.endRound();
 
   // Check if the game has ended
-  const winner = message.client.game.determineWinner();
+  const winner = game.determineWinner();
   if (winner) {
-    message.client.game.endGame();
-    sendGameEndScoreboard(message.channel as TextChannel, message.client.game, winner);
-    message.client.game.pinnedInfo.unpin()
+    game.endGame();
+    sendGameEndScoreboard(message.channel as TextChannel, game, winner);
+    game.pinnedInfo.unpin()
       .catch(err => {
         message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
         console.log(err);
     });
   } else {
-    if (message.client.game.team1.points > message.client.game.threshold
-        && message.client.game.team2.points > message.client.game.threshold) {
+    if (game.team1.points > game.threshold
+        && game.team2.points > game.threshold) {
       message.channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
     }
+    game.newRound();
     sendNewRoundMessages(message.client, message.channel as TextChannel);
   }
 }
