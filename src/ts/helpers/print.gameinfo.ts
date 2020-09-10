@@ -107,12 +107,24 @@ export function gameInfo(game: Game): string {
   return response;
 }
 
-export function updateGameInfo(message: DiscordMessage) {
+export async function updateGameInfo(message: DiscordMessage) {
   if (message.client?.game?.pinnedInfo) {
-    message.client.game.pinnedInfo.edit(gameInfo(message.client.game))
-      .catch(err => {
-        message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
-        console.log(err);
-    });
+    try {
+      await message.client.game.pinnedInfo.edit(gameInfo(message.client.game));
+    }
+    catch (err) {
+      console.log(err);
+      message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+    }
+  } else {
+    await message.channel.send(gameInfo(message.client.game));
+    try {
+      const msg = await message.channel.lastMessage.pin()
+      message.client.game.pinnedInfo = msg;
+    }
+    catch (err) {
+      console.log(err);
+      message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+    }
   }
 }

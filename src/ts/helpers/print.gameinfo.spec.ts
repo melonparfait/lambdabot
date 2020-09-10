@@ -1,15 +1,27 @@
 import { describe } from 'mocha';
 import { Game } from '../models/game';
-import { gameSettings, clue, spectrumBar } from './print.gameinfo';
+import { gameSettings, clue, spectrumBar, updateGameInfo } from './print.gameinfo';
 import { Round } from '../models/round';
 import { GameTeam } from '../models/team';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { DiscordMessage } from './lambda.interface';
 
 let game: Game;
+let message: DiscordMessage;
+const lastMessagePinSpy = sinon.spy();
+const channelSendSpy = sinon.spy();
 
 describe('Printing output tests', () => {
   beforeEach(() => { 
     game = new Game();
+    message = <unknown>{ 
+      client: { game: game },
+      channel: {
+        lastMessage: { pin: lastMessagePinSpy },
+        send: channelSendSpy
+      }
+    } as DiscordMessage;
   })
 
   describe('game settings', () => {
@@ -47,6 +59,14 @@ describe('Printing output tests', () => {
     xit ('should print the spectrum bar', () => {
       console.log(spectrumBar(50));
       console.log(spectrumBar(20, 'lower'));
+    });
+  });
+
+  describe('updateGameInfo', () => {
+    xit('should update the game info', (done) => {
+      updateGameInfo(message).then(() => {
+        console.log('sendArgs: ', channelSendSpy.getCalls());
+      }).then(done).catch(done);
     });
   });
 })

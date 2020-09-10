@@ -9,7 +9,7 @@ import { OffenseScore, ScoringResults } from './scoring.results';
 
 let game: Game;
 
-describe.only('Game model tests', () => {
+describe('Game model tests', () => {
   const threshold = 42;
   const asyncPlay = true;
   const dGuessTime = 100;

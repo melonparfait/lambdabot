@@ -130,8 +130,9 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
   if (winner) {
     game.endGame();
     sendGameEndScoreboard(message.channel as TextChannel, game, winner);
-    game.pinnedInfo.unpin()
-      .catch(err => {
+    game.pinnedInfo.unpin().then(() => {
+      game.pinnedInfo = undefined;
+    }).catch(err => {
         message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
         console.log(err);
     });
