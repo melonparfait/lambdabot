@@ -7,7 +7,7 @@ export const aliases = ['new', 'ng'];
 export const cooldown = 5;
 export const description = 'Starts a new game of Wavelength';
 export const guildOnly = true;
-export const usage = ''
+export const usage = '';
 export function execute(message: DiscordMessage, args: string[]) {
   const existingGame = message.client.game;
   if (existingGame && (existingGame.status === 'setup'
@@ -19,7 +19,7 @@ export function execute(message: DiscordMessage, args: string[]) {
         threshold: existingGame.threshold,
         asyncPlay: existingGame.asyncPlay,
         oGuessTime: 180 * 1000,
-        dGuessTime: existingGame.dGuessTime
+        dGuessTime: existingGame.dGuessTime,
       });
     } else {
       message.client.game = new Game();
@@ -33,9 +33,9 @@ export function execute(message: DiscordMessage, args: string[]) {
         .catch(err => {
           message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
           console.log(err);
-      });
+        });
     });
 
-    return message.reply(`started a new Wavelength game! Use \`join\` to get in!`);
+    return message.reply('started a new Wavelength game! Use `join` to get in!');
   }
 }

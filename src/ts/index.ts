@@ -19,8 +19,7 @@ async function loadCommands() {
       const newCommand: Command = await import(`./commands/${file}`);
       session.client.commands.set(newCommand.name, newCommand);
       console.log(`Added command: ${bot_prefix}${newCommand.name}`);
-    }
-    catch (error) {
+    } catch (error) {
       console.log(error);
       exit(1);
     }
@@ -70,21 +69,18 @@ session.client.on('message', (message: DiscordMessage) => {
     if (command.globalCooldown) {
       if (!globalCooldowns.has(command.name)) {
         globalCooldowns.set(command.name, now);
-      }
-      else {
+      } else {
         const timestamp = globalCooldowns.get(command.name);
         const expirationTime = timestamp + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-        }
-        else {
+        } else {
           globalCooldowns.set(command.name, now);
           setTimeout(() => globalCooldowns.delete(command.name));
         }
       }
-    }
-    else {
+    } else {
       if (!userCooldowns.has(command.name)) {
         userCooldowns.set(command.name, new Collection<string, number>());
       }
@@ -96,8 +92,7 @@ session.client.on('message', (message: DiscordMessage) => {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
         }
-      }
-      else {
+      } else {
         timestamps.set(message.author.id, now);
         setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
       }
@@ -106,8 +101,7 @@ session.client.on('message', (message: DiscordMessage) => {
 
   try {
     command.execute(message, args);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');
   }

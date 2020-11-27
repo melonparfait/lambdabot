@@ -13,27 +13,27 @@ const lastMessagePinSpy = sinon.spy();
 const channelSendSpy = sinon.spy();
 
 describe('Printing output tests', () => {
-  beforeEach(() => { 
+  beforeEach(() => {
     game = new Game();
-    message = <unknown>{ 
+    message = <unknown>{
       client: { game: game },
       channel: {
         lastMessage: { pin: lastMessagePinSpy },
-        send: channelSendSpy
-      }
+        send: channelSendSpy,
+      },
     } as DiscordMessage;
-  })
+  });
 
   describe('game settings', () => {
     it('should print the game settings', () => {
-      game.setSettings({ threshold: 10, asyncPlay: false, oGuessTime: 120, dGuessTime: 120});
+      game.setSettings({ threshold: 10, asyncPlay: false, oGuessTime: 120, dGuessTime: 120 });
       const printMsg = gameSettings(game);
-      
+
       expect(printMsg).to.have.string('timer');
     });
 
     it('should not print timer if async is on', () => {
-      game.setSettings({ threshold: 10, asyncPlay: true, oGuessTime: 120, dGuessTime: 120});
+      game.setSettings({ threshold: 10, asyncPlay: true, oGuessTime: 120, dGuessTime: 120 });
       const printMsg = gameSettings(game);
 
       expect(printMsg).to.not.have.string('timer');
@@ -46,8 +46,8 @@ describe('Printing output tests', () => {
       const team1 = new GameTeam();
       const team2 = new GameTeam();
       round = new Round(team1, team2);
-      round.leftClue = "foo";
-      round.rightClue = "bar";
+      round.leftClue = 'foo';
+      round.rightClue = 'bar';
     });
 
     xit('should print the clue', () => {
@@ -69,4 +69,4 @@ describe('Printing output tests', () => {
       }).then(done).catch(done);
     });
   });
-})
+});

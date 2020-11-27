@@ -1,4 +1,4 @@
-import { DiscordMessage } from "../helpers/lambda.interface";
+import { DiscordMessage } from '../helpers/lambda.interface';
 
 export const name = 'echo';
 export const aliases = [];

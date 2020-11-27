@@ -52,12 +52,12 @@ describe('Game model tests', () => {
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
 
       game.setSettings({ threshold, asyncPlay, dGuessTime, oGuessTime });
-      
+
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);
       expect(game.dGuessTime).to.equal(dGuessTime);
     });
-    
+
     describe('threshold tests', () => {
       beforeEach(() => {
         game = new Game();
@@ -68,7 +68,7 @@ describe('Game model tests', () => {
         game.team2.players.push(...team2Players);
         expect(game.threshold).to.equal(15);
       });
-      
+
       it('should calculate the threshold correctly for unbalanced teams', () => {
         game.team1.players.push('1', '2');
         game.team2.players.push('1', '2', '3', '4');
@@ -157,7 +157,7 @@ describe('Game model tests', () => {
           fakeRound = new Round(new GameTeam(team1Players), new GameTeam(team2Players));
         } else {
           fakeRound = new Round(new GameTeam(team2Players), new GameTeam(team1Players));
-        };
+        }
         fakeRound.oGuess = oGuess;
         fakeRound.dGuess = dGuess;
         fakeRound.value = value;

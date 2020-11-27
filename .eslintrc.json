@@ -4,13 +4,14 @@
 	"extends": "eslint:recommended",
 	"env": {
 		"node": true,
-		"es6": true
+    "es6": true,
+    "mocha": true
 	},
 	"parserOptions": {
 		"ecmaVersion": 2019
 	},
 	"rules": {
-		"brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
+		"brace-style": ["error", "1tbs", { "allowSingleLine": true }],
 		"comma-dangle": ["error", "always-multiline"],
 		"comma-spacing": "error",
 		"comma-style": "error",
@@ -29,7 +30,7 @@
 		"no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1, "maxBOF": 0 }],
 		"no-shadow": ["error", { "allow": ["err", "resolve", "reject"] }],
     "no-trailing-spaces": ["error"],
-    "no-unused-vars": "warn",
+    "no-unused-vars": "off",
 		"no-var": "error",
 		"object-curly-spacing": ["error", "always"],
 		"prefer-const": "error",

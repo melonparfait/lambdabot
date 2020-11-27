@@ -24,7 +24,7 @@ export class Game {
       if (!this.team1.players.includes(player) && !this.team2.players.includes(player)) {
         players.push(player);
       }
-    })
+    });
     return players;
   }
 
@@ -37,7 +37,7 @@ export class Game {
   }
 
   get isDefaultThreshold(): boolean {
-    return this._settings.threshold === 'default'
+    return this._settings.threshold === 'default';
   }
 
   get asyncPlay(): boolean {
@@ -63,9 +63,9 @@ export class Game {
   join(userId: string): boolean {
     if (!this.players.has(userId)) {
       this.players.add(userId);
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 
@@ -87,7 +87,7 @@ export class Game {
     if (this._settings.threshold === 'default') {
       this._settings.threshold = this.threshold;
     }
-    this.status = 'playing'
+    this.status = 'playing';
     this.roundCounter = 0;
     this.newRound();
   }
@@ -114,7 +114,7 @@ export class Game {
     this.roundCounter++;
   }
 
-  /** 
+  /**
    * Scores the current round and returns the scoring results.
    * @param scoreDefense Whether or not to score the defense guess
    */
@@ -156,7 +156,7 @@ export class Game {
       offenseResult: oResult,
       defenseResult: dResult,
       team1PointChange: t1Pts,
-      team2PointChange: t2Pts
+      team2PointChange: t2Pts,
     };
   }
 
@@ -237,12 +237,10 @@ export class Game {
           this.team2.players.push(userId);
         }
       });
+    } else if (Math.random() > 0.5) {
+      this.team1.players.push(players[0]);
     } else {
-      if (Math.random() > 0.5) {
-        this.team1.players.push(players[0]);
-      } else {
-        this.team2.players.push(players[0]);
-      }
+      this.team2.players.push(players[0]);
     }
   }
 }

@@ -1,8 +1,8 @@
-import { sendNewRoundMessages } from "../helpers/newround";
-import { DiscordMessage } from "../helpers/lambda.interface";
-import { TextChannel, Collection, Message } from "discord.js";
-import { sendGameEndScoreboard, clue, currentClue } from "../helpers/print.gameinfo";
-import { ScoringResults, OffenseScore } from "../models/scoring.results";
+import { sendNewRoundMessages } from '../helpers/newround';
+import { DiscordMessage } from '../helpers/lambda.interface';
+import { TextChannel, Collection, Message } from 'discord.js';
+import { sendGameEndScoreboard, clue, currentClue } from '../helpers/print.gameinfo';
+import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { owner_id } from '../../../keys.json';
 
 export const name = 'guess';
@@ -11,7 +11,7 @@ export const cooldown = 5;
 export const description = 'Submits a guess for the guessing team';
 export const guildOnly = true;
 export const args = true;
-export const usage = '<integer between 1 and 100>'
+export const usage = '<integer between 1 and 100>';
 export function execute(message: DiscordMessage, args: string[]) {
   const game = message.client.game;
   if (!game || game.status === 'finished') {
@@ -30,15 +30,15 @@ export function execute(message: DiscordMessage, args: string[]) {
       return message.reply('give me an integer between 1 and 100 please.');
     } else {
       game.round.makeOGuess(guess);
-      
+
       const givenClue = game.currentClue ? `\n${currentClue(game)}` : '';
       let response = `Team ${game.offenseTeamNumber()} guessed ${guess}.`
         + '\n' + clue(game.round, guess)
         + givenClue
         + `\nTeam ${game.defenseTeamNumber()} `
         + `(${game.defenseTeam().players.map(id => `<@${id}>`).join(', ')}), `
-        + `do you think the target is \`!higher\` or \`!lower\`?`;
-      
+        + 'do you think the target is `!higher` or `!lower`?';
+
       if (!game.asyncPlay) {
         response += `\nYou have ${game.dGuessTime / 1000} seconds to answer!`;
       }
@@ -47,15 +47,15 @@ export function execute(message: DiscordMessage, args: string[]) {
 
       if (!game.asyncPlay) {
         let countdownCounter = 1;
-        const timer = setInterval(() =>  {
-          if (game.round.dGuess !== undefined || countdownCounter === (game.dGuessTime/TIMER_TICK)) {
+        const timer = setInterval(() => {
+          if (game.round.dGuess !== undefined || countdownCounter === (game.dGuessTime / TIMER_TICK)) {
             clearInterval(timer);
             return;
           }
-          message.channel.send(`${(game.dGuessTime - TIMER_TICK * countdownCounter) / 1000} seconds left!`)
+          message.channel.send(`${(game.dGuessTime - TIMER_TICK * countdownCounter) / 1000} seconds left!`);
           countdownCounter++;
         }, TIMER_TICK);
-                
+
         message.channel.awaitMessages(dTeamReply, { time: game.dGuessTime, max: 1, errors: ['time'] })
           .then((messages: Collection<string, Message>) => {
             clearInterval(timer);
@@ -90,7 +90,7 @@ const dTeamReply = (msg: DiscordMessage) => {
   const isPlayerOnDTeam = msg.client.game.round.dTeam.players
     .includes(msg.author.id);
   return !isBot && isGuess && isPlayerOnDTeam;
-}
+};
 
 function processReply(messages: Collection<string, Message>, message: DiscordMessage) {
   const game = message.client.game;
@@ -104,11 +104,11 @@ function processReply(messages: Collection<string, Message>, message: DiscordMes
   const correctness = scoreResult.defenseResult
     ? '\n...and they were right!'
     : '\n...but they were wrong!';
-    
+
   const accuracy = scoreResult.offenseResult === OffenseScore.bullseye
     ? `\n...but Team ${game.offenseTeamNumber()}'s guess was too good.`
     : undefined;
-  
+
   const result = accuracy ?? correctness;
 
   response += result + `\nThe real answer was ${game.round.value}!`;
@@ -121,7 +121,7 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
   const game = message.client.game;
   message.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${game.team1.points})`
     + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${game.team2.points})`);
-  
+
   // End the round
   game.endRound();
 
@@ -133,13 +133,13 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
     game.pinnedInfo.unpin().then(() => {
       game.pinnedInfo = undefined;
     }).catch(err => {
-        message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
-        console.log(err);
+      message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
+      console.log(err);
     });
   } else {
     if (game.team1.points > game.threshold
         && game.team2.points > game.threshold) {
-      message.channel.send(`Wow, this is a close game! Whichever team gets a lead first wins!`)
+      message.channel.send('Wow, this is a close game! Whichever team gets a lead first wins!');
     }
     game.newRound();
     sendNewRoundMessages(message.client, message.channel as TextChannel);

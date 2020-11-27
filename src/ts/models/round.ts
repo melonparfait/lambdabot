@@ -1,4 +1,4 @@
-import { GameTeam } from "./team";
+import { GameTeam } from './team';
 
 export class Round {
   clueGiver: string;

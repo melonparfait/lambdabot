@@ -1,7 +1,7 @@
-import { Game } from "../models/game";
-import { Round } from "../models/round";
-import { TextChannel, Message } from "discord.js";
-import { DiscordMessage } from "./lambda.interface";
+import { Game } from '../models/game';
+import { Round } from '../models/round';
+import { TextChannel, Message } from 'discord.js';
+import { DiscordMessage } from './lambda.interface';
 
 export function roundStatus(game: Game): string {
   return `**Round: ${game.roundCounter + 1}**`
@@ -21,7 +21,7 @@ export function gameSettings(game: Game): string {
 }
 
 export function spectrumBar(target?: number, side?: 'higher' | 'lower'): string {
-  let length = 25;
+  const length = 25;
   let spectrumBar = '='.repeat(length);
   if (target) {
     const marker = Math.floor(target / 4);
@@ -68,12 +68,12 @@ export function scoreboard(game: Game): string {
 
 export function roster(game: Game): string {
   const team1Players = game.team1.players.length
-    ? game.team1.players.map(id => `<@${id}>`).join(', ') 
+    ? game.team1.players.map(id => `<@${id}>`).join(', ')
     : 'No one is currently on Team 1.';
   const team2Players = game.team2.players.length
     ? game.team2.players.map(id => `<@${id}>`).join(', ')
     : 'No one is currently on Team 2.';
-  
+
   let output = '**Roster**'
     + '\nTeam 1'
     + `\n└─ Players: ${team1Players}`
@@ -89,20 +89,20 @@ export function roster(game: Game): string {
 }
 
 export function gameInfo(game: Game): string {
-  let response =  `**Game Status**: ${game.status}\n`;
+  let response = `**Game Status**: ${game.status}\n`;
   switch(game.status) {
-    case 'setup':
-      response += (gameSettings(game) + '\n' + roster(game));
-      break;
-    case 'playing':
-      response += (gameSettings(game) + '\n' + roundStatus(game));
-      if (game.currentClue) {
-        response += ('\n' + currentClue(game));
-      }
-      response += ('\n' + scoreboard(game));
-      break;
-    default:
-      response += scoreboard(game);
+  case 'setup':
+    response += (gameSettings(game) + '\n' + roster(game));
+    break;
+  case 'playing':
+    response += (gameSettings(game) + '\n' + roundStatus(game));
+    if (game.currentClue) {
+      response += ('\n' + currentClue(game));
+    }
+    response += ('\n' + scoreboard(game));
+    break;
+  default:
+    response += scoreboard(game);
   }
   return response;
 }
@@ -111,18 +111,16 @@ export async function updateGameInfo(message: DiscordMessage) {
   if (message.client?.game?.pinnedInfo) {
     try {
       await message.client.game.pinnedInfo.edit(gameInfo(message.client.game));
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
       message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }
   } else {
     await message.channel.send(gameInfo(message.client.game));
     try {
-      const msg = await message.channel.lastMessage.pin()
+      const msg = await message.channel.lastMessage.pin();
       message.client.game.pinnedInfo = msg;
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
       message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }

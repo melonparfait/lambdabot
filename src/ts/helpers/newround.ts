@@ -1,6 +1,6 @@
-import { DiscordClient } from "../auth";
-import { TextChannel } from "discord.js";
-import { roundStatus, clue, gameSettings, roster, gameInfo } from "./print.gameinfo";
+import { DiscordClient } from '../auth';
+import { TextChannel } from 'discord.js';
+import { roundStatus, clue, gameSettings, roster, gameInfo } from './print.gameinfo';
 
 export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel) {
   const game = client.game;
@@ -23,11 +23,11 @@ export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel
         .catch(err => {
           channel.send('I couldn\'t edit the pinned game info on this channel. Do I have permission to manage messages on this channel?');
           console.log(err);
-      });
+        });
     })
     .catch(error => {
       console.error(`Could not send the clue to ${user.tag}.\n`, error);
       channel.send(`<@${game.round.clueGiver}> was the clue giver, `
         + 'but I couldn\'t DM them. Do they have DMs disabled?');
-  });
+    });
 }

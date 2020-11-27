@@ -1,5 +1,5 @@
-import { DiscordMessage } from "../helpers/lambda.interface";
-import { scoreboard, roundStatus, roster, gameSettings, currentClue, gameInfo } from "../helpers/print.gameinfo";
+import { DiscordMessage } from '../helpers/lambda.interface';
+import { scoreboard, roundStatus, roster, gameSettings, currentClue, gameInfo } from '../helpers/print.gameinfo';
 
 export const name = 'gameinfo';
 export const aliases = ['info'];

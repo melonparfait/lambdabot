@@ -6,7 +6,7 @@ export const aliases = [];
 export const cooldown = 0;
 export const description = 'List all of my commands or info about a specific command.';
 export const guildOnly = false;
-export const usage = '[command name]'
+export const usage = '[command name]';
 export function execute(message: DiscordMessage, args: string[]) {
   const data = [];
   const { commands } = message.client;

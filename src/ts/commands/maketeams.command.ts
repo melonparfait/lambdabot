@@ -1,5 +1,5 @@
-import { DiscordMessage } from "../helpers/lambda.interface";
-import { roster, updateGameInfo } from "../helpers/print.gameinfo";
+import { DiscordMessage } from '../helpers/lambda.interface';
+import { roster, updateGameInfo } from '../helpers/print.gameinfo';
 
 export const name = 'maketeams';
 export const aliases = ['teams'];
@@ -17,10 +17,10 @@ export function execute(message: DiscordMessage, args: string[]) {
   } else {
     game.resetTeams();
     switch(args[0]) {
-      case 'random':
-        game.assignRandomTeams();
-        break;
-      default:
+    case 'random':
+      game.assignRandomTeams();
+      break;
+    default:
 
     }
     updateGameInfo(message);

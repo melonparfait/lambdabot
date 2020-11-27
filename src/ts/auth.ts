@@ -7,7 +7,7 @@ export class DiscordClient extends Client {
     data: any;
     game: Game;
     constructor() {
-        super();
+      super();
     }
 }
 
@@ -15,11 +15,11 @@ export class AuthSession {
     client: DiscordClient;
 
     constructor(public bot_token: string) {
-        this.client = new DiscordClient();
+      this.client = new DiscordClient();
     }
 
     authorize() {
-        this.client.login(this.bot_token);
-        console.log('Connected!');
+      this.client.login(this.bot_token);
+      console.log('Connected!');
     }
 }
