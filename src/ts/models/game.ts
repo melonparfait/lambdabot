@@ -6,9 +6,11 @@ import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
 import { isUndefined, cloneDeep } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
+import { Clue } from './clue';
 
 export class Game {
   private _settings: GameSettings;
+  readonly clues: Clue[];
   players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
@@ -47,7 +49,8 @@ export class Game {
     return this._settings.dGuessTime;
   }
 
-  constructor(settings?: GameSettings) {
+  constructor(clues: Clue[], settings?: GameSettings, ) {
+    this.clues = clues;
     if (isUndefined(settings)) {
       this._settings = cloneDeep(DEFAULT_SETTINGS);
     } else {

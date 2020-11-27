@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import neatCSV = require('csv-parser');
 import { Command, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
+import { Clue } from './models/clue';
 
 const session = new AuthSession(bot_token);
 session.client.commands = new Collection<string, Command>();
@@ -26,9 +27,9 @@ async function loadCommands() {
   }
 }
 
-const results = [];
+const results: Clue[] = [];
 fs.createReadStream('./data.csv')
-  .pipe(neatCSV())
+  .pipe(neatCSV(['Lower', 'Higher']))
   .on('data', (data) => results.push(data))
   .on('end', () => {
     session.client.data = results;

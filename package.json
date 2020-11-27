@@ -24,7 +24,8 @@
     "csv-parser": "^2.3.3",
     "discord.js": "^12.5.1",
     "discord.js-commando": "github:discordjs/Commando",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "sqlite": "^4.0.17"
   },
   "devDependencies": {
     "@types/chai": "^4.2.14",
