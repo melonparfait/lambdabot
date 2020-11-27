@@ -2,7 +2,7 @@ import { Client, Collection } from 'discord.js';
 import { Command } from './helpers/lambda.interface';
 import { Game } from './models/game';
 
-export class DiscordClient extends Client {
+export class DiscordService extends Client {
     commands: Collection<string, Command>;
     data: any;
     game: Game;
@@ -12,10 +12,10 @@ export class DiscordClient extends Client {
 }
 
 export class AuthSession {
-    client: DiscordClient;
+    client: DiscordService;
 
     constructor(public bot_token: string) {
-      this.client = new DiscordClient();
+      this.client = new DiscordService();
     }
 
     authorize() {

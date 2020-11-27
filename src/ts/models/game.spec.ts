@@ -3,7 +3,6 @@ import { Game } from '../models/game';
 import { expect } from 'chai';
 import { DEFAULT_SETTINGS } from './game.settings';
 import { Round } from './round';
-import { Team } from 'discord.js';
 import { GameTeam } from './team';
 import { OffenseScore, ScoringResults } from './scoring.results';
 

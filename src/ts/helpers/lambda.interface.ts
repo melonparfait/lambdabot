@@ -1,8 +1,8 @@
 import { Message } from 'discord.js';
-import { DiscordClient } from '../auth';
+import { DiscordService } from '../auth';
 
 export interface DiscordMessage extends Message {
-  client: DiscordClient
+  client: DiscordService
 }
 
 export interface Command {

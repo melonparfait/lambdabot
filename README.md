@@ -31,5 +31,6 @@ If you want to use a [virtual environment](https://docs.python.org/3/tutorial/ve
 * `bot-env\Scripts\activate.bat` (windows)
 
 You can leave the virtual environment with `deactivate`.
+
 ## Game tutorial
 // TODO: Write a tutorial for how to play the game
