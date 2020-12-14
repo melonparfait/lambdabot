@@ -7,9 +7,9 @@ export const aliases = ['c'];
 export const cooldown = 1;
 export const description = 'Changes the configuration for the current game. Can only be used during the team formation phase.'
   + '\nArguments: '
-  + '\n├─ threshold: Number of points a team needs to win. Must be a positive integer, or "\`default\`".'
-  + '\n├─ async: Enables/disables timers for making guesses. Adding this parameter enables async play. Use \`sync\` to disable async play and enable timers.';
-+'\n└─ defenseTimer: Number of seconds the defending team has to make a counter guess. Must be a positive integer. Has no effect if the game is played asynchronously.';
+  + '\n├─ threshold: Number of points a team needs to win. Must be a positive integer, or "`default`".'
+  + '\n├─ async: Enables/disables timers for making guesses. Adding this parameter enables async play. Use `sync` to disable async play and enable timers.'
+  + '\n└─ defenseTimer: Number of seconds the defending team has to make a counter guess. Must be a positive integer. Has no effect if the game is played asynchronously.';
 export const guildOnly = true;
 export const usage = '<threshold> <sync | async> [defenseTimer]';
 export const args = true;
@@ -22,9 +22,14 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('this command can only be used during game setup.');
   } else {
     let threshold: number | 'default' = 'default';
-    const thresholdArg = parseInt(args[0]);
-    if (!isNaN(thresholdArg)) {
-      threshold = thresholdArg;
+    const parsedThreshold = parseInt(args[0]);
+    if (!isNaN(parsedThreshold)) {
+      if (parsedThreshold < 1) {
+        return message.reply('please choose a threshold larger than 1.');
+      } else if(parsedThreshold > 2147483647) {
+        return message.reply('that\'ll take too long to play, please give a smaller number!');
+      }
+      threshold = parsedThreshold;
     }
 
     const asyncPlayArg = args[1] === 'async';

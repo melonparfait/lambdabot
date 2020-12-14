@@ -18,7 +18,7 @@ describe('Game model tests', () => {
 
   describe('Initialization tests', () => {
     beforeEach(() => {
-      game = new Game();
+      game = new Game('testGame', []);
     });
 
     it('should initialize', () => {
@@ -35,7 +35,7 @@ describe('Game model tests', () => {
     });
 
     it('should initialize a game with defined settings', () => {
-      game = new Game({ threshold, asyncPlay, dGuessTime, oGuessTime });
+      game = new Game('testGame', [], { threshold, asyncPlay, dGuessTime, oGuessTime });
 
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);
@@ -45,7 +45,7 @@ describe('Game model tests', () => {
 
   describe('config tests', () => {
     it('should set settings properly', () => {
-      game = new Game();
+      game = new Game('testGame', []);
       expect(game.threshold).to.equal(0);
       expect(game.asyncPlay).to.equal(DEFAULT_SETTINGS.asyncPlay);
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
@@ -59,7 +59,7 @@ describe('Game model tests', () => {
 
     describe('threshold tests', () => {
       beforeEach(() => {
-        game = new Game();
+        game = new Game('testGame', []);
       });
 
       it('should calculate the threshold correctly for balanced teams', () => {
@@ -78,7 +78,7 @@ describe('Game model tests', () => {
 
   describe('After starting the game', () => {
     beforeEach(() => {
-      game = new Game();
+      game = new Game('testGame', []);
       game.team1.players.push(...team1Players);
       game.team2.players.push(...team2Players);
       game.start();

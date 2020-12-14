@@ -14,7 +14,7 @@ const channelSendSpy = sinon.spy();
 
 describe('Printing output tests', () => {
   beforeEach(() => {
-    game = new Game();
+    game = new Game('testGame', []);
     message = <unknown>{
       client: { game: game },
       channel: {

@@ -15,13 +15,13 @@ export const usage = '<integer between 1 and 100>';
 export function execute(message: DiscordMessage, args: string[]) {
   const game = message.client.game;
   if (!game || game.status === 'finished') {
-    return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
+    return message.reply('no one has started a game yet. Use the `newgame` command to start one!');
   } else if (game.status !== 'playing') {
     return message.reply('it looks like the game isn\'t in progress yet.');
   } else if (message.author.id === game.round.clueGiver) {
     return message.reply('the clue giver cannot guess! No cheating!');
   } else if (!game.round.oTeam.players.includes(message.author.id)) {
-    return message.reply(`only members from Team ${game.offenseTeamNumber} can guess!`);
+    return message.reply(`only members from Team ${game.offenseTeamNumber()} can guess!`);
   } else if (game.round.oGuess) {
     return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
   } else {
@@ -75,7 +75,7 @@ export function execute(message: DiscordMessage, args: string[]) {
             console.log(err);
             message.channel.send('Sorry, there was an error processing that reply. I notified the admin about this.');
             message.client.users.cache.get(owner_id).send(`Got an error: ${err}`)
-              .catch(err => console.log(`Couldn\'t send this error: \n${err}`));
+              .catch(err => console.log(`Couldn't send this error: \n${err}`));
           });
       }
     }

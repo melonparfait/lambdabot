@@ -7,10 +7,10 @@ import { GamePhase } from '../helpers/lambda.interface';
 import { isUndefined, cloneDeep } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
 import { Clue } from './clue';
+import { v4 as uuidv4 } from 'uuid';
 
 export class Game {
   private _settings: GameSettings;
-  readonly clues: Clue[];
   players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
@@ -49,13 +49,20 @@ export class Game {
     return this._settings.dGuessTime;
   }
 
-  constructor(clues: Clue[], settings?: GameSettings, ) {
-    this.clues = clues;
+  constructor(public readonly channelId: string,
+      public readonly clues: Clue[],
+      settings?: GameSettings,
+      public readonly id?: string) {
     if (isUndefined(settings)) {
       this._settings = cloneDeep(DEFAULT_SETTINGS);
     } else {
       this._settings = cloneDeep(settings);
     }
+
+    if (isUndefined(id)) {
+      this.id = uuidv4();
+    }
+
     this.resetTeams();
   }
 

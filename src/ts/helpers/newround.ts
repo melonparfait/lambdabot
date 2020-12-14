@@ -1,8 +1,8 @@
-import { DiscordService } from '../auth';
 import { TextChannel } from 'discord.js';
+import { DiscordClient } from '../discord.service';
 import { roundStatus, clue, gameSettings, roster, gameInfo } from './print.gameinfo';
 
-export function sendNewRoundMessages(client: DiscordService, channel: TextChannel) {
+export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel) {
   const game = client.game;
 
   game.currentClue = undefined;

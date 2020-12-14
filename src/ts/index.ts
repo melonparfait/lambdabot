@@ -1,4 +1,3 @@
-import { bot_token } from '../../keys.json';
 import { bot_prefix, default_cooldown } from '../../config.json';
 import { AuthSession } from './auth';
 import { Collection, Message } from 'discord.js';
@@ -7,9 +6,14 @@ import neatCSV = require('csv-parser');
 import { Command, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
 import { Clue } from './models/clue';
+import { DBService } from './db.service';
+import { DiscordClient } from './discord.service';
 
-const session = new AuthSession(bot_token);
-session.client.commands = new Collection<string, Command>();
+const dbService = new DBService();
+const discordService = new DiscordClient();
+const session = new AuthSession(dbService, discordService);
+
+discordService.commands = new Collection<string, Command>();
 const userCooldowns = new Collection<string, Collection<string, number>>();
 const globalCooldowns = new Collection<string, number>();
 
@@ -18,7 +22,7 @@ async function loadCommands() {
   for (const file of commandFiles) {
     try {
       const newCommand: Command = await import(`./commands/${file}`);
-      session.client.commands.set(newCommand.name, newCommand);
+      discordService.commands.set(newCommand.name, newCommand);
       console.log(`Added command: ${bot_prefix}${newCommand.name}`);
     } catch (error) {
       console.log(error);
@@ -32,21 +36,21 @@ fs.createReadStream('./data.csv')
   .pipe(neatCSV(['Lower', 'Higher']))
   .on('data', (data) => results.push(data))
   .on('end', () => {
-    session.client.data = results;
+    discordService.data = results;
   });
 
-session.client.on('ready', () => {
-  console.log(`Logged in as ${session.client.user.tag}!`);
+discordService.on('ready', () => {
+  console.log(`Logged in as ${discordService.user.tag}!`);
 });
 
-session.client.on('message', (message: DiscordMessage) => {
+discordService.on('message', (message: DiscordMessage) => {
   if (!message.content.startsWith(bot_prefix) || message.author.bot) return;
 
   const args = message.content.slice(bot_prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  const command = session.client.commands.get(commandName)
-    || session.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  const command = discordService.commands.get(commandName)
+    || discordService.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
   if (!command) return;
 
   if (command.guildOnly && message.channel.type !== 'text') {
@@ -108,10 +112,18 @@ session.client.on('message', (message: DiscordMessage) => {
   }
 });
 
-loadCommands().then(
-  () => session.authorize(),
-  err => {
-    console.log(err);
+loadCommands()
+  .then(async () => {
+    try {
+      await session.authorize();
+      dbService.connect();
+    } catch {
+      session.close();
+      dbService.disconnect();
+      exit(1);
+    }
+  })
+  .catch(err => {
+    console.log(`Unable to load commands: ${err}`);
     exit(1);
-  },
-);
+  });

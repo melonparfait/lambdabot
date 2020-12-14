@@ -15,14 +15,14 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.reply('it looks like there\'s already a game running.');
   } else {
     if (existingGame) {
-      message.client.game = new Game({
+      message.client.game = new Game(message.channel.id, message.client.data, {
         threshold: existingGame.threshold,
         asyncPlay: existingGame.asyncPlay,
         oGuessTime: 180 * 1000,
         dGuessTime: existingGame.dGuessTime,
       });
     } else {
-      message.client.game = new Game();
+      message.client.game = new Game(message.channel.id, message.client.data);
     }
 
     const newGame = message.client.game;
