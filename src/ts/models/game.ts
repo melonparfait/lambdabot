@@ -115,6 +115,13 @@ export class Game {
     }
   }
 
+  addPlayedClue(clueIndex: number, clueListLength: number) {
+    if (this.playedClues.length > clueListLength * 1.5) {
+      this.playedClues = [];
+    }
+    this.playedClues.push(clueIndex);
+  }
+
   endRound() {
     this.currentClue = undefined;
     if (this.offenseTeamNumber() === 1) {

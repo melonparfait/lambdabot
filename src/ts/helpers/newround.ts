@@ -11,7 +11,7 @@ export function sendNewRoundMessages(client: LambdaClient, channel: TextChannel)
   if (game.playedClues.includes(clueIndex)) {
     clueIndex = getClueIndex(client.data);
   }
-  game.playedClues.push(clueIndex);
+  game.addPlayedClue(clueIndex, client.data.length);
 
   game.round.leftClue = client.data[clueIndex].Lower;
   game.round.rightClue = client.data[clueIndex].Higher;
