@@ -93,17 +93,17 @@ describe('Game model tests', () => {
       it('should have Team 1 as offense and Team 2 as defense on even rounds', () => {
         game.roundCounter = 0;
         expect(game.offenseTeamNumber()).to.equal(1);
-        expect(game.offenseTeam().players).to.have.ordered.members(team1Players);
+        expect(game.offenseTeam.players).to.have.ordered.members(team1Players);
         expect(game.defenseTeamNumber()).to.equal(2);
-        expect(game.defenseTeam().players).to.have.ordered.members(team2Players);
+        expect(game.defenseTeam.players).to.have.ordered.members(team2Players);
       });
 
       it('should have Team 1 as defense and Team 2 as offense on even rounds', () => {
         game.roundCounter = 1;
         expect(game.defenseTeamNumber()).to.equal(1);
-        expect(game.defenseTeam().players).to.have.ordered.members(team1Players);
+        expect(game.defenseTeam.players).to.have.ordered.members(team1Players);
         expect(game.offenseTeamNumber()).to.equal(2);
-        expect(game.offenseTeam().players).to.have.ordered.members(team2Players);
+        expect(game.offenseTeam.players).to.have.ordered.members(team2Players);
       });
     });
 
@@ -211,8 +211,8 @@ describe('Game model tests', () => {
 
         game.round = makeFakeRound(100, false, 1, true);
         const result = game.score();
-        verifyResults(result, OffenseScore.nothing, true, OffenseScore.nothing, 1);
-        expect(game.team1.points).to.equal(t1PointsBefore + OffenseScore.nothing);
+        verifyResults(result, OffenseScore.miss, true, OffenseScore.miss, 1);
+        expect(game.team1.points).to.equal(t1PointsBefore + OffenseScore.miss);
         expect(game.team2.points).to.equal(t2PointsBefore + 1);
       });
     });

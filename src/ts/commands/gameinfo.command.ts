@@ -10,10 +10,10 @@ export const guildOnly = true;
 export const usage = '';
 export const args = false;
 export function execute(message: DiscordMessage, args: string[]) {
-  if (!message.client.game) {
-    return message.reply('No one has started a game yet. Use the \`newgame\` command to start one!');
+  const game = message.client.games.get(message.channel.id);
+  if (!game) {
+    return message.reply('No one has started a game yet. Use the `newgame` command to start one!');
   } else {
-    const game = message.client.game;
     return message.channel.send(gameInfo(game));
   }
 }

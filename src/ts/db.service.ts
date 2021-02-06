@@ -3,11 +3,7 @@ import * as sqlite3 from 'sqlite3';
 const genUsersTable = `CREATE TABLE IF NOT EXISTS users(
   id BIGINT UNSIGNED PRIMARY KEY,
   game_id BIGINT UNSIGNED NOT NULL,
-  team BOOL NOT NULL,
-  FOREIGN KEY (game_id)
-    REFERENCES games (id)
-      ON DELETE CASCADE
-      ON UPDATE NO ACTION)`;
+  team BOOL NOT NULL)`;
 const genGamesTable = `CREATE TABLE IF NOT EXISTS games(
   id BIGINT UNSIGNED PRIMARY KEY,
   channel_id BIGINT UNSIGNED NOT NULL,
@@ -19,23 +15,13 @@ const genScoresTable = `CREATE TABLE IF NOT EXISTS detail_score(
   bullseye INT UNSIGNED DEFAULT 0,
   strong INT UNSIGNED DEFAULT 0,
   medium INT UNSIGNED DEFAULT 0,
-  nothing INT UNSIGNED DEFAULT 0,
-  PRIMARY KEY (game_id, player_id)
-  FOREIGN KEY (game_id)
-    REFERENCES games (id)
-      ON DELETE CASCADE
-      ON UPDATE NO ACTION,
-  FOREIGN KEY (player_id)
-    REFERENCES users (id)
-      ON DELETE CASCADE
-      ON UPDATE NO ACTION)`;
+  miss INT UNSIGNED DEFAULT 0)`;
 
 export class DBService {
   private _connected = false;
   get connected(): boolean {
     return this._connected;
   }
-
 
   db: sqlite3.Database;
   constructor() {}
@@ -46,14 +32,14 @@ export class DBService {
       return;
     }
 
-    this.db = new sqlite3.Database('../db/data.db',
+    this.db = new sqlite3.Database('./db/data.db',
       err => {
         if (err) {
           console.log(`Unable to establish connection to database: ${err}`);
         } else {
           this._connected = true;
           console.log('Connected to database!');
-          this.db.serialize(() => {
+          this.db.parallelize(() => {
             this.db.run(genUsersTable)
               .run(genGamesTable)
               .run(genScoresTable)

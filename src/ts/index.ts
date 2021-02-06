@@ -7,13 +7,12 @@ import { Command, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
 import { Clue } from './models/clue';
 import { DBService } from './db.service';
-import { DiscordClient } from './discord.service';
+import { LambdaClient } from './discord.service';
 
 const dbService = new DBService();
-const discordService = new DiscordClient();
-const session = new AuthSession(dbService, discordService);
+const lambdaClient = new LambdaClient(dbService);
+const session = new AuthSession(dbService, lambdaClient);
 
-discordService.commands = new Collection<string, Command>();
 const userCooldowns = new Collection<string, Collection<string, number>>();
 const globalCooldowns = new Collection<string, number>();
 
@@ -22,7 +21,7 @@ async function loadCommands() {
   for (const file of commandFiles) {
     try {
       const newCommand: Command = await import(`./commands/${file}`);
-      discordService.commands.set(newCommand.name, newCommand);
+      lambdaClient.commands.set(newCommand.name, newCommand);
       console.log(`Added command: ${bot_prefix}${newCommand.name}`);
     } catch (error) {
       console.log(error);
@@ -36,21 +35,21 @@ fs.createReadStream('./data.csv')
   .pipe(neatCSV(['Lower', 'Higher']))
   .on('data', (data) => results.push(data))
   .on('end', () => {
-    discordService.data = results;
+    lambdaClient.data = results;
   });
 
-discordService.on('ready', () => {
-  console.log(`Logged in as ${discordService.user.tag}!`);
+lambdaClient.on('ready', () => {
+  console.log(`Logged in as ${lambdaClient.user.tag}!`);
 });
 
-discordService.on('message', (message: DiscordMessage) => {
+lambdaClient.on('message', (message: DiscordMessage) => {
   if (!message.content.startsWith(bot_prefix) || message.author.bot) return;
 
   const args = message.content.slice(bot_prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  const command = discordService.commands.get(commandName)
-    || discordService.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  const command = lambdaClient.commands.get(commandName)
+    || lambdaClient.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
   if (!command) return;
 
   if (command.guildOnly && message.channel.type !== 'text') {
@@ -116,10 +115,10 @@ loadCommands()
   .then(async () => {
     try {
       await session.authorize();
-      dbService.connect();
+      // dbService.connect();
     } catch {
       session.close();
-      dbService.disconnect();
+      // dbService.disconnect();
       exit(1);
     }
   })

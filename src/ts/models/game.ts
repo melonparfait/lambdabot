@@ -1,6 +1,6 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { Message } from 'discord.js';
+import { Channel, Message } from 'discord.js';
 import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
@@ -19,6 +19,7 @@ export class Game {
   round: Round;
   currentClue: string;
   pinnedInfo: Message;
+  playedClues: number[] = [];
 
   get unassignedPlayers(): string[] {
     const players = [];
@@ -145,7 +146,7 @@ export class Game {
       } else if (delta <= 10) {
         oResult = OffenseScore.medium;
       } else {
-        oResult = OffenseScore.nothing;
+        oResult = OffenseScore.miss;
       }
       if (scoreDefense && dCorrect) {
         dResult = true;
@@ -200,7 +201,7 @@ export class Game {
     return (this.roundCounter % 2) + 1;
   }
 
-  offenseTeam(): GameTeam {
+  get offenseTeam(): GameTeam {
     if (this.offenseTeamNumber() === 1) {
       return this.team1;
     } else {
@@ -216,7 +217,7 @@ export class Game {
     }
   }
 
-  defenseTeam(): GameTeam {
+  get defenseTeam(): GameTeam {
     if (this.offenseTeamNumber() === 1) {
       return this.team2;
     } else {

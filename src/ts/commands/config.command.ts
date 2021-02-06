@@ -14,11 +14,12 @@ export const guildOnly = true;
 export const usage = '<threshold> <sync | async> [defenseTimer]';
 export const args = true;
 export function execute(message: DiscordMessage, args: string[]) {
+  const channelId = message.channel.id;
   if (args.length !== 3 && args.length !== 2) {
     return message.reply(`Usage: \`!config\` ${usage}` + `\n${description}`);
   } else if (!checkForGame(message)) {
     return;
-  } else if (!checkGamePhase(message.client.game, 'setup')) {
+  } else if (!checkGamePhase(message.client.games.get(channelId), 'setup')) {
     return message.reply('this command can only be used during game setup.');
   } else {
     let threshold: number | 'default' = 'default';
@@ -37,7 +38,7 @@ export function execute(message: DiscordMessage, args: string[]) {
     const dGuessTimeArg = parseInt(args[2]);
     const dGuessTime = (isNaN(dGuessTimeArg) || dGuessTimeArg < 1) ? undefined : dGuessTimeArg * 1000;
 
-    message.client.game.setSettings({
+    message.client.games.get(channelId).setSettings({
       threshold: threshold,
       asyncPlay: asyncPlayArg,
       oGuessTime: 0,
@@ -46,6 +47,6 @@ export function execute(message: DiscordMessage, args: string[]) {
 
     updateGameInfo(message);
     return message.channel.send('Changed the settings to:\n'
-      + gameSettings(message.client.game));
+      + gameSettings(message.client.games.get(channelId)));
   }
 }

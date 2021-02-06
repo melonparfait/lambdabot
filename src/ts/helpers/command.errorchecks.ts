@@ -2,8 +2,9 @@ import { DiscordMessage, GamePhase } from './lambda.interface';
 import { Game } from '../models/game';
 
 export function checkForGame(message: DiscordMessage): boolean {
-  if (!message.client.game || message.client.game.status === 'finished') {
-    message.reply('No one has started a game yet. Use the \`newgame\` command to start one!');
+  const game = message.client.games.get(message.channel.id);
+  if (game?.status !== 'finished') {
+    message.reply('No one has started a game yet. Use the `newgame` command to start one!');
     return false;
   } else {
     return true;

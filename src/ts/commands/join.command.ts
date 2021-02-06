@@ -9,16 +9,16 @@ export const description = 'Joins the current game. If a team number argument is
 export const guildOnly = true;
 export const usage = '[team number]';
 export function execute(message: DiscordMessage, args: string[]) {
-  const game = message.client.game;
+  const game = message.client.games.get(message.channel.id);
   if (!game || game.status === 'finished') {
-    return message.reply('No one has started a game yet. Use the \`newgame\` command to start one!');
+    return message.reply('No one has started a game yet. Use the `newgame` command to start one!');
   } else if (game.status !== 'setup') {
     return message.reply('Sorry, it looks like the game is already running.');
     // TODO: allow joining an in-progress game
   } else if (args.length === 1) {
     const parseResult = parseInt(args[0]);
     if (isNaN(parseResult) || (parseResult !== 1 && parseResult !== 2)) {
-      return message.reply('try again with \`!join 1\` or \`!join 2\`.');
+      return message.reply('try again with `!join 1` or `!join 2`.');
     } else {
       let response: string;
       if (game.join(message.author.id)) {

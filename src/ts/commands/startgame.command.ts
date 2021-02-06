@@ -10,7 +10,7 @@ export const description = 'Starts the game using the current teams';
 export const guildOnly = true;
 export const usage = '';
 export function execute(message: DiscordMessage, args: string[]) {
-  const game = message.client.game;
+  const game = message.client.games.get(message.channel.id);
   if (!game) {
     return message.channel.send('No one has started a game yet. Use the `newgame` command to start one!');
   } else if (game.status === 'playing') {
