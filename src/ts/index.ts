@@ -115,10 +115,10 @@ loadCommands()
   .then(async () => {
     try {
       await session.authorize();
-      // dbService.connect();
+      dbService.connect();
     } catch {
       session.close();
-      // dbService.disconnect();
+      dbService.disconnect();
       exit(1);
     }
   })

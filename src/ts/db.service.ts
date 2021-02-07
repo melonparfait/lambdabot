@@ -1,16 +1,17 @@
 import * as sqlite3 from 'sqlite3';
 
-const genUsersTable = `CREATE TABLE IF NOT EXISTS users(
-  id BIGINT UNSIGNED PRIMARY KEY,
+const genPerformanceTable = `CREATE TABLE IF NOT EXISTS performances(
+  perf_id BIGINT UNSIGNED PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
   game_id BIGINT UNSIGNED NOT NULL,
-  team BOOL NOT NULL)`;
+  team TINYINT NOT NULL)`;
 const genGamesTable = `CREATE TABLE IF NOT EXISTS games(
-  id BIGINT UNSIGNED PRIMARY KEY,
+  game_id BIGINT UNSIGNED PRIMARY KEY,
   channel_id BIGINT UNSIGNED NOT NULL,
-  outcome BOOL)`;
-const genScoresTable = `CREATE TABLE IF NOT EXISTS detail_score(
-  game_id BIGINT UNSIGNED NOT NULL,
-  player_id BIGINT UNSIGNED NOT NULL,
+  team1_score INT UNSIGNED NOT NULL,
+  team2_score INT UNSIGNED NOT NULL)`;
+const genScoresTable = `CREATE TABLE IF NOT EXISTS scores(
+  perf_id BIGINT UNSIGNED PRIMARY KEY,
   perfect INT UNSIGNED DEFAULT 0,
   bullseye INT UNSIGNED DEFAULT 0,
   strong INT UNSIGNED DEFAULT 0,
@@ -40,17 +41,9 @@ export class DBService {
           this._connected = true;
           console.log('Connected to database!');
           this.db.parallelize(() => {
-            this.db.run(genUsersTable)
+            this.db.run(genPerformanceTable)
               .run(genGamesTable)
-              .run(genScoresTable)
-              .each('', err => {
-                if (err) {
-                  console.log('Database error: ', err);
-                  throw err;
-                } else {
-                  console.log(err);
-                }
-              });
+              .run(genScoresTable);
           });
         }
       });

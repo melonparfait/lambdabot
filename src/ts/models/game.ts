@@ -1,5 +1,5 @@
 import { GameTeam } from './team';
-import { Round } from './round';
+import { Outcome, Round } from './round';
 import { Channel, Message } from 'discord.js';
 import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
@@ -20,6 +20,7 @@ export class Game {
   currentClue: string;
   pinnedInfo: Message;
   playedClues: number[] = [];
+  outcomes: Outcome[] = [];
 
   get unassignedPlayers(): string[] {
     const players = [];
@@ -170,12 +171,19 @@ export class Game {
     this.team1.points += t1Pts;
     this.team2.points += t2Pts;
 
-    return {
+    const scoreResults = {
       offenseResult: oResult,
       defenseResult: dResult,
       team1PointChange: t1Pts,
       team2PointChange: t2Pts,
     };
+
+    this.outcomes.push({
+      clueGiver: this.round.clueGiver,
+      results: scoreResults
+    });
+
+    return scoreResults;
   }
 
   determineWinner(): 'Team 1' | 'Team 2' | false {
