@@ -61,4 +61,23 @@ export class DBService {
       });
     }
   }
+
+  updatePerformanceTable(team1: string[], team2: string[], gameId: string) {
+    let values = '';
+    team1.forEach(player => values += `(${player}, ${gameId}, ${1}),`);
+    team2.forEach(player => values += `(${player}, ${gameId}, ${2}),`);
+    values = values.substring(0, values.length - 1);
+    this.db.run(`INSERT INTO performances (user_id, game_id, team)
+      VALUES ${values}`, err => console.log('Error updating the performance table: ', err));
+  }
+
+  updateGamesTable(gameId: string, channelId: string, team1Score: number, team2Score: number) {
+    this.db.run(`INSERT INTO games (game_id, channel_id, team1_score, team2_score)
+      VALUES (${gameId}, ${channelId}, ${team1Score}, ${team2Score})`,
+    err => console.log('Error updating the games table: ', err));
+  }
+
+  updateScoresTable() {
+    
+  }
 }

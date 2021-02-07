@@ -20,7 +20,7 @@ export class Game {
   currentClue: string;
   pinnedInfo: Message;
   playedClues: number[] = [];
-  outcomes: Outcome[] = [];
+  outcomes: Map<string, Map<number, number>> = new Map();
 
   get unassignedPlayers(): string[] {
     const players = [];
@@ -101,6 +101,11 @@ export class Game {
     }
     this.status = 'playing';
     this.roundCounter = 0;
+
+    this.players.forEach(player => {
+      this.outcomes.set(player, new Map());
+      [...Array(5).keys()].forEach(pointValue => this.outcomes.get(player).set(pointValue, 0));
+    });
     this.newRound();
   }
 
@@ -178,10 +183,8 @@ export class Game {
       team2PointChange: t2Pts,
     };
 
-    this.outcomes.push({
-      clueGiver: this.round.clueGiver,
-      results: scoreResults
-    });
+    const currentValue = this.outcomes.get(this.round.clueGiver).get(oResult);
+    this.outcomes.get(this.round.clueGiver).set(oResult, currentValue + 1);
 
     return scoreResults;
   }

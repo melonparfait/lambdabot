@@ -3,6 +3,7 @@ import { DBService } from './db.service';
 import { Command } from './helpers/lambda.interface';
 import { Game } from './models/game';
 import { Outcome } from './models/round';
+import { OffenseScore } from './models/scoring.results';
 
 export class LambdaClient extends Client {
   commands = new Collection<string, Command>();
@@ -23,15 +24,10 @@ export class LambdaClient extends Client {
         id: game.id,
         channel: channelId,
         team1Score: game.team1.points,
-        team2_score: game.team2.points
+        team2Score: game.team2.points
       },
-      scores: []
+      scores: game.outcomes
     };
-
-    game.outcomes.forEach((outcome, roundNumber) => {
-      if (roundNumber % 2) {
-      }
-    });
 
     this.games.delete(channelId);
   }
