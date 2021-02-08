@@ -13,8 +13,7 @@ const dbService = new DBService();
 const lambdaClient = new LambdaClient(dbService);
 const session = new AuthSession(dbService, lambdaClient);
 
-const userCooldowns = new Collection<string, Collection<string, number>>();
-const channelCooldowns = new Collection<string, number>();
+const cooldowns = new Collection<string, Collection<string, Collection<string, number>>>();
 
 async function loadCommands() {
   const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.command.ts'));
@@ -70,35 +69,46 @@ lambdaClient.on('message', (message: DiscordMessage) => {
 
   if (cooldownAmount !== 0) {
     const now = Date.now();
+    if (!cooldowns.has(message.channel.id)) {
+      cooldowns.set(message.channel.id, new Collection<string, Collection<string, number>>());
+    }
+    const channelCooldowns = cooldowns.get(message.channel.id);
+
     if (command.channelCooldown) {
-      if (!channelCooldowns.has(command.name)) {
-        channelCooldowns.set(command.name, now);
+      if (!channelCooldowns.has('channel')) {
+        channelCooldowns.set('channel', new Collection<string, number>());
+        channelCooldowns.get('channel').set(command.name, now);
+        setTimeout(() => channelCooldowns.get('channel').delete(command.name), cooldownAmount);
       } else {
-        const timestamp = channelCooldowns.get(command.name);
+        const cooldownForChannel = channelCooldowns.get('channel');
+        const timestamp = cooldownForChannel.has(command.name) ? cooldownForChannel.get(command.name) : 0;
         const expirationTime = timestamp + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
         } else {
-          channelCooldowns.set(command.name, now);
-          setTimeout(() => channelCooldowns.delete(command.name));
+          cooldownForChannel.set(command.name, now);
+          setTimeout(() => cooldownForChannel.delete(command.name), cooldownAmount);
         }
       }
+    } else if (!channelCooldowns.has(message.author.id)) {
+      channelCooldowns.set(message.author.id, new Collection<string, number>());
+      channelCooldowns.get(message.author.id).set(command.name, now);
+      setTimeout(() => channelCooldowns.get(message.author.id).delete(command.name), cooldownAmount);
     } else {
+      const userCooldowns = channelCooldowns.get(message.author.id);
       if (!userCooldowns.has(command.name)) {
-        userCooldowns.set(command.name, new Collection<string, number>());
-      }
-      const timestamps = userCooldowns.get(command.name);
-      if (timestamps.has(message.author.id)) {
-        const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
+        userCooldowns.set(command.name, now);
+        setTimeout(() => userCooldowns.delete(command.name), cooldownAmount);
+      } else {
+        const expirationTime = userCooldowns.get(command.name) + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+        } else {
+          userCooldowns.set(command.name, now);
+          setTimeout(() => userCooldowns.delete(command.name), cooldownAmount);
         }
-      } else {
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
       }
     }
   }

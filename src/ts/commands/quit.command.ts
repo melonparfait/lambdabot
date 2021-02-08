@@ -12,7 +12,7 @@ export function execute(message: DiscordMessage, args: string[]) {
     return message.channel.send('No one has started a game yet. Use the `newgame` command to start one!');
   } else {
     game.endGame();
-    message.client.finalizeGame(message.channel.id);
+    message.client.finalizeGame(message.channel.id, false);
     game.pinnedInfo.unpin()
       .catch(err => {
         message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');

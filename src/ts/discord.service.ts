@@ -13,15 +13,17 @@ export class LambdaClient extends Client {
     super();
   }
 
-  finalizeGame(channelId: string) {
+  finalizeGame(channelId: string, commit = true) {
     const game = this.games.get(channelId);
-    this.dbService.updateDatabase(game.team1.players,
-      game.team2.players,
-      game.id,
-      channelId,
-      game.team1.points,
-      game.team2.points,
-      game.outcomes);
+    if (commit) {
+      this.dbService.updateDatabase(game.team1.players,
+        game.team2.players,
+        game.id,
+        channelId,
+        game.team1.points,
+        game.team2.points,
+        game.outcomes);
+    }
     this.games.delete(channelId);
   }
 }
