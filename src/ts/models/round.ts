@@ -1,11 +1,6 @@
 import { ScoringResults } from './scoring.results';
 import { GameTeam } from './team';
 
-export interface Outcome {
-  clueGiver: string,
-  results: ScoringResults
-}
-
 export class Round {
   clueGiver: string;
   oTeam: GameTeam;

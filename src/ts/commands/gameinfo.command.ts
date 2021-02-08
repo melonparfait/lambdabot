@@ -4,7 +4,7 @@ import { scoreboard, roundStatus, roster, gameSettings, currentClue, gameInfo } 
 export const name = 'gameinfo';
 export const aliases = ['info'];
 export const cooldown = 5;
-export const globalCooldown = true;
+export const channelCooldown = true;
 export const description = 'Posts information about the current game into chat';
 export const guildOnly = true;
 export const usage = '';

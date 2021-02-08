@@ -6,7 +6,7 @@ import { updateGameInfo } from '../helpers/print.gameinfo';
 export const name = 'skip';
 export const aliases = [];
 export const cooldown = 5;
-export const globalCooldown = true;
+export const channelCooldown = true;
 export const description = 'Gets a new clue';
 export const guildOnly = true;
 export const usage = '';

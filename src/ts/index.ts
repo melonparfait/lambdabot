@@ -14,7 +14,7 @@ const lambdaClient = new LambdaClient(dbService);
 const session = new AuthSession(dbService, lambdaClient);
 
 const userCooldowns = new Collection<string, Collection<string, number>>();
-const globalCooldowns = new Collection<string, number>();
+const channelCooldowns = new Collection<string, number>();
 
 async function loadCommands() {
   const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.command.ts'));
@@ -70,18 +70,18 @@ lambdaClient.on('message', (message: DiscordMessage) => {
 
   if (cooldownAmount !== 0) {
     const now = Date.now();
-    if (command.globalCooldown) {
-      if (!globalCooldowns.has(command.name)) {
-        globalCooldowns.set(command.name, now);
+    if (command.channelCooldown) {
+      if (!channelCooldowns.has(command.name)) {
+        channelCooldowns.set(command.name, now);
       } else {
-        const timestamp = globalCooldowns.get(command.name);
+        const timestamp = channelCooldowns.get(command.name);
         const expirationTime = timestamp + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
         } else {
-          globalCooldowns.set(command.name, now);
-          setTimeout(() => globalCooldowns.delete(command.name));
+          channelCooldowns.set(command.name, now);
+          setTimeout(() => channelCooldowns.delete(command.name));
         }
       }
     } else {
@@ -104,7 +104,11 @@ lambdaClient.on('message', (message: DiscordMessage) => {
   }
 
   try {
-    command.execute(message, args);
+    if (command.name !== 'updatedb') {
+      command.execute(message, args);
+    } else {
+      command.execute(message, [args.join(' ')]);
+    }
   } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');

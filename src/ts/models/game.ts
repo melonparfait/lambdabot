@@ -1,5 +1,5 @@
 import { GameTeam } from './team';
-import { Outcome, Round } from './round';
+import { Round } from './round';
 import { Channel, Message } from 'discord.js';
 import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
@@ -185,6 +185,10 @@ export class Game {
 
     const currentValue = this.outcomes.get(this.round.clueGiver).get(oResult);
     this.outcomes.get(this.round.clueGiver).set(oResult, currentValue + 1);
+    if (delta === 0) {
+      const currentPerfects = this.outcomes.get(this.round.clueGiver).get(5);
+      this.outcomes.get(this.round.clueGiver).set(5, currentPerfects + 1);
+    }
 
     return scoreResults;
   }
