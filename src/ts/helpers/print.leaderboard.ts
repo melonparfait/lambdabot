@@ -17,7 +17,7 @@ export function printLeaderboard(statArray: PlayerStats[], stat: string): string
   });
   ranking.sort((a, b) => b.value - a.value);
   ranking.forEach((rank, index) => {
-    msg += `#${index + 1} (${rank.value}): ${rank.players.map(id => `<@${id}>`).join()}\n`;
+    msg += `#${index + 1} (${rank.value}): ${rank.players.map(id => `<@!${id}>`).join(', ')}\n`;
   });
   return msg;
 }

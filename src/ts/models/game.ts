@@ -104,7 +104,7 @@ export class Game {
 
     this.players.forEach(player => {
       this.outcomes.set(player, new Map());
-      [...Array(5).keys()].forEach(pointValue => this.outcomes.get(player).set(pointValue, 0));
+      [...Array(6).keys()].forEach(pointValue => this.outcomes.get(player).set(pointValue, 0));
     });
     this.newRound();
   }

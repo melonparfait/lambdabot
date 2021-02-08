@@ -87,7 +87,7 @@ const dTeamReply = (msg: DiscordMessage) => {
   const isBot = msg.author.bot;
   const isGuess = (msg.content.toLowerCase() === '!higher'
     || msg.content.toLowerCase() === '!lower');
-  const isPlayerOnDTeam = msg.client.games.get(msg.id).round.dTeam.players
+  const isPlayerOnDTeam = msg.client.games.get(msg.channel.id).round.dTeam.players
     .includes(msg.author.id);
   return !isBot && isGuess && isPlayerOnDTeam;
 };

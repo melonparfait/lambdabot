@@ -3,8 +3,8 @@ import { PlayerStats } from './helpers/print.stats';
 import { OffenseScore } from './models/scoring.results';
 
 const genPerformanceTable = `CREATE TABLE IF NOT EXISTS performances(
-  user_id BIGINT UNSIGNED NOT NULL,
-  game_id BIGINT UNSIGNED NOT NULL,
+  user_id TEXT NOT NULL,
+  game_id TEXT NOT NULL,
   team TINYINT NOT NULL,
   perfect INT UNSIGNED DEFAULT 0,
   bullseye INT UNSIGNED DEFAULT 0,
@@ -15,8 +15,8 @@ const genPerformanceTable = `CREATE TABLE IF NOT EXISTS performances(
   FOREIGN KEY (game_id)
     REFERENCES games (game_id))`;
 const genGamesTable = `CREATE TABLE IF NOT EXISTS games(
-  game_id BIGINT UNSIGNED PRIMARY KEY,
-  channel_id BIGINT UNSIGNED NOT NULL,
+  game_id TEXT PRIMARY KEY,
+  channel_id TEXT NOT NULL,
   team1_score INT UNSIGNED NOT NULL,
   team2_score INT UNSIGNED NOT NULL)`;
 
@@ -112,11 +112,13 @@ export class DBService {
   }
 
   getChannelPlayers(channel: string): Promise<string[]> {
+    const query = `SELECT DISTINCT user_id 
+      FROM games INNER JOIN performances
+      ON games.game_id = performances.game_id
+      WHERE channel_id = "${channel}"`;
+    console.log('Running SQL command:\n', query);
     return new Promise((resolve, reject) => {
-      this.db.all(`SELECT DISTINCT user_id 
-        FROM games INNER JOIN performances
-        ON games.game_id = performances.game_id
-        WHERE channel_id = "${channel}"`, (err, rows) => {
+      this.db.all(query, (err, rows) => {
         if (err) {
           console.log('Error querying the database: ', err);
           reject('Failed to query the database');
