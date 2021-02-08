@@ -13,15 +13,15 @@ export const guildOnly = true;
 export const args = true;
 export const usage = '<integer between 1 and 100>';
 export function execute(message: DiscordMessage, args: string[]) {
-  const game = message.client.game;
+  const game = message.client.games.get(message.channel.id);
   if (!game || game.status === 'finished') {
-    return message.reply('no one has started a game yet. Use the \`newgame\` command to start one!');
+    return message.reply('no one has started a game yet. Use the `newgame` command to start one!');
   } else if (game.status !== 'playing') {
     return message.reply('it looks like the game isn\'t in progress yet.');
   } else if (message.author.id === game.round.clueGiver) {
     return message.reply('the clue giver cannot guess! No cheating!');
   } else if (!game.round.oTeam.players.includes(message.author.id)) {
-    return message.reply(`only members from Team ${game.offenseTeamNumber} can guess!`);
+    return message.reply(`only members from Team ${game.offenseTeamNumber()} can guess!`);
   } else if (game.round.oGuess) {
     return message.reply(`it looks like your team already guessed ${game.round.oGuess}.`);
   } else {
@@ -36,7 +36,7 @@ export function execute(message: DiscordMessage, args: string[]) {
         + '\n' + clue(game.round, guess)
         + givenClue
         + `\nTeam ${game.defenseTeamNumber()} `
-        + `(${game.defenseTeam().players.map(id => `<@${id}>`).join(', ')}), `
+        + `(${game.defenseTeam.players.map(id => `<@${id}>`).join(', ')}), `
         + 'do you think the target is `!higher` or `!lower`?';
 
       if (!game.asyncPlay) {
@@ -75,7 +75,7 @@ export function execute(message: DiscordMessage, args: string[]) {
             console.log(err);
             message.channel.send('Sorry, there was an error processing that reply. I notified the admin about this.');
             message.client.users.cache.get(owner_id).send(`Got an error: ${err}`)
-              .catch(err => console.log(`Couldn\'t send this error: \n${err}`));
+              .catch(err => console.log(`Couldn't send this error: \n${err}`));
           });
       }
     }
@@ -87,13 +87,13 @@ const dTeamReply = (msg: DiscordMessage) => {
   const isBot = msg.author.bot;
   const isGuess = (msg.content.toLowerCase() === '!higher'
     || msg.content.toLowerCase() === '!lower');
-  const isPlayerOnDTeam = msg.client.game.round.dTeam.players
+  const isPlayerOnDTeam = msg.client.games.get(msg.id).round.dTeam.players
     .includes(msg.author.id);
   return !isBot && isGuess && isPlayerOnDTeam;
 };
 
 function processReply(messages: Collection<string, Message>, message: DiscordMessage) {
-  const game = message.client.game;
+  const game = message.client.games.get(message.channel.id);
   const isHigher = messages.last().content.toLowerCase() === '!higher';
   game.round.makeDGuess(isHigher);
 
@@ -118,7 +118,7 @@ function processReply(messages: Collection<string, Message>, message: DiscordMes
 }
 
 function closeRound(message: DiscordMessage, results: ScoringResults) {
-  const game = message.client.game;
+  const game = message.client.games.get(message.channel.id);
   message.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${game.team1.points})`
     + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${game.team2.points})`);
 
@@ -129,13 +129,13 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
   const winner = game.determineWinner();
   if (winner) {
     game.endGame();
+    message.client.finalizeGame(message.channel.id);
     sendGameEndScoreboard(message.channel as TextChannel, game, winner);
-    game.pinnedInfo.unpin().then(() => {
-      game.pinnedInfo = undefined;
-    }).catch(err => {
-      message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
-      console.log(err);
-    });
+    game.pinnedInfo.unpin().then(() => game.pinnedInfo = undefined)
+      .catch(err => {
+        message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
+        console.log(err);
+      });
   } else {
     if (game.team1.points > game.threshold
         && game.team2.points > game.threshold) {

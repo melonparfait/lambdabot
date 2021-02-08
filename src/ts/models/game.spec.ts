@@ -3,7 +3,6 @@ import { Game } from '../models/game';
 import { expect } from 'chai';
 import { DEFAULT_SETTINGS } from './game.settings';
 import { Round } from './round';
-import { Team } from 'discord.js';
 import { GameTeam } from './team';
 import { OffenseScore, ScoringResults } from './scoring.results';
 
@@ -19,7 +18,7 @@ describe('Game model tests', () => {
 
   describe('Initialization tests', () => {
     beforeEach(() => {
-      game = new Game();
+      game = new Game('testGame', []);
     });
 
     it('should initialize', () => {
@@ -36,7 +35,7 @@ describe('Game model tests', () => {
     });
 
     it('should initialize a game with defined settings', () => {
-      game = new Game({ threshold, asyncPlay, dGuessTime, oGuessTime });
+      game = new Game('testGame', [], { threshold, asyncPlay, dGuessTime, oGuessTime });
 
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);
@@ -46,7 +45,7 @@ describe('Game model tests', () => {
 
   describe('config tests', () => {
     it('should set settings properly', () => {
-      game = new Game();
+      game = new Game('testGame', []);
       expect(game.threshold).to.equal(0);
       expect(game.asyncPlay).to.equal(DEFAULT_SETTINGS.asyncPlay);
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
@@ -60,7 +59,7 @@ describe('Game model tests', () => {
 
     describe('threshold tests', () => {
       beforeEach(() => {
-        game = new Game();
+        game = new Game('testGame', []);
       });
 
       it('should calculate the threshold correctly for balanced teams', () => {
@@ -79,7 +78,7 @@ describe('Game model tests', () => {
 
   describe('After starting the game', () => {
     beforeEach(() => {
-      game = new Game();
+      game = new Game('testGame', []);
       game.team1.players.push(...team1Players);
       game.team2.players.push(...team2Players);
       game.start();
@@ -94,17 +93,17 @@ describe('Game model tests', () => {
       it('should have Team 1 as offense and Team 2 as defense on even rounds', () => {
         game.roundCounter = 0;
         expect(game.offenseTeamNumber()).to.equal(1);
-        expect(game.offenseTeam().players).to.have.ordered.members(team1Players);
+        expect(game.offenseTeam.players).to.have.ordered.members(team1Players);
         expect(game.defenseTeamNumber()).to.equal(2);
-        expect(game.defenseTeam().players).to.have.ordered.members(team2Players);
+        expect(game.defenseTeam.players).to.have.ordered.members(team2Players);
       });
 
       it('should have Team 1 as defense and Team 2 as offense on even rounds', () => {
         game.roundCounter = 1;
         expect(game.defenseTeamNumber()).to.equal(1);
-        expect(game.defenseTeam().players).to.have.ordered.members(team1Players);
+        expect(game.defenseTeam.players).to.have.ordered.members(team1Players);
         expect(game.offenseTeamNumber()).to.equal(2);
-        expect(game.offenseTeam().players).to.have.ordered.members(team2Players);
+        expect(game.offenseTeam.players).to.have.ordered.members(team2Players);
       });
     });
 
@@ -212,8 +211,8 @@ describe('Game model tests', () => {
 
         game.round = makeFakeRound(100, false, 1, true);
         const result = game.score();
-        verifyResults(result, OffenseScore.nothing, true, OffenseScore.nothing, 1);
-        expect(game.team1.points).to.equal(t1PointsBefore + OffenseScore.nothing);
+        verifyResults(result, OffenseScore.miss, true, OffenseScore.miss, 1);
+        expect(game.team1.points).to.equal(t1PointsBefore + OffenseScore.miss);
         expect(game.team2.points).to.equal(t2PointsBefore + 1);
       });
     });

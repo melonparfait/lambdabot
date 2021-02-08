@@ -224,7 +224,8 @@ Democrat,Republican
 Unlikely to have bad breath,Likely to have bad breath
 Uneducated,Educated
 Boomer,Zoomer
-Awkward,Confident
+Uncomfortable, Comfortable
+Socially incompetent,Socially competent
 Minor mistake,Major error
 Straightforward,Complicated
 Frugal,Extravagant
@@ -269,7 +270,6 @@ Grumpy,Good-humored
 Gentle,Aggressive
 Serious,Funny
 Skeptical,Trusting
-Off-brand,Brand-name
 Careless,Careful
 Liquid,Solid
 Indoorsy,Outdoorsy
@@ -301,4 +301,4 @@ Pie,Cake
 Would feed to a dog,Would not feed to a dog
 Fruit,Vegetable
 Technology has improved,Technology has worsened
-Not enough,Too much
+Clumsy, Graceful

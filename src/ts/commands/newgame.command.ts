@@ -9,23 +9,25 @@ export const description = 'Starts a new game of Wavelength';
 export const guildOnly = true;
 export const usage = '';
 export function execute(message: DiscordMessage, args: string[]) {
-  const existingGame = message.client.game;
+  const channelId = message.channel.id;
+  const existingGame = message.client.games.get(channelId);
   if (existingGame && (existingGame.status === 'setup'
       || existingGame.status === 'playing')) {
     return message.reply('it looks like there\'s already a game running.');
   } else {
     if (existingGame) {
-      message.client.game = new Game({
-        threshold: existingGame.threshold,
-        asyncPlay: existingGame.asyncPlay,
-        oGuessTime: 180 * 1000,
-        dGuessTime: existingGame.dGuessTime,
-      });
+      message.client.games.set(channelId,
+        new Game(channelId, message.client.data, {
+          threshold: existingGame.threshold,
+          asyncPlay: existingGame.asyncPlay,
+          oGuessTime: 180 * 1000,
+          dGuessTime: existingGame.dGuessTime
+        }));
     } else {
-      message.client.game = new Game();
+      message.client.games.set(channelId, new Game(channelId, message.client.data));
     }
 
-    const newGame = message.client.game;
+    const newGame = message.client.games.get(channelId);
     newGame.join(message.author.id);
     message.channel.send(gameInfo(newGame)).then(() => {
       message.channel.lastMessage.pin()

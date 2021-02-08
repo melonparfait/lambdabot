@@ -1,5 +1,5 @@
 export enum OffenseScore {
-  nothing,
+  miss,
   weak,
   medium,
   strong,

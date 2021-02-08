@@ -1,25 +1,27 @@
-import { Client, Collection } from 'discord.js';
-import { Command } from './helpers/lambda.interface';
-import { Game } from './models/game';
-
-export class DiscordClient extends Client {
-    commands: Collection<string, Command>;
-    data: any;
-    game: Game;
-    constructor() {
-      super();
-    }
-}
+import { bot_token, owner_id } from '../../keys.json';
+import { DBService } from './db.service';
+import { LambdaClient } from './discord.service';
 
 export class AuthSession {
-    client: DiscordClient;
+  get dbConnection() {
+    return this.dbService.db;
+  }
 
-    constructor(public bot_token: string) {
-      this.client = new DiscordClient();
-    }
+  constructor(private dbService: DBService, public lambda: LambdaClient) {
+  }
 
-    authorize() {
-      this.client.login(this.bot_token);
-      console.log('Connected!');
+  async authorize() {
+    try {
+      await this.lambda.login(bot_token);
+      console.log('Connected to Discord!');
+    } catch (err) {
+      console.log(`Unable to connect: ${err}`);
     }
+  }
+
+  close() {
+    this.lambda.destroy();
+    console.log('Exited Discord client');
+    this.dbService.disconnect();
+  }
 }

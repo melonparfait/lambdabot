@@ -29,8 +29,8 @@ export function execute(message: DiscordMessage, args: string[]) {
       });
   }
 
-  const name = args[0].toLowerCase();
-  const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
+  const commandName = args[0].toLowerCase();
+  const command = commands.get(commandName) || commands.find(c => c.aliases && c.aliases.includes(commandName));
 
   if (!command) {
     return message.reply('that\'s not a valid command!');

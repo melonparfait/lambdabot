@@ -1,3 +1,4 @@
+import { ScoringResults } from './scoring.results';
 import { GameTeam } from './team';
 
 export class Round {

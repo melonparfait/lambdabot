@@ -1,11 +1,13 @@
 import { GameTeam } from './team';
 import { Round } from './round';
-import { Message } from 'discord.js';
+import { Channel, Message } from 'discord.js';
 import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
 import { isUndefined, cloneDeep } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
+import { Clue } from './clue';
+import { v4 as uuidv4 } from 'uuid';
 
 export class Game {
   private _settings: GameSettings;
@@ -17,6 +19,8 @@ export class Game {
   round: Round;
   currentClue: string;
   pinnedInfo: Message;
+  playedClues: number[] = [];
+  outcomes: Map<string, Map<number, number>> = new Map();
 
   get unassignedPlayers(): string[] {
     const players = [];
@@ -47,12 +51,20 @@ export class Game {
     return this._settings.dGuessTime;
   }
 
-  constructor(settings?: GameSettings) {
+  constructor(public readonly channelId: string,
+      public readonly clues: Clue[],
+      settings?: GameSettings,
+      public readonly id?: string) {
     if (isUndefined(settings)) {
       this._settings = cloneDeep(DEFAULT_SETTINGS);
     } else {
       this._settings = cloneDeep(settings);
     }
+
+    if (isUndefined(id)) {
+      this.id = uuidv4();
+    }
+
     this.resetTeams();
   }
 
@@ -89,6 +101,11 @@ export class Game {
     }
     this.status = 'playing';
     this.roundCounter = 0;
+
+    this.players.forEach(player => {
+      this.outcomes.set(player, new Map());
+      [...Array(5).keys()].forEach(pointValue => this.outcomes.get(player).set(pointValue, 0));
+    });
     this.newRound();
   }
 
@@ -102,6 +119,13 @@ export class Game {
     } else {
       this.round = new Round(this.team2, this.team1);
     }
+  }
+
+  addPlayedClue(clueIndex: number, clueListLength: number) {
+    if (this.playedClues.length > clueListLength * 1.5) {
+      this.playedClues = [];
+    }
+    this.playedClues.push(clueIndex);
   }
 
   endRound() {
@@ -135,7 +159,7 @@ export class Game {
       } else if (delta <= 10) {
         oResult = OffenseScore.medium;
       } else {
-        oResult = OffenseScore.nothing;
+        oResult = OffenseScore.miss;
       }
       if (scoreDefense && dCorrect) {
         dResult = true;
@@ -152,12 +176,21 @@ export class Game {
     this.team1.points += t1Pts;
     this.team2.points += t2Pts;
 
-    return {
+    const scoreResults = {
       offenseResult: oResult,
       defenseResult: dResult,
       team1PointChange: t1Pts,
       team2PointChange: t2Pts,
     };
+
+    const currentValue = this.outcomes.get(this.round.clueGiver).get(oResult);
+    this.outcomes.get(this.round.clueGiver).set(oResult, currentValue + 1);
+    if (delta === 0) {
+      const currentPerfects = this.outcomes.get(this.round.clueGiver).get(5);
+      this.outcomes.get(this.round.clueGiver).set(5, currentPerfects + 1);
+    }
+
+    return scoreResults;
   }
 
   determineWinner(): 'Team 1' | 'Team 2' | false {
@@ -190,7 +223,7 @@ export class Game {
     return (this.roundCounter % 2) + 1;
   }
 
-  offenseTeam(): GameTeam {
+  get offenseTeam(): GameTeam {
     if (this.offenseTeamNumber() === 1) {
       return this.team1;
     } else {
@@ -206,7 +239,7 @@ export class Game {
     }
   }
 
-  defenseTeam(): GameTeam {
+  get defenseTeam(): GameTeam {
     if (this.offenseTeamNumber() === 1) {
       return this.team2;
     } else {

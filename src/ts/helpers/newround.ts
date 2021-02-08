@@ -1,13 +1,18 @@
-import { DiscordClient } from '../auth';
 import { TextChannel } from 'discord.js';
+import { LambdaClient } from '../discord.service';
 import { roundStatus, clue, gameSettings, roster, gameInfo } from './print.gameinfo';
 
-export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel) {
-  const game = client.game;
+export function sendNewRoundMessages(client: LambdaClient, channel: TextChannel) {
+  const game = client.games.get(channel.id);
 
   game.currentClue = undefined;
 
-  const clueIndex = Math.floor(Math.random() * client.data.length);
+  let clueIndex = getClueIndex(client.data);
+  if (game.playedClues.includes(clueIndex)) {
+    clueIndex = getClueIndex(client.data);
+  }
+  game.addPlayedClue(clueIndex, client.data.length);
+
   game.round.leftClue = client.data[clueIndex].Lower;
   game.round.rightClue = client.data[clueIndex].Higher;
 
@@ -30,4 +35,8 @@ export function sendNewRoundMessages(client: DiscordClient, channel: TextChannel
       channel.send(`<@${game.round.clueGiver}> was the clue giver, `
         + 'but I couldn\'t DM them. Do they have DMs disabled?');
     });
+}
+
+export function getClueIndex(data: any) {
+  return Math.floor(Math.random() * data.length);
 }

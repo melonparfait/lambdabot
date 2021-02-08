@@ -1,4 +1,3 @@
-import { bot_token } from '../../keys.json';
 import { bot_prefix, default_cooldown } from '../../config.json';
 import { AuthSession } from './auth';
 import { Collection, Message } from 'discord.js';
@@ -6,18 +5,23 @@ import * as fs from 'fs';
 import neatCSV = require('csv-parser');
 import { Command, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
+import { Clue } from './models/clue';
+import { DBService } from './db.service';
+import { LambdaClient } from './discord.service';
 
-const session = new AuthSession(bot_token);
-session.client.commands = new Collection<string, Command>();
+const dbService = new DBService();
+const lambdaClient = new LambdaClient(dbService);
+const session = new AuthSession(dbService, lambdaClient);
+
 const userCooldowns = new Collection<string, Collection<string, number>>();
-const globalCooldowns = new Collection<string, number>();
+const channelCooldowns = new Collection<string, number>();
 
 async function loadCommands() {
   const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.command.ts'));
   for (const file of commandFiles) {
     try {
       const newCommand: Command = await import(`./commands/${file}`);
-      session.client.commands.set(newCommand.name, newCommand);
+      lambdaClient.commands.set(newCommand.name, newCommand);
       console.log(`Added command: ${bot_prefix}${newCommand.name}`);
     } catch (error) {
       console.log(error);
@@ -26,26 +30,26 @@ async function loadCommands() {
   }
 }
 
-const results = [];
+const results: Clue[] = [];
 fs.createReadStream('./data.csv')
-  .pipe(neatCSV())
+  .pipe(neatCSV(['Lower', 'Higher']))
   .on('data', (data) => results.push(data))
   .on('end', () => {
-    session.client.data = results;
+    lambdaClient.data = results;
   });
 
-session.client.on('ready', () => {
-  console.log(`Logged in as ${session.client.user.tag}!`);
+lambdaClient.on('ready', () => {
+  console.log(`Logged in as ${lambdaClient.user.tag}!`);
 });
 
-session.client.on('message', (message: DiscordMessage) => {
+lambdaClient.on('message', (message: DiscordMessage) => {
   if (!message.content.startsWith(bot_prefix) || message.author.bot) return;
 
   const args = message.content.slice(bot_prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  const command = session.client.commands.get(commandName)
-    || session.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  const command = lambdaClient.commands.get(commandName)
+    || lambdaClient.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
   if (!command) return;
 
   if (command.guildOnly && message.channel.type !== 'text') {
@@ -66,18 +70,18 @@ session.client.on('message', (message: DiscordMessage) => {
 
   if (cooldownAmount !== 0) {
     const now = Date.now();
-    if (command.globalCooldown) {
-      if (!globalCooldowns.has(command.name)) {
-        globalCooldowns.set(command.name, now);
+    if (command.channelCooldown) {
+      if (!channelCooldowns.has(command.name)) {
+        channelCooldowns.set(command.name, now);
       } else {
-        const timestamp = globalCooldowns.get(command.name);
+        const timestamp = channelCooldowns.get(command.name);
         const expirationTime = timestamp + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
         } else {
-          globalCooldowns.set(command.name, now);
-          setTimeout(() => globalCooldowns.delete(command.name));
+          channelCooldowns.set(command.name, now);
+          setTimeout(() => channelCooldowns.delete(command.name));
         }
       }
     } else {
@@ -100,17 +104,29 @@ session.client.on('message', (message: DiscordMessage) => {
   }
 
   try {
-    command.execute(message, args);
+    if (command.name !== 'updatedb') {
+      command.execute(message, args);
+    } else {
+      command.execute(message, [args.join(' ')]);
+    }
   } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');
   }
 });
 
-loadCommands().then(
-  () => session.authorize(),
-  err => {
-    console.log(err);
+loadCommands()
+  .then(async () => {
+    try {
+      await session.authorize();
+      dbService.connect();
+    } catch {
+      session.close();
+      dbService.disconnect();
+      exit(1);
+    }
+  })
+  .catch(err => {
+    console.log(`Unable to load commands: ${err}`);
     exit(1);
-  },
-);
+  });
