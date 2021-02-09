@@ -11,7 +11,7 @@ export const usage = '<SQL QUERY>';
 export function execute(message: DiscordMessage, args: string[]) {
   if (message.author.id !== owner_id) {
     return message.channel.send('Sorry, you don\'t have permission to do that!');
-  } else if (args[0].toUpperCase() !== 'INSERT') {
+  } else if (args[0].toUpperCase() !== 'INSERT' || args[0].toUpperCase() !== 'DELETE') {
     return message.channel.send('This command can only be used to update the database.');
   }
 

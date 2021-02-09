@@ -7,7 +7,7 @@ export const name = 'leaderboard';
 export const aliases = ['l'];
 export const cooldown = 1;
 export const channelCooldown = true;
-export const description = 'Reports the leaderboard for this channel. Accepts the following arguments:\
+export const description = 'Reports the leaderboard for this channel. Accepts the following arguments:\n\
   `wins`: Number of times player has been on the winning side of a game\n\
   `win%`: Win/Loss ratio for the player\n\
   `avg`: Average number of points the player scores for their team when they are a clue giver\n\
