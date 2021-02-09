@@ -21,7 +21,8 @@ export function execute(message: DiscordMessage, args: string[]) {
           threshold: existingGame.threshold,
           asyncPlay: existingGame.asyncPlay,
           oGuessTime: 180 * 1000,
-          dGuessTime: existingGame.dGuessTime
+          dGuessTime: existingGame.dGuessTime,
+          trackStats: existingGame.trackStats
         }));
     } else {
       message.client.games.set(channelId, new Game(channelId, message.client.data));

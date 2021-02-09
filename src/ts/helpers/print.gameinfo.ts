@@ -13,10 +13,12 @@ export function roundStatus(game: Game): string {
 export function gameSettings(game: Game): string {
   const threshold = game.isDefaultThreshold ? 'default' : game.threshold;
   const asyncLabel = game.asyncPlay ? 'enabled' : 'disabled';
+  const trackStats = game.trackStats ? 'on' : 'off';
   const counterGuess = !game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
   return '**Settings**'
     + `\n├─ Points to win: ${threshold}`
     + counterGuess
+    + `\n├─ Track stats: ${trackStats}`
     + `\n└─ Asynchronous play: ${asyncLabel}`;
 }
 

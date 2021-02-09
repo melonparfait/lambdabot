@@ -18,7 +18,8 @@ const genGamesTable = `CREATE TABLE IF NOT EXISTS games(
   game_id TEXT PRIMARY KEY,
   channel_id TEXT NOT NULL,
   team1_score INT UNSIGNED NOT NULL,
-  team2_score INT UNSIGNED NOT NULL)`;
+  team2_score INT UNSIGNED NOT NULL,
+  timestamp INT NOT NULL)`;
 
 export class DBService {
   private _connected = false;
@@ -107,8 +108,8 @@ export class DBService {
   }
 
   updateGamesTable(gameId: string, channelId: string, team1Score: number, team2Score: number): string {
-    return `INSERT INTO games (game_id, channel_id, team1_score, team2_score)
-      VALUES ('${gameId}', '${channelId}', ${team1Score}, ${team2Score})`;
+    return `INSERT INTO games (game_id, channel_id, team1_score, team2_score, timestamp)
+      VALUES ('${gameId}', '${channelId}', ${team1Score}, ${team2Score}, strftime('%s','now'))`;
   }
 
   getChannelPlayers(channel: string): Promise<string[]> {

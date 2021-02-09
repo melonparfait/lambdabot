@@ -22,6 +22,11 @@ export function printLeaderboard(statArray: PlayerStats[], stat: string): string
   return msg;
 }
 
+export function trimLeaderboard(leaderboard: string) {
+  const lastNewline = leaderboard.lastIndexOf('\n');
+  return leaderboard.substring(0, lastNewline);
+}
+
 export function getPlayerStat(playerStat: PlayerStats, stat: 'wins' | 'win%' | 'avg' | 'perfect' | string): number {
   switch (stat) {
   case 'wins':

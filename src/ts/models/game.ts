@@ -50,6 +50,9 @@ export class Game {
   get dGuessTime(): number {
     return this._settings.dGuessTime;
   }
+  get trackStats(): boolean {
+    return this._settings.trackStats;
+  }
 
   constructor(public readonly channelId: string,
       public readonly clues: Clue[],
@@ -93,6 +96,7 @@ export class Game {
     this._settings.threshold = settings.threshold ?? DEFAULT_SETTINGS.threshold;
     this._settings.asyncPlay = settings.asyncPlay ?? DEFAULT_SETTINGS.asyncPlay;
     this._settings.dGuessTime = settings.dGuessTime ?? DEFAULT_SETTINGS.dGuessTime;
+    this._settings.trackStats = settings.trackStats ?? DEFAULT_SETTINGS.trackStats;
   }
 
   start() {

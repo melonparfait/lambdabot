@@ -7,15 +7,16 @@ export const aliases = ['c'];
 export const cooldown = 1;
 export const description = 'Changes the configuration for the current game. Can only be used during the team formation phase.'
   + '\nArguments: '
-  + '\n├─ threshold: Number of points a team needs to win. Must be a positive integer, or "`default`".'
-  + '\n├─ async: Enables/disables timers for making guesses. Adding this parameter enables async play. Use `sync` to disable async play and enable timers.'
-  + '\n└─ defenseTimer: Number of seconds the defending team has to make a counter guess. Must be a positive integer. Has no effect if the game is played asynchronously.';
+  + '\n├─ `threshold`: Number of points a team needs to win. Must be a positive integer, or "`default`".'
+  + '\n├─ `async`: Enables/disables timers for making guesses. Adding this parameter enables async play. Use `sync` to disable async play and enable timers.'
+  + '\n├─ `trackStats`: Enables/disables stat tracking. Can be `on` or `off`.'
+  + '\n└─ `defenseTimer`: Number of seconds the defending team has to make a counter guess. Must be a positive integer. Has no effect if the game is played asynchronously.';
 export const guildOnly = true;
-export const usage = '<threshold> <sync | async> [defenseTimer]';
+export const usage = '<`threshold`> <`sync` | `async`> <`trackStats`> [`defenseTimer`]';
 export const args = true;
 export function execute(message: DiscordMessage, args: string[]) {
   const channelId = message.channel.id;
-  if (args.length !== 3 && args.length !== 2) {
+  if (args.length !== 4 && args.length !== 3) {
     return message.reply(`Usage: \`!config\` ${usage}` + `\n${description}`);
   } else if (!checkForGame(message)) {
     return;
@@ -33,6 +34,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       threshold = parsedThreshold;
     }
 
+    const trackStatsArg = args[2] === 'on';
     const asyncPlayArg = args[1] === 'async';
 
     const dGuessTimeArg = parseInt(args[2]);
@@ -43,6 +45,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       asyncPlay: asyncPlayArg,
       oGuessTime: 0,
       dGuessTime: dGuessTime,
+      trackStats: trackStatsArg
     });
 
     updateGameInfo(message);

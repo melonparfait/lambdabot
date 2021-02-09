@@ -129,7 +129,7 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
   const winner = game.determineWinner();
   if (winner) {
     game.endGame();
-    message.client.finalizeGame(message.channel.id);
+    message.client.finalizeGame(message.channel.id, game.trackStats);
     sendGameEndScoreboard(message.channel as TextChannel, game, winner);
     game.pinnedInfo.unpin().then(() => game.pinnedInfo = undefined)
       .catch(err => {

@@ -3,6 +3,7 @@ export interface GameSettings {
   asyncPlay: boolean;
   oGuessTime: number;
   dGuessTime: number;
+  trackStats: boolean;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -10,4 +11,5 @@ export const DEFAULT_SETTINGS: GameSettings = {
   asyncPlay: true,
   oGuessTime: 180 * 1000,
   dGuessTime: 120 * 1000,
+  trackStats: true
 };

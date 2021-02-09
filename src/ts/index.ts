@@ -114,11 +114,7 @@ lambdaClient.on('message', (message: DiscordMessage) => {
   }
 
   try {
-    if (command.name !== 'updatedb') {
-      command.execute(message, args);
-    } else {
-      command.execute(message, [args.join(' ')]);
-    }
+    command.execute(message, args);
   } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');

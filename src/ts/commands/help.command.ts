@@ -14,7 +14,7 @@ export function execute(message: DiscordMessage, args: string[]) {
   if (!args.length) {
     data.push('Here\'s a list of all my commands:');
     data.push(commands
-      .filter(command => command.name !== 'reload')
+      .filter(command => command.name !== 'reload' && command.name !== 'update' && command.name !== 'query')
       .map(command => command.name).join(', '));
     data.push(`\nYou can send \`${bot_prefix}help [command name]\` to get info on a specific command!`);
 
