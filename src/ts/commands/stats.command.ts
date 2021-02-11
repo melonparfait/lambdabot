@@ -27,7 +27,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       player = message.author.id;
       sendStats(message, player);
     } else {
-      const id = args[0].replace(/^<@!(.+)>$/g, '$1');
+      const id = args[0].replace(/^<@!?(.+)>$/g, '$1');
       message.client.users.fetch(id).then(user => {
         player = user.id;
         channel = message.channel.id;
@@ -43,7 +43,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       message.reply(`that's not the correct usage for this command. Try again with this format:\n \`${bot_prefix}${name} ${usage}\``);
       return;
     } else {
-      const id = args[1].replace(/^<@!(.+)>$/g, '$1');
+      const id = args[1].replace(/^<@!?(.+)>$/g, '$1');
       message.client.users.fetch(id).then(user => {
         player = user.id;
         sendStats(message, player);
