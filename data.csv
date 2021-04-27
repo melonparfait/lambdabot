@@ -7,12 +7,11 @@ Feels bad,Feels good
 Inessential,Essential
 Cheap,Expensive
 Underrated weapon,Overrated weapon
-Rare,Common
+Common,Rare
 Unsexy emoji,Sexy emoji
 Easy subject,Hard subject
 Unknown,Famous
 Easy to use,Difficult to use
-Tired,Wired
 Dirty,Clean
 Requires luck,Requires skill
 Flavorless,Flavorful
@@ -27,7 +26,7 @@ Underrated skill,Overrated skill
 Forbidden,Encouraged
 Sad song,Happy song
 Fragile,Durable
-Good,Evil
+Evil,Good
 Worst day of the year,Best day of the year
 Bad habit,Good habit
 Cat person,Dog person
@@ -35,10 +34,8 @@ Untalented,Talented
 Dark,Light
 Underrated actor,Overrated actor
 Hard to find,Easy to find
-Ugly man,Beautiful man
 Hard to remember,Easy to remember
-Unhealthy,Healthy
-Bad man,Good man
+Unhealthy Food,Healthy Food
 Historically important,Historically irrelevant
 Hairless,Hairy
 Inflexible,Flexible
@@ -48,11 +45,9 @@ Book was better,Movie was better
 Bad movie,Good movie
 Ugly,Beautiful
 Happens slowly,Happens suddenly
-Job,Career
-Loved,Hated
-Bad pizza topping,Good pizza topping
+Hated,Loved
 Dystopia,Utopia
-Mature person,Immature person
+Immature thing to say in a fight,Mature thing to say in a fight
 Underrated thing to own,Overrated thing to own
 Mental activity,Physical activity
 Uncontroversial topic,Controversial topic
@@ -65,45 +60,40 @@ Optional,Mandatory
 Ordinary,Extraordinary
 Hard to pronounce,Easy to pronounce
 Low quality,High quality
-Unsexy animal,Sexy animal
 Plain,Fancy
 Has a bad reputation,Has a good reputation
 Poorly made,Well made
 Not a sandwich,A sandwich
-Quiet place,Loud place
 Comedy,Drama
 Dangerous,Safe
-Culturally significant,Culturally insignificant
+Culturally insignificant,Culturally significant
 Replaceable,Irreplaceable
 Worst athlete of all time,Greatest athlete of all time
-Role model,Bad influence
+Bad influence,Role model
 Useless major,Useful major
 Peaceful,Warlike
 Rough,Smooth
 Bad for you,Good for you
 Round,Pointy
-Proof that God exists,Proof that God doesn’t exist
 Sad movie,Happy movie
 Waste of time,Good use of time
-Scary animal,Nice animal
 Short lived,Long lived
 Nobody does it,Everybody does it
 Snack,Meal
 Evil company,Good company
 Soft,Hard
 Sustenance,Haute cuisine
-Better hot,Better cold
+Better cold,Better hot
 Stupid,Brilliant
-Artisanal,Mass produced
+Mass produced,Artisanal
 Bad superpower,Good superpower
 Ineffective,Effective
 Unbelievable,Believable
 Trashy,Classy
 Temporary,Permanent
-Looks like a person,Doesn't look like a person
+Doesn't look like a person,Looks like a person
 Tastes bad,Tastes good
-Sport,Game
-Uncool,Cool
+Game,Sport
 Worst living person,Greatest living person
 Messy food,Clean food
 Unethical,Ethical
@@ -115,7 +105,6 @@ Harmless,Harmful
 Unhygienic,Hygienic
 Bad music,Good music
 Useless,Useful
-Movie that Godzilla would ruin,Movie that Godzilla would improve
 Unimportant,Important
 Easy to spell,Hard to spell
 Vice,Virtue
@@ -129,11 +118,10 @@ Round animal,Pointy animal
 Bad TV show,Good TV show
 Traditionally masculine,Traditionally feminine
 Useless body part,Useful body part
-Fad,Classic
+Fad,Tradition
 Weak,Strong
 Disgusting cereal,Delicious cereal
 Useless invention,Useful invention
-Liberal,Conservative
 Friend,Enemy
 Boring,Exciting
 Smelly in a bad way,Smelly in a good way
@@ -152,10 +140,8 @@ Bad investment,Good investment
 Small talk,Heavy topic
 Mild,Spicy
 Not art,Art
-Popular,Elitist
 Out of control,In control
 Quiet,Loud
-Unsexy Pokémon,Sexy Pokémon
 Secret,Public knowledge
 Too small,Too big
 Short,Tall
@@ -165,42 +151,33 @@ Little known fact,Well known fact
 Stationary,Mobile
 Local issue,Global issue
 Worst era to time travel,Best era to time travel
-The worst,The best
 Old fashioned,Avant garde
 Ugly word,Beautiful word
-Small,Tiny
 Unnatural,Natural
-Genuine person,Phony person
-Derivative,Original
+Phony person,Genuine person
 Unsexy color,Sexy color
 Benefits you,Benefits everyone
 Powerless,Powerful
 Fruit,Vegetable
-Science,Pseudoscience
+Pseudoscience,Science
 Funny topic,Serious topic
 Limp,Firm
 Guilty pleasure,Actually just bad
 Gossip,News
 Hard to sit on,Easy to sit on
-Not enough,Too much
 Unscented,Scented
-Huggable,Not huggable
+Not huggable,Huggable
 Heterogeneous,Homogenous
 Inclusive,Exclusive
-Bad dog breed,Good dog breed
 One hit wonder,Pop icon
 Bad advice,Good advice
 Bad candy,Good candy
 Traditional,Radical
-Illegal,Legal
 Shallow thought,Deep thought
-Bad school,Good school
-Never on time,Always on time
 Won't live to 100,Will live to 100
 Bad Disney character,Good Disney character
 Bad president,Good president
-Weird,Strange
-Famous,Infamous
+Infamous,Famous
 Least powerful god,Most powerful god
 Boring person,Fun person
 Underrated book,Overrated book
@@ -214,22 +191,20 @@ Person you could beat up,Person who’d beat you up
 Unreasonable phobia,Reasonable phobia
 Underrated game,Overrated game
 Skinny,Fat
-Organic,Inorganic
-Brittle,Durable
+Inorganic,Organic
+Flimsy,Durable
 Humble,Cocky
 Rural,Urban
 Worst fast food,Best fast food
 Small business,Corporation
-Democrat,Republican
 Unlikely to have bad breath,Likely to have bad breath
 Uneducated,Educated
 Boomer,Zoomer
-Uncomfortable, Comfortable
+Uncomfortable,Comfortable
 Socially incompetent,Socially competent
 Minor mistake,Major error
 Straightforward,Complicated
 Frugal,Extravagant
-Tool,Free Thinker
 Worst weather,Best weather
 Dry,Dank
 Simple board game,Complicated board game
@@ -244,9 +219,9 @@ Unlucky,Lucky
 Boring job,Fun job
 Actions done in private,Actions done in public
 Worst date,Best date
-Sensitive body part,Not sensitive body part
+Sensitive body part,Insensitive body part
 Worst place on body to get a tattoo,Best place on body to get a tattoo
-Creepy bug,Chill bug
+Creepy bug,Cute bug
 Cute animal,Scary animal
 Least lucrative,Most lucrative
 Greedy,Generous
@@ -254,21 +229,17 @@ Bad food,Good food
 Insult,Compliment
 Low criminal activity,High criminal activity
 Worst grade level in school,Best grade level in school
-Places to avoid,Best vacation spot
+Places to avoid,Places to go 
 Stubborn,Open-minded
-Bad for the environment,Good for the environment
 Shallow,Deep
 Low in carbs,High in carbs
 Short plant,Tall plant
-Worst sport,Best sport
-Spicy,Sweet
 Painful,Painless
 Something you dread,Something you look forward to
 Trashy restaurant,Fancy restaurant
-Scarce,Plentiful
 Grumpy,Good-humored
 Gentle,Aggressive
-Serious,Funny
+Light hearted,Serious
 Skeptical,Trusting
 Careless,Careful
 Liquid,Solid
@@ -278,27 +249,110 @@ Cringe dance move,Cool dance move
 Outdated meme,Timeless meme
 Baby name,Old person name
 Solo activity,Team activity
-Zoomer name,Boomer name
-Deadly,Harmless
-Overpowered,Underpowered
+Harmless,Deadly
+Underpowered,Underpowered
 Virgin,Chad
-Galaxy brain move,Goldfish brain move
-Optimistic,Pessimistic
+Pessimistic,Optimistic
 Deceptive,Honest
-Deserved,Uncalled for
-Intense,Mild
+Uncalled for,Deserved
+Mild,Intense
 Foreign,Native
-Well-designed,Poorly-designed
-Good pizza topping,Bad pizza topping
-Good ice cream flavor,Bad ice cream flavor
-Good sushi,Bad sushi
+Poorly-designed,Well-designed
+Bad pizza topping,Good pizza topping
 Desirable beverage,Undesirable beverage
-Bougie,Frugal
-Stylish,Unfashionable
+Unfashionable,Stylish
 Old,New
-Desirable superpower,Undesirable superpower
 Pie,Cake
 Would feed to a dog,Would not feed to a dog
 Fruit,Vegetable
-Technology has improved,Technology has worsened
-Clumsy, Graceful
+Something that technology has improved,Something that technology has worsened 
+Helpful technology ,Harmful technology
+Clumsy,Graceful
+West Coast Culture,East Coast Culture
+Bad combo,Good combo
+Common ice cream flavor,Niche ice cream flavor
+Easy game,Hard game
+Ridiculous,Reasonable
+Scant,Abundant
+Easy to cook,Difficult to cook
+Cowardly,Brave
+Rip off,Good deal
+Boring city,Fun city
+Family-friendly,Risque
+Smells bad,Smells good
+Rude,Polite
+Loser,Winner
+Thin,Thicc
+Scary,Cute
+Sign that you're poor,Sign that you're rich
+Unpopular holiday,Popular holiday
+Conservative,Liberal
+Boring Pet,Exciting Pet
+Bad law,Good law
+Impulse buy,Planned purchase
+Drunk,Sober
+Financially irresponsible action,Financially responsible action
+Worst Superhero,Best Superhero
+Unimpressive,Impressive
+Unreliable Car ,Reliable Car
+Easy to locate on a map,Difficult to locate on a map
+Small dog breed,Large dog breed
+Lazy,Ambitious
+Chain,Local
+Cringe ,Swag
+Slow,Fast
+Outdated,Timeless
+Bad Rapper,Good Rapper
+Mainstream,Eccentric
+Worst question to ask during a job interview,Best question to ask during a job interview
+Worst question to ask on a first date,Best question to ask on a first date
+Worst thing to bring to a knife fight,Best thing to bring to a knife fight
+Bad pickup line,Good pickup line
+Unoriginal,Creative
+Book you were forced to read,Book you want to read
+Relaxed,Tense
+Multipurpose tool,Specialized tool
+Insecure,Secure
+Random,Certain
+Out in the open,Hidden
+Environmentally destructive,Environmentally friendly
+Loose,Tight
+Pointless,Fulfilling
+Bad app,Good app
+What would Jesus not do,What would Jesus do
+Undesirable trait,Desirable trait
+Childhood snack,Old people food
+Moral,Corrupt
+Non-invasive,Invasive
+Disgusting food combination,Delicious food combination
+Bad news,Good news
+Needs to be buffed,Needs to be nerfed
+Low risk of getting COVID,High risk of getting COVID
+Static,Dynamic
+Isolated,Accessible
+Empty,Full
+Living in the past,Living in the future
+Crude,Well-Polished
+Easy language,Hard language
+Terrible business idea,Great business idea
+1920s tech,2020s tech
+Annoying,Soothing
+Repulsive,Attractive
+Nocturnal,Diurnal
+Submissive,Argumentative
+Unsatisfying food,Satisfying food
+Single activity,Married activity
+Spender,Saver
+Inexpensive hobby,Expensive hobby
+Causes sadness,Causes happiness
+Not correlated,Highly correlated
+Sane,Insane
+Game for kids,Game for adults
+Near,Far
+Punishment,Reward
+Ambiguous,Obvious
+Standardized,Unique
+Trash,Treasure
+Cheap grocery store,Expensive grocery store
+Worst Middle School Subject,Best Middle School Subject
+Breakfast Food,Dinner Food
