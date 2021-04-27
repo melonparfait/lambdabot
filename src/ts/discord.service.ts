@@ -2,7 +2,9 @@ import { Client, Collection } from 'discord.js';
 import { DBService } from './db.service';
 import { Command } from './helpers/lambda.interface';
 import { Game } from './models/game';
-import { OffenseScore } from './models/scoring.results';
+import * as fs from 'fs';
+import neatCSV = require('csv-parser');
+import { Clue } from './models/clue';
 
 export class LambdaClient extends Client {
   commands = new Collection<string, Command>();
@@ -11,6 +13,14 @@ export class LambdaClient extends Client {
 
   constructor(public dbService: DBService) {
     super();
+  }
+
+  loadClues() {
+    const results: Clue[] = [];
+    fs.createReadStream('./data.csv')
+      .pipe(neatCSV(['Lower', 'Higher']))
+      .on('data', (data) => results.push(data))
+      .on('end', () => this.data = results);
   }
 
   finalizeGame(channelId: string, commit = true) {

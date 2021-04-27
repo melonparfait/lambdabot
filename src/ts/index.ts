@@ -2,10 +2,8 @@ import { bot_prefix, default_cooldown } from '../../config.json';
 import { AuthSession } from './auth';
 import { Collection, Message } from 'discord.js';
 import * as fs from 'fs';
-import neatCSV = require('csv-parser');
 import { Command, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
-import { Clue } from './models/clue';
 import { DBService } from './db.service';
 import { LambdaClient } from './discord.service';
 
@@ -28,14 +26,6 @@ async function loadCommands() {
     }
   }
 }
-
-const results: Clue[] = [];
-fs.createReadStream('./data.csv')
-  .pipe(neatCSV(['Lower', 'Higher']))
-  .on('data', (data) => results.push(data))
-  .on('end', () => {
-    lambdaClient.data = results;
-  });
 
 lambdaClient.on('ready', () => {
   console.log(`Logged in as ${lambdaClient.user.tag}!`);
@@ -126,6 +116,7 @@ loadCommands()
     try {
       await session.authorize();
       dbService.connect();
+      lambdaClient.loadClues();
     } catch {
       session.close();
       dbService.disconnect();
