@@ -1,11 +1,15 @@
 import { bot_prefix, default_cooldown } from '../../config.json';
 import { AuthSession } from './auth';
-import { Collection, Message } from 'discord.js';
+import { Collection, Interaction, Message } from 'discord.js';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v9';
 import * as fs from 'fs';
-import { Command, DiscordMessage } from './helpers/lambda.interface';
+import { NewCommand, DiscordMessage } from './helpers/lambda.interface';
 import { exit } from 'process';
 import { DBService } from './db.service';
 import { LambdaClient } from './discord.service';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { bot_token, client_id } from '../../keys.json';
 
 const dbService = new DBService();
 const lambdaClient = new LambdaClient(dbService);
@@ -14,24 +18,52 @@ const session = new AuthSession(dbService, lambdaClient);
 const cooldowns = new Collection<string, Collection<string, Collection<string, number>>>();
 
 async function loadCommands() {
-  const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.command.ts'));
+  const rest = new REST({ version: '9' }).setToken(bot_token);
+
+  const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('new.command.ts'));
   for (const file of commandFiles) {
     try {
-      const newCommand: Command = await import(`./commands/${file}`);
-      lambdaClient.commands.set(newCommand.name, newCommand);
+      const newCommand: NewCommand = await import(`./commands/${file}`);
+      lambdaClient.commands.set(newCommand.data.name, newCommand);
       console.log(`Added command: ${bot_prefix}${newCommand.name}`);
     } catch (error) {
       console.log(error);
       exit(1);
     }
   }
+
+  try {
+    await rest.put(
+      Routes.applicationCommands(client_id),
+      { body: commands }
+    )
+  }
 }
+
 
 lambdaClient.on('ready', () => {
   console.log(`Logged in as ${lambdaClient.user.tag}!`);
 });
 
+lambdaClient.on('interactionCreate', async (interaction: Interaction) => {
+  console.log('got interaction: ', interaction);
+
+  if (!interaction.isCommand()) return;
+
+  const command = lambdaClient.commands.get(interaction.commandName);
+
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.log(error);
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+  }
+});
+
 lambdaClient.on('message', (message: DiscordMessage) => {
+  console.log('got message: ', message);
   if (!message.content.startsWith(bot_prefix) || message.author.bot) return;
 
   const args = message.content.slice(bot_prefix.length).split(/ +/);
@@ -41,8 +73,9 @@ lambdaClient.on('message', (message: DiscordMessage) => {
     || lambdaClient.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
   if (!command) return;
 
-  if (command.guildOnly && message.channel.type !== 'text') {
-    return message.reply('I can\'t execute that command inside DMs!');
+  if (command.guildOnly && message.channel.type !== 'GUILD_TEXT') {
+    message.reply('I can\'t execute that command outside of a server text channel!');
+    return;
   }
 
   if (command.args && !args.length) {
@@ -52,7 +85,8 @@ lambdaClient.on('message', (message: DiscordMessage) => {
       reply += `\nThe proper usage would be: \`${bot_prefix}${command.name} ${command.usage}\``;
     }
 
-    return message.channel.send(reply);
+    message.channel.send(reply);
+    return;
   }
 
   const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
@@ -75,7 +109,8 @@ lambdaClient.on('message', (message: DiscordMessage) => {
         const expirationTime = timestamp + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
-          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+          message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+          return;
         } else {
           cooldownForChannel.set(command.name, now);
           setTimeout(() => cooldownForChannel.delete(command.name), cooldownAmount);
@@ -94,7 +129,8 @@ lambdaClient.on('message', (message: DiscordMessage) => {
         const expirationTime = userCooldowns.get(command.name) + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
-          return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+          message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+          return;
         } else {
           userCooldowns.set(command.name, now);
           setTimeout(() => userCooldowns.delete(command.name), cooldownAmount);
@@ -104,7 +140,7 @@ lambdaClient.on('message', (message: DiscordMessage) => {
   }
 
   try {
-    command.execute(message, args);
+    // command.execute(message, args);
   } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');

@@ -15,6 +15,7 @@ describe('Game model tests', () => {
   const oGuessTime = 99;
   const team1Players = ['1', '2', '3'];
   const team2Players = ['4', '5', '6'];
+  const trackStats = false;
 
   describe('Initialization tests', () => {
     beforeEach(() => {
@@ -35,7 +36,7 @@ describe('Game model tests', () => {
     });
 
     it('should initialize a game with defined settings', () => {
-      game = new Game('testGame', [], { threshold, asyncPlay, dGuessTime, oGuessTime });
+      game = new Game('testGame', [], { threshold, asyncPlay, dGuessTime, oGuessTime, trackStats });
 
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);
@@ -50,7 +51,7 @@ describe('Game model tests', () => {
       expect(game.asyncPlay).to.equal(DEFAULT_SETTINGS.asyncPlay);
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
 
-      game.setSettings({ threshold, asyncPlay, dGuessTime, oGuessTime });
+      game.setSettings({ threshold, asyncPlay, dGuessTime, oGuessTime, trackStats });
 
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);

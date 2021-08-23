@@ -56,7 +56,7 @@ export function execute(message: DiscordMessage, args: string[]) {
           countdownCounter++;
         }, TIMER_TICK);
 
-        message.channel.awaitMessages(dTeamReply, { time: game.dGuessTime, max: 1, errors: ['time'] })
+        message.channel.awaitMessages({ filter: dTeamReply, time: game.dGuessTime, max: 1, errors: ['time'] })
           .then((messages: Collection<string, Message>) => {
             clearInterval(timer);
             processReply(messages, message);
@@ -69,7 +69,7 @@ export function execute(message: DiscordMessage, args: string[]) {
             closeRound(message, scoreResult);
           });
       } else {
-        message.channel.awaitMessages(dTeamReply, { max: 1 })
+        message.channel.awaitMessages({ filter: dTeamReply, max: 1 })
           .then((messages: Collection<string, Message>) => processReply(messages, message))
           .catch(err => {
             console.log(err);

@@ -8,7 +8,7 @@ export const description = 'List all of my commands or info about a specific com
 export const guildOnly = false;
 export const usage = '[command name]';
 export function execute(message: DiscordMessage, args: string[]) {
-  const data = [];
+  const data: string[] = [];
   const { commands } = message.client;
 
   if (!args.length) {
@@ -18,9 +18,9 @@ export function execute(message: DiscordMessage, args: string[]) {
       .map(command => command.name).join(', '));
     data.push(`\nYou can send \`${bot_prefix}help [command name]\` to get info on a specific command!`);
 
-    return message.author.send(data, { split: true })
+    return message.author.send({ content: data.join('\n') })
       .then(() => {
-        if (message.channel.type === 'dm') return;
+        if (message.channel.type === 'DM') return;
         message.reply('I\'ve sent you a DM with all my commands!');
       })
       .catch(error => {
@@ -50,5 +50,5 @@ export function execute(message: DiscordMessage, args: string[]) {
 
   data.push(`**Cooldown:** ${command.cooldown || default_cooldown} second(s)`);
 
-  message.channel.send(data, { split: true });
+  message.channel.send({ content: data.join('\n') });
 }

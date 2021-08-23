@@ -62,6 +62,6 @@ export function execute(message: DiscordMessage, args: string[]) {
 
 function sendStats(message: DiscordMessage, player: string, channel?: string) {
   message.client.dbService.getPlayerStats(player, channel).then(stats => {
-    message.channel.send(printStats(stats, !isUndefined(channel)), { allowedMentions: {} });
+    message.channel.send({ content: printStats(stats, !isUndefined(channel)), allowedMentions: {} });
   });
 }

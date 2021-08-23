@@ -9,5 +9,5 @@ export const guildOnly = false;
 export const usage = '<text>';
 export const args = true;
 export function execute(message: DiscordMessage, args: string[]) {
-  message.channel.send(args);
+  message.channel.send(args.join(''));
 }

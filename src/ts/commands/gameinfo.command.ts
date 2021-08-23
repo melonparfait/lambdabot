@@ -14,6 +14,9 @@ export function execute(message: DiscordMessage, args: string[]) {
   if (!game) {
     return message.reply('No one has started a game yet. Use the `newgame` command to start one!');
   } else {
-    return message.channel.send(gameInfo(game), { allowedMentions: {} });
+    return message.channel.send({
+      content: gameInfo(game),
+      allowedMentions: {}
+    });
   }
 }

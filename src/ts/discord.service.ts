@@ -1,18 +1,18 @@
-import { Client, Collection } from 'discord.js';
+import { Client, Collection, Intents } from 'discord.js';
 import { DBService } from './db.service';
-import { Command } from './helpers/lambda.interface';
+import { NewCommand } from './helpers/lambda.interface';
 import { Game } from './models/game';
 import * as fs from 'fs';
 import neatCSV = require('csv-parser');
 import { Clue } from './models/clue';
 
 export class LambdaClient extends Client {
-  commands = new Collection<string, Command>();
+  commands = new Collection<string, NewCommand>();
   games = new Collection<string, Game>();
   data: any;
 
   constructor(public dbService: DBService) {
-    super();
+    super({ intents: [Intents.FLAGS.GUILDS] });
   }
 
   loadClues() {

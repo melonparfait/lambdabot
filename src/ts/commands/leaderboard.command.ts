@@ -35,7 +35,7 @@ export function execute(message: DiscordMessage, args: string[]) {
       while (msg.length > 2000) {
         msg = trimLeaderboard(msg);
       }
-      message.channel.send(msg, { allowedMentions: {} })
+      message.channel.send({ content: msg, allowedMentions: {} })
         .catch(err => message.reply(`There was an error running that command: ${err}`));
     }).catch(err => console.log(`Failed to get player stats: ${err}`));
   }).catch(err => console.log(`Failed to get channel players: ${err}`));
