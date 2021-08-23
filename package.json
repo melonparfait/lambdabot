@@ -5,9 +5,10 @@
   "main": "index.js",
   "module": "main.js",
   "scripts": {
-    "test": "mocha -r ts-node/register ./src/ts/**/*.spec.ts",
-    "start": "./node_modules/.bin/ts-node src/ts/index.ts",
-    "lint": "eslint --ext ts,tsx src/ts/*"
+    "test": "mocha -r ts-node/register ./src/**/*.spec.ts",
+    "lint": "eslint --ext ts,tsx src/*",
+    "dev": "./node_modules/.bin/ts-node src/index.ts dev",
+    "prod": "./node_modules/.bin/ts-node src/index.ts prod"
   },
   "repository": {
     "type": "git",

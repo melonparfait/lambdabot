@@ -5,14 +5,27 @@ import { Game } from './models/game';
 import * as fs from 'fs';
 import neatCSV = require('csv-parser');
 import { Clue } from './models/clue';
+import { CommandLoader } from './command-loader';
+import { CooldownManager } from './cooldown-manager';
 
 export class LambdaClient extends Client {
-  commands = new Collection<string, NewCommand>();
+  commands: Collection<string, NewCommand>;
   games = new Collection<string, Game>();
   data: any;
 
-  constructor(public dbService: DBService) {
+  constructor(public dbService: DBService,
+      public commandLoader: CommandLoader,
+      public cooldownManager: CooldownManager) {
     super({ intents: [Intents.FLAGS.GUILDS] });
+  }
+
+  async initializeCommands(mode: 'dev' | 'prod') {
+    this.commands = await this.commandLoader.getCommands();
+    if (mode === 'dev') {
+      await this.commandLoader.registerCommandsToDevAPI();
+    } else if (mode === 'prod') {
+      await this.commandLoader.registerCommandsToProdAPI();
+    }
   }
 
   loadClues() {

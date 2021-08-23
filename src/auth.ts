@@ -1,6 +1,6 @@
-import { bot_token, owner_id } from '../../keys.json';
+import { bot_token, owner_id } from '../keys.json';
 import { DBService } from './db.service';
-import { LambdaClient } from './discord.service';
+import { LambdaClient } from './lambda-client';
 
 export class AuthSession {
   get dbConnection() {
@@ -11,12 +11,7 @@ export class AuthSession {
   }
 
   async authorize() {
-    try {
-      await this.lambda.login(bot_token);
-      console.log('Connected to Discord!');
-    } catch (err) {
-      console.log(`Unable to connect: ${err}`);
-    }
+    return this.lambda.login(bot_token);
   }
 
   close() {
