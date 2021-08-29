@@ -1,6 +1,6 @@
 import { Client, Collection, Intents } from 'discord.js';
 import { DBService } from './db.service';
-import { NewCommand } from './helpers/lambda.interface';
+import { Command } from './helpers/lambda.interface';
 import { Game } from './models/game';
 import * as fs from 'fs';
 import neatCSV = require('csv-parser');
@@ -9,7 +9,7 @@ import { CommandLoader } from './command-loader';
 import { CooldownManager } from './cooldown-manager';
 
 export class LambdaClient extends Client {
-  commands: Collection<string, NewCommand>;
+  commands: Collection<string, Command>;
   games = new Collection<string, Game>();
   data: any;
 
@@ -26,6 +26,11 @@ export class LambdaClient extends Client {
     } else if (mode === 'prod') {
       await this.commandLoader.registerCommandsToProdAPI();
     }
+
+    const commands = await this.application.commands.fetch();
+    commands.each(command => {
+      command.perm
+    });
   }
 
   loadClues() {

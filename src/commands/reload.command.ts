@@ -1,4 +1,4 @@
-import { owner_id } from '../../../keys.json';
+import { owner_id } from '../../keys.json';
 import { DiscordMessage } from '../helpers/lambda.interface';
 
 export const name = 'reload';

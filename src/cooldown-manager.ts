@@ -1,5 +1,5 @@
 import { Collection, CommandInteraction } from 'discord.js';
-import { NewCommand } from './helpers/lambda.interface';
+import { Command } from './helpers/lambda.interface';
 import { default_cooldown } from '../config.json';
 
 export interface CooldownCheckResult {
@@ -10,7 +10,7 @@ export interface CooldownCheckResult {
 export class CooldownManager {
   cooldowns = new Collection<string, Collection<string, Collection<string, number>>>();
 
-  checkCooldown(interaction: CommandInteraction, command: NewCommand): CooldownCheckResult {
+  checkCooldown(interaction: CommandInteraction, command: Command): CooldownCheckResult {
     const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
 
     if (cooldownAmount !== 0) {
@@ -22,10 +22,10 @@ export class CooldownManager {
 
       const channelCooldowns = this.cooldowns.get(interaction.channelId);
 
-      if (command.channelCooldown) {
-        return this.checkChannelCooldown(channelCooldowns, now, cooldownAmount, command);
+      if (command.hasChannelCooldown) {
+        return this.checkChannelCooldown(channelCooldowns, now, cooldownAmount, command.data.name);
       } else {
-        return this.checkUserCooldown(channelCooldowns, now, cooldownAmount, interaction, command);
+        return this.checkUserCooldown(channelCooldowns, now, cooldownAmount, interaction, command.data.name);
       }
     }
   }
@@ -33,15 +33,15 @@ export class CooldownManager {
   private checkChannelCooldown(channelCooldowns: Collection<string, Collection<string, number>>,
     now: number,
     cooldownAmount: number,
-    command: NewCommand): CooldownCheckResult {
+    commandName: string): CooldownCheckResult {
     if (!channelCooldowns.has('channel')) {
       channelCooldowns.set('channel', new Collection<string, number>());
-      channelCooldowns.get('channel').set(command.name, now);
-      setTimeout(() => channelCooldowns.get('channel').delete(command.name), cooldownAmount);
+      channelCooldowns.get('channel').set(commandName, now);
+      setTimeout(() => channelCooldowns.get('channel').delete(commandName), cooldownAmount);
       return { onCooldown: false };
     } else {
       const cooldownForChannel = channelCooldowns.get('channel');
-      const timestamp = cooldownForChannel.has(command.name) ? cooldownForChannel.get(command.name) : 0;
+      const timestamp = cooldownForChannel.has(commandName) ? cooldownForChannel.get(commandName) : 0;
       const expirationTime = timestamp + cooldownAmount;
       if (now < expirationTime) {
         const timeLeft = (expirationTime - now) / 1000;
@@ -50,8 +50,8 @@ export class CooldownManager {
           timeLeft: timeLeft.toFixed(1)
         };
       } else {
-        cooldownForChannel.set(command.name, now);
-        setTimeout(() => cooldownForChannel.delete(command.name), cooldownAmount);
+        cooldownForChannel.set(commandName, now);
+        setTimeout(() => cooldownForChannel.delete(commandName), cooldownAmount);
         return { onCooldown: false };
       }
     }
@@ -61,20 +61,20 @@ export class CooldownManager {
     now: number,
     cooldownAmount: number,
     interaction: CommandInteraction,
-    command: NewCommand) {
+    commandName: string) {
     if (!channelCooldowns.has(interaction.user.id)) {
       channelCooldowns.set(interaction.user.id, new Collection<string, number>());
-      channelCooldowns.get(interaction.user.id).set(command.name, now);
-      setTimeout(() => channelCooldowns.get(interaction.user.id).delete(command.name), cooldownAmount);
+      channelCooldowns.get(interaction.user.id).set(commandName, now);
+      setTimeout(() => channelCooldowns.get(interaction.user.id).delete(commandName), cooldownAmount);
       return { onCooldown: false };
     } else {
       const userCooldowns = channelCooldowns.get(interaction.user.id);
-      if (!userCooldowns.has(command.name)) {
-        userCooldowns.set(command.name, now);
-        setTimeout(() => userCooldowns.delete(command.name), cooldownAmount);
+      if (!userCooldowns.has(commandName)) {
+        userCooldowns.set(commandName, now);
+        setTimeout(() => userCooldowns.delete(commandName), cooldownAmount);
         return { onCooldown: false };
       } else {
-        const expirationTime = userCooldowns.get(command.name) + cooldownAmount;
+        const expirationTime = userCooldowns.get(commandName) + cooldownAmount;
         if (now < expirationTime) {
           const timeLeft = (expirationTime - now) / 1000;
           return {
@@ -82,8 +82,8 @@ export class CooldownManager {
             timeLeft: timeLeft.toFixed(1)
           };
         } else {
-          userCooldowns.set(command.name, now);
-          setTimeout(() => userCooldowns.delete(command.name), cooldownAmount);
+          userCooldowns.set(commandName, now);
+          setTimeout(() => userCooldowns.delete(commandName), cooldownAmount);
           return { onCooldown: false };
         }
       }

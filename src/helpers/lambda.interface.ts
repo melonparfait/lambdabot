@@ -7,27 +7,25 @@ export interface DiscordMessage extends Message {
 }
 
 export interface Command {
-  name: string,
-  aliases: any[],
-  cooldown: number,
-  channelCooldown: boolean,
-  description: string,
-  guildOnly: boolean,
-  usage: string,
-  args: boolean,
-  execute: (message: DiscordMessage, args: string[]) => void
-}
+  /** Whether the command is restricted to only the Lamdabot admins */
+  isRestricted: boolean,
 
-export interface NewCommand {
-  name: string,
-  aliases: any[],
+  /** Time in seconds that this command needs to cooldown before it can be used again */
   cooldown?: number,
-  channelCooldown: boolean,
-  description: string,
-  guildOnly: boolean,
-  usage: string,
-  args: boolean,
+
+  /**
+   * Whether the command has a channel-wide cooldown for every user or each user has their
+   * own cooldown in the channel for the command
+   */
+  hasChannelCooldown: boolean,
+
+  /** Whether the command can only be executed in guilds */
+  isGuildOnly: boolean,
+
+  /** The command metadata */
   data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>,
+
+  /** The function to run when the command is executed */
   execute: (interaction: CommandInteraction) => Awaited<void>
 }
 

@@ -4,7 +4,7 @@ import path = require('path');
 import { exit } from 'process';
 import { bot_token, client_id, dev_guild_id } from '../keys.json';
 import * as fs from 'fs';
-import { NewCommand } from './helpers/lambda.interface';
+import { Command } from './helpers/lambda.interface';
 import { Collection } from 'discord.js';
 
 export class CommandLoader {
@@ -14,8 +14,8 @@ export class CommandLoader {
 
   constructor() {}
 
-  async getCommands(): Promise<Collection<string, NewCommand>> {
-    const commands = new Collection<string, NewCommand>();
+  async getCommands(): Promise<Collection<string, Command>> {
+    const commands = new Collection<string, Command>();
     const commandFiles = fs.readdirSync(this.commandDirectory)
       .filter(file => file.endsWith('new.command.ts'));
 

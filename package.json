@@ -1,6 +1,6 @@
 {
   "name": "lambdabot",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "discord bot for wavelength",
   "main": "index.js",
   "module": "main.js",

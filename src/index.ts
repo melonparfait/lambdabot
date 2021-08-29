@@ -5,6 +5,7 @@ import { DBService } from './db.service';
 import { LambdaClient } from './lambda-client';
 import { CommandLoader } from './command-loader';
 import { CooldownManager } from './cooldown-manager';
+import { owner_id } from '../keys.json';
 
 let mode: 'dev' | 'prod';
 if (!(process?.argv[2] === 'dev' || process?.argv[2] === 'prod')) {
@@ -29,9 +30,9 @@ lambdaClient.on('interactionCreate', async (interaction: Interaction) => {
 
   const command = lambdaClient.commands.get(interaction.commandName);
 
-  if (!command) return;
+  if (!command || (command.isRestricted && interaction.user.id !== owner_id)) return;
 
-  if (command.guildOnly && interaction.channel.type !== 'GUILD_TEXT') {
+  if (command.isGuildOnly && interaction.channel.type !== 'GUILD_TEXT') {
     return interaction.reply({
       content: 'I can\'t execute that command outside of a server text channel!',
       ephemeral: true
@@ -40,50 +41,23 @@ lambdaClient.on('interactionCreate', async (interaction: Interaction) => {
 
   const cooldownCheckResult = lambdaClient.cooldownManager.checkCooldown(interaction, command);
   if (cooldownCheckResult.onCooldown) {
-    return interaction.reply(`Please wait ${cooldownCheckResult.timeLeft} more second(s) before reusing the \`${command.name}\` command.`);
+    return interaction.reply({
+      content: `Please wait ${cooldownCheckResult.timeLeft} more second(s)
+                before reusing the \`${command.data.name}\` command.`,
+      ephemeral: true
+    });
   }
 
   try {
     await command.execute(interaction);
   } catch (error) {
     console.log(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    await interaction.reply({
+      content: 'There was an error while executing this command!',
+      ephemeral: true
+    });
   }
 });
-
-// lambdaClient.on('message', (message: DiscordMessage) => {
-//   if (!message.content.startsWith(bot_prefix) || message.author.bot) return;
-
-//   const args = message.content.slice(bot_prefix.length).split(/ +/);
-//   const commandName = args.shift().toLowerCase();
-
-//   const command = lambdaClient.commands.get(commandName)
-//     || lambdaClient.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-//   if (!command) return;
-
-//   if (command.guildOnly && message.channel.type !== 'GUILD_TEXT') {
-//     message.reply('I can\'t execute that command outside of a server text channel!');
-//     return;
-//   }
-
-//   if (command.args && !args.length) {
-//     let reply = `You didn't provide any arguments, ${message.author}!`;
-
-//     if (command.usage) {
-//       reply += `\nThe proper usage would be: \`${bot_prefix}${command.name} ${command.usage}\``;
-//     }
-
-//     message.channel.send(reply);
-//     return;
-//   }
-
-//   try {
-//     command.execute(message, args);
-//   } catch (error) {
-//     console.error(error);
-//     message.reply('there was an error trying to execute that command!');
-//   }
-// });
 
 session.authorize()
   .then(async () => {
