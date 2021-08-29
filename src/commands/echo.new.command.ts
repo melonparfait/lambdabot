@@ -12,7 +12,8 @@ class EchoCommand implements Command {
     .setDescription('Echo!')
     .addStringOption(option => option.setName('input')
       .setDescription('Enter a string to echo')
-      .setRequired(true));
+      .setRequired(true))
+    .setDefaultPermission(false);
   async execute(interaction: CommandInteraction) {
     const arg = interaction.options.getString('input');
     return interaction.reply(arg);

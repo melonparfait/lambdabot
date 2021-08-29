@@ -7,6 +7,7 @@ import neatCSV = require('csv-parser');
 import { Clue } from './models/clue';
 import { CommandLoader } from './command-loader';
 import { CooldownManager } from './cooldown-manager';
+import { owner_id } from '../keys.json';
 
 export class LambdaClient extends Client {
   commands: Collection<string, Command>;
@@ -27,10 +28,18 @@ export class LambdaClient extends Client {
       await this.commandLoader.registerCommandsToProdAPI();
     }
 
-    const commands = await this.application.commands.fetch();
-    commands.each(command => {
-      command.perm
-    });
+    // const commands = await this.application.commands.fetch('12345');
+    // commands.each(async command => {
+    //   await command.permissions.add({
+    //     permissions: [
+    //       {
+    //         id: owner_id,
+    //         type: 'USER',
+    //         permission: true
+    //       }
+    //     ]
+    //   });
+    // });
   }
 
   loadClues() {
