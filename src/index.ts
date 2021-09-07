@@ -6,6 +6,8 @@ import { LambdaClient } from './lambda-client';
 import { CommandLoader } from './command-loader';
 import { CooldownManager } from './cooldown-manager';
 import { owner_id } from '../keys.json';
+import { GameManager } from './game-manager';
+import { ClueManager } from './clue-manager';
 
 let mode: 'dev' | 'prod';
 if (!(process?.argv[2] === 'dev' || process?.argv[2] === 'prod')) {
@@ -18,7 +20,9 @@ if (!(process?.argv[2] === 'dev' || process?.argv[2] === 'prod')) {
 const dbService = new DBService();
 const commandLoader = new CommandLoader();
 const cooldownManager = new CooldownManager();
-const lambdaClient = new LambdaClient(dbService, commandLoader, cooldownManager);
+const gameManager = new GameManager();
+const clueManager = new ClueManager();
+const lambdaClient = new LambdaClient(dbService, commandLoader, cooldownManager, gameManager, clueManager);
 const session = new AuthSession(dbService, lambdaClient);
 
 lambdaClient.on('ready', () => {
@@ -49,7 +53,7 @@ lambdaClient.on('interactionCreate', async (interaction: Interaction) => {
   }
 
   try {
-    await command.execute(interaction);
+    await command.execute(interaction, lambdaClient.gameManager, lambdaClient.clueManager);
   } catch (error) {
     console.log(error);
     await interaction.reply({
@@ -67,7 +71,7 @@ session.authorize()
       console.log(`Successfully deployed commands to ${mode} server!`);
       try {
         dbService.connect();
-        lambdaClient.loadClues();
+        clueManager.loadClues();
       } catch {
         session.close();
         dbService.disconnect();

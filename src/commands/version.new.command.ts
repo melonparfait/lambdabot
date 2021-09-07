@@ -11,7 +11,7 @@ class VersionCommand implements Command {
   data = new SlashCommandBuilder()
     .setName('version')
     .setDescription('Displays version information for this bot')
-    .setDefaultPermission(false);
+    .setDefaultPermission(true);
   async execute(interaction: CommandInteraction) {
     await interaction.reply(`λ-bot version: ${version}`);
   }

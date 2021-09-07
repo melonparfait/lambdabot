@@ -1,7 +1,13 @@
 import { Game } from '../models/game';
 import { Round } from '../models/round';
-import { TextChannel, Message } from 'discord.js';
+import { TextChannel, Message, Channel, TextBasedChannels } from 'discord.js';
 import { DiscordMessage } from './lambda.interface';
+import { GameManager } from '../game-manager';
+
+export const noActiveGameMessage = {
+  content: 'No one has started a game yet. Use the `/newgame` command to start one!',
+  ephemeral: true
+};
 
 export function roundStatus(game: Game): string {
   return `**Round: ${game.roundCounter + 1}**`
@@ -93,39 +99,39 @@ export function roster(game: Game): string {
 export function gameInfo(game: Game): string {
   let response = `**Game Status**: ${game.status}\n`;
   switch(game.status) {
-  case 'setup':
-    response += (gameSettings(game) + '\n' + roster(game));
-    break;
-  case 'playing':
-    response += (gameSettings(game) + '\n' + roundStatus(game));
-    if (game.currentClue) {
-      response += ('\n' + currentClue(game));
-    }
-    response += ('\n' + scoreboard(game));
-    break;
-  default:
-    response += scoreboard(game);
+    case 'setup':
+      response += (gameSettings(game) + '\n' + roster(game));
+      break;
+    case 'playing':
+      response += (gameSettings(game) + '\n' + roundStatus(game));
+      if (game.currentClue) {
+        response += ('\n' + currentClue(game));
+      }
+      response += ('\n' + scoreboard(game));
+      break;
+    default:
+      response += scoreboard(game);
   }
   return response;
 }
 
-export async function updateGameInfo(message: DiscordMessage) {
-  const game = message.client.games.get(message.channel.id);
+export async function updateGameInfo(channel: TextBasedChannels, gameManager: GameManager) {
+  const game = gameManager.getGame(channel.id);
   if (game.pinnedInfo) {
     try {
       await game.pinnedInfo.edit(gameInfo(game));
     } catch (err) {
       console.log(err);
-      message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+      channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }
   } else {
-    await message.channel.send(gameInfo(game));
+    await channel.send(gameInfo(game));
     try {
-      const msg = await message.channel.lastMessage.pin();
+      const msg = await channel.lastMessage.pin();
       game.pinnedInfo = msg;
     } catch (err) {
       console.log(err);
-      message.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+      channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }
   }
 }

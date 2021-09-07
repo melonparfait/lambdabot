@@ -1,6 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Awaited, CommandInteraction, Interaction, Message } from 'discord.js';
+import { ClueManager } from '../clue-manager';
+import { DBService } from '../db.service';
+import { GameManager } from '../game-manager';
 import { LambdaClient } from '../lambda-client';
+import { Game } from '../models/game';
 
 export interface DiscordMessage extends Message {
   client: LambdaClient
@@ -26,7 +30,10 @@ export interface Command {
   data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>,
 
   /** The function to run when the command is executed */
-  execute: (interaction: CommandInteraction) => Awaited<void>
+  execute: (interaction: CommandInteraction,
+    gameManager?: GameManager,
+    clueManager?: ClueManager,
+    dbService?: DBService) => Awaited<any>
 }
 
 export type GamePhase = 'setup' | 'playing' | 'finished';

@@ -10,7 +10,7 @@ class PingCommand implements Command {
   data = new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Replies with Pong?')
-    .setDefaultPermission(false);
+    .setDefaultPermission(true);
   async execute(interaction: CommandInteraction) {
     await interaction.reply('Pong?');
   }
