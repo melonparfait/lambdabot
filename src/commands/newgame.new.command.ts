@@ -6,7 +6,7 @@ import { CommandInteraction, Message } from 'discord.js';
 import { GameManager } from '../game-manager';
 import { ClueManager } from '../clue-manager';
 
-class NewGameCommand implements Command {
+export class NewGameCommand implements Command {
   isRestricted = false;
   cooldown?: 5;
   hasChannelCooldown = true;
@@ -56,7 +56,6 @@ class NewGameCommand implements Command {
       gameContext.pinnedInfo = msg;
     } catch(err) {
       interaction.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
-      console.log(err);
     }
 
     return interaction.reply(`${userMention(interaction.user.id)} started a new Wavelength game! Use \`/join\` to get in!`);

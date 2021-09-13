@@ -1,10 +1,10 @@
 import { describe } from 'mocha';
-import { Game } from '../models/game';
+import { Game } from '../src/models/game';
 import { expect } from 'chai';
-import { DEFAULT_SETTINGS } from './game.settings';
-import { Round } from './round';
-import { GameTeam } from './team';
-import { OffenseScore, ScoringResults } from './scoring.results';
+import { DEFAULT_SETTINGS } from '../src/models/game.settings';
+import { Round } from '../src/models/round';
+import { GameTeam } from '../src/models/team';
+import { OffenseScore, ScoringResults } from '../src/models/scoring.results';
 
 let game: Game;
 

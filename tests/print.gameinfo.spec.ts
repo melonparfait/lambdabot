@@ -1,11 +1,11 @@
 import { describe } from 'mocha';
-import { Game } from '../models/game';
-import { gameSettings, clue, spectrumBar, updateGameInfo } from './print.gameinfo';
-import { Round } from '../models/round';
-import { GameTeam } from '../models/team';
+import { Game } from '../src/models/game';
+import { gameSettings, clue, spectrumBar, updateGameInfo } from '../src/helpers/print.gameinfo';
+import { Round } from '../src/models/round';
+import { GameTeam } from '../src/models/team';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { DiscordMessage } from './lambda.interface';
+import { DiscordMessage } from '../src/helpers/lambda.interface';
 
 let game: Game;
 let message: DiscordMessage;
@@ -63,10 +63,10 @@ describe('Printing output tests', () => {
   });
 
   describe('updateGameInfo', () => {
-    xit('should update the game info', (done) => {
-      updateGameInfo(message).then(() => {
-        console.log('sendArgs: ', channelSendSpy.getCalls());
-      }).then(done).catch(done);
-    });
+    // xit('should update the game info', (done) => {
+    //   updateGameInfo(message).then(() => {
+    //     console.log('sendArgs: ', channelSendSpy.getCalls());
+    //   }).then(done).catch(done);
+    // });
   });
 });

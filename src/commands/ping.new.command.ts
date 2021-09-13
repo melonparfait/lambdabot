@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { Command } from '../helpers/lambda.interface';
 
-class PingCommand implements Command {
+export class PingCommand implements Command {
   isRestricted = true;
   hasChannelCooldown = true;
   isGuildOnly = true;

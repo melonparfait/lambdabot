@@ -1,11 +1,11 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { checkForGame, checkGamePhase } from '../helpers/command.errorchecks';
-import { gameSettings, updateGameInfo } from '../helpers/print.gameinfo';
+import { gameSettings, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { GameManager } from '../game-manager';
 
-class ConfigCommand implements Command {
+export class ConfigCommand implements Command {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;
@@ -34,10 +34,7 @@ class ConfigCommand implements Command {
 
     const channelId = interaction.channelId;
     if (!gameManager.hasGame(channelId) || gameManager.checkForFinishedGame(channelId)) {
-      return interaction.reply({
-        content: 'No one has started a game yet. Use the `/newgame` command to start one!',
-        ephemeral: true
-      });
+      return interaction.reply(noActiveGameMessage);
     } else if (gameManager.getGame(channelId).status !== 'setup') {
       return interaction.reply({
         content: 'Sorry, this command can only be used during game setup.',
@@ -47,7 +44,6 @@ class ConfigCommand implements Command {
       try {
         asyncConfig = interaction.options.getBoolean('async', true);
         trackStatsConfig = interaction.options.getBoolean('trackstats', true);
-        console.log('got threshold: ', interaction.options.getInteger('threshold'));
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 

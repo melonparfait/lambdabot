@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { Command } from '../helpers/lambda.interface';
 
-class EchoCommand implements Command {
+export class EchoCommand implements Command {
   isRestricted = true;
   cooldown = 5;
   hasChannelCooldown = true;

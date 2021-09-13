@@ -3,7 +3,7 @@ import { CommandInteraction } from 'discord.js';
 import { Command } from '../helpers/lambda.interface';
 import { version } from '../../package.json';
 
-class VersionCommand implements Command {
+export class VersionCommand implements Command {
   isRestricted = true;
   cooldown?: 0;
   hasChannelCooldown = true;
