@@ -86,15 +86,23 @@ export class MockInteraction {
     switch (type) {
       case 'string':
         when(this.mockOptions.getString(name)).thenReturn(value as string);
+        when(this.mockOptions.getString(name, true)).thenReturn(value as string);
+        when(this.mockOptions.getString(name, false)).thenReturn(value as string);
         break;
       case 'boolean':
         when(this.mockOptions.getBoolean(name)).thenReturn(value as boolean);
+        when(this.mockOptions.getBoolean(name, true)).thenReturn(value as boolean);
+        when(this.mockOptions.getBoolean(name, false)).thenReturn(value as boolean);
         break;
       case 'integer':
-        when(this.mockOptions.getNumber(name)).thenReturn(value as number);
+        when(this.mockOptions.getInteger(name)).thenReturn(value as number);
+        when(this.mockOptions.getInteger(name, true)).thenReturn(value as number);
+        when(this.mockOptions.getInteger(name, false)).thenReturn(value as number);
         break;
       case 'number':
         when(this.mockOptions.getNumber(name)).thenReturn(value as number);
+        when(this.mockOptions.getNumber(name, true)).thenReturn(value as number);
+        when(this.mockOptions.getNumber(name, false)).thenReturn(value as number);
         break;
       default:
         throw new Error('Incorrect arguments');

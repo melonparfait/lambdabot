@@ -1,8 +1,8 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { checkForGame, checkGamePhase } from '../helpers/command.errorchecks';
-import { errorProcessingCommand, gameSettings, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameSettings, maximumThresholDError, minimumDefenseTimerError, minimumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction } from 'discord.js';
+import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
 
 export class ConfigCommand implements Command {
@@ -36,10 +36,7 @@ export class ConfigCommand implements Command {
     if (!gameManager.hasGame(channelId) || gameManager.checkForFinishedGame(channelId)) {
       return interaction.reply(noActiveGameMessage);
     } else if (gameManager.getGame(channelId).status !== 'setup') {
-      return interaction.reply({
-        content: 'Sorry, this command can only be used during game setup.',
-        ephemeral: true
-      });
+      return interaction.reply(setupOnly);
     } else {
       try {
         asyncConfig = interaction.options.getBoolean('async', true);
@@ -47,21 +44,17 @@ export class ConfigCommand implements Command {
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 
+        // console.log('asyncConfig: ', asyncConfig,
+        //   '\ntrackStatsConfig: ', trackStatsConfig,
+        //   '\nthresholdConfig: ', thresholdConfig,
+        //   '\ndefenseTimer: ', defenseTimerConfig);
+
         if (thresholdConfig < 5) {
-          return interaction.reply({
-            content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${thresholdConfig}.)`,
-            ephemeral: true
-          });
+          return interaction.reply(minimumThresholdError(thresholdConfig));
         } else if (defenseTimerConfig && defenseTimerConfig < 1) {
-          return interaction.reply({
-            content: `Sorry, the minimum defense timer is 1 second. (You tried to set it to ${defenseTimerConfig}.)`,
-            ephemeral: true
-          });
+          return interaction.reply(minimumDefenseTimerError(defenseTimerConfig));
         } else if (thresholdConfig > 2147483647) {
-          return interaction.reply({
-            content: `Sorry, that threshold (${thresholdConfig}) is too big. please give me a smaller number.`,
-            ephemeral: true
-          });
+          return interaction.reply(maximumThresholDError(thresholdConfig));
         }
         // conversion to seconds
         defenseTimerConfig = defenseTimerConfig * 1000;

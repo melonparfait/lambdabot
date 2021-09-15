@@ -1,6 +1,6 @@
 import { Game } from '../models/game';
 import { Round } from '../models/round';
-import { TextChannel, TextBasedChannels } from 'discord.js';
+import { TextChannel, TextBasedChannels, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
 import { userMention } from '@discordjs/builders';
 
@@ -18,6 +18,32 @@ export const errorProcessingCommand = {
   content: 'There was an error processing that command.',
   ephemeral: true
 };
+
+export const setupOnly = {
+  content: 'Sorry, this command can only be used during game setup.',
+  ephemeral: true
+};
+
+export function minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
+  return {
+    content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${threshold}.)`,
+    ephemeral: true
+  }
+}
+
+export function minimumDefenseTimerError(dTimer: number): InteractionReplyOptions {
+  return {
+    content: `Sorry, the minimum defense timer is 1 second. (You tried to set it to ${dTimer}.)`,
+    ephemeral: true
+  }
+}
+
+export function maximumThresholDError(threshold: number | 'default'): InteractionReplyOptions {
+  return {
+    content: `Sorry, that threshold (${threshold}) is too big. please give me a smaller number.`,
+    ephemeral: true
+  }
+}
 
 export function newGameStarted(byUser: string) {
   return `${userMention(byUser)} started a new Wavelength game! Use \`/join\` to get in!`;
@@ -139,9 +165,9 @@ export async function updateGameInfo(channel: TextBasedChannels, gameManager: Ga
       channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }
   } else {
-    await channel.send(gameInfo(game));
+    const msg = await channel.send(gameInfo(game));
     try {
-      const msg = await channel.lastMessage.pin();
+      await msg.pin();
       game.pinnedInfo = msg;
     } catch (err) {
       console.log(err);
