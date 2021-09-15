@@ -1,16 +1,14 @@
 import { InteractionType } from 'discord-api-types';
 import { Channel, Client, CommandInteraction, CommandInteractionOptionResolver, DMChannel, Intents, Message, TextBasedChannel, TextBasedChannels, TextChannel, User } from 'discord.js';
 import _ from 'lodash';
-import Sinon, { SinonStub } from 'sinon';
-import { anything, instance, mock, when } from 'ts-mockito';
+import * as sinon from 'sinon';
+import { anyString, anything, instance, mock, reset, resetCalls, when } from 'ts-mockito';
 
 export enum CommandArgType {
   boolean, integer, string, number
 }
 
 export class MockInteraction {
-  sinon: any;
-
   mockedInteraction: CommandInteraction;
   interactionInstance: CommandInteraction;
 
@@ -23,15 +21,18 @@ export class MockInteraction {
   mockMessage: Message;
   messageInstance: Message;
 
-  reply: SinonStub;
-  channelSend: SinonStub;
-  messagePin: SinonStub;
+  reply: sinon.SinonStub;
+  channelSend: sinon.SinonStub;
+  messagePin: sinon.SinonStub;
+
+  mockOptions: CommandInteractionOptionResolver;
+  optionInstance: CommandInteractionOptionResolver;
 
   constructor(public userId: string, public channelId: string) {
-    this.sinon = require('sinon');
     this.initMockInteraction();
     this.initMockChannel();
     this.initMockUser();
+    this.initMockOptions();
   }
 
   private initMockInteraction() {
@@ -40,12 +41,11 @@ export class MockInteraction {
 
     when(this.mockedInteraction.channelId).thenReturn(this.channelId);
 
-    this.reply = (this.sinon.stub() as SinonStub).resolves(true);
+    this.reply = sinon.stub().resolves(true);
     when(this.mockedInteraction.reply(anything())).thenCall((arg: {
       content: string,
       ephemeral: boolean
     }) => this.reply(arg));
-
   }
 
   private initMockChannel() {
@@ -57,10 +57,10 @@ export class MockInteraction {
       ephemeral: boolean
     }) => this.channelSend(arg));
 
-    this.messagePin = (this.sinon.stub() as SinonStub).resolves(true);
+    this.messagePin = sinon.stub().resolves(true);
     this.mockMessage = mock(Message);
     this.messageInstance = instance(this.mockMessage);
-    this.channelSend = (this.sinon.stub() as SinonStub).resolves({
+    this.channelSend = sinon.stub().resolves({
       pin: this.messagePin
     });
 
@@ -71,7 +71,44 @@ export class MockInteraction {
     this.mockUser = mock(User);
     this.userInstance = instance(this.mockUser);
     when(this.mockUser.id).thenReturn(this.userId);
-
     when(this.mockedInteraction.user).thenReturn(this.userInstance);
+  }
+
+  private initMockOptions() {
+    this.mockOptions = mock(CommandInteractionOptionResolver);
+    this.optionInstance = instance(this.mockOptions);
+    when(this.mockedInteraction.options).thenReturn(this.optionInstance);
+  }
+
+  setInteractionInput(type: 'string' | 'boolean' | 'number' | 'integer',
+      name: string,
+      value: string | boolean | number) {
+    switch (type) {
+      case 'string':
+        when(this.mockOptions.getString(name)).thenReturn(value as string);
+        break;
+      case 'boolean':
+        when(this.mockOptions.getBoolean(name)).thenReturn(value as boolean);
+        break;
+      case 'integer':
+        when(this.mockOptions.getNumber(name)).thenReturn(value as number);
+        break;
+      case 'number':
+        when(this.mockOptions.getNumber(name)).thenReturn(value as number);
+        break;
+      default:
+        throw new Error('Incorrect arguments');
+    }
+  }
+
+  resetMock() {
+    reset(this.mockedInteraction);
+    this.initMockInteraction();
+    this.initMockChannel();
+    this.initMockUser();
+  }
+
+  resetCalls() {
+    resetCalls(this.mockedInteraction);
   }
 }

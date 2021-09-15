@@ -30,7 +30,7 @@ describe('Game model tests', () => {
     });
 
     it('should initialize a game with default settings', () => {
-      expect(game.threshold).to.equal(0);
+      expect(game.threshold).to.equal(5);
       expect(game.asyncPlay).to.equal(DEFAULT_SETTINGS.asyncPlay);
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
     });
@@ -47,7 +47,7 @@ describe('Game model tests', () => {
   describe('config tests', () => {
     it('should set settings properly', () => {
       game = new Game('testGame', []);
-      expect(game.threshold).to.equal(0);
+      expect(game.threshold).to.equal(5);
       expect(game.asyncPlay).to.equal(DEFAULT_SETTINGS.asyncPlay);
       expect(game.dGuessTime).to.equal(DEFAULT_SETTINGS.dGuessTime);
 
@@ -80,6 +80,7 @@ describe('Game model tests', () => {
   describe('After starting the game', () => {
     beforeEach(() => {
       game = new Game('testGame', []);
+      [...team1Players, ...team2Players].forEach(player => game.join(player));
       game.team1.players.push(...team1Players);
       game.team2.players.push(...team2Players);
       game.start();

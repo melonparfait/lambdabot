@@ -1,6 +1,6 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { checkForGame, checkGamePhase } from '../helpers/command.errorchecks';
-import { gameSettings, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameSettings, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -47,9 +47,9 @@ export class ConfigCommand implements Command {
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 
-        if (thresholdConfig < 4) {
+        if (thresholdConfig < 5) {
           return interaction.reply({
-            content: `Sorry, the minimum threshold is 4 points. (You tried to set it to ${thresholdConfig}.)`,
+            content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${thresholdConfig}.)`,
             ephemeral: true
           });
         } else if (defenseTimerConfig && defenseTimerConfig < 1) {
@@ -67,10 +67,7 @@ export class ConfigCommand implements Command {
         defenseTimerConfig = defenseTimerConfig * 1000;
 
       } catch (err) {
-        interaction.reply({
-          content: `Sorry, there was an error processing that command: ${err}`,
-          ephemeral: true
-        });
+        interaction.reply(errorProcessingCommand);
       }
     }
 

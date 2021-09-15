@@ -29,4 +29,9 @@ export class GameManager {
   checkForFinishedGame(channelId: string): boolean {
     return this._games.has(channelId) && this._games.get(channelId).status === 'finished';
   }
+
+  /** Deletes all games from the collection of the client's games */
+  resetCollection() {
+    this._games.clear();
+  }
 }

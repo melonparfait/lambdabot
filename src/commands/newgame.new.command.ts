@@ -1,6 +1,6 @@
 import { Game } from '../models/game';
 import { Command } from '../helpers/lambda.interface';
-import { gameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameAlreadyExists, gameInfo, newGameStarted } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { CommandInteraction, Message } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -23,10 +23,7 @@ export class NewGameCommand implements Command {
       switch (gameContext.status) {
         case 'setup':
         case 'playing':
-          return interaction.reply({
-            content: 'It looks like there\'s already a game running in this channel.',
-            ephemeral: true
-          });
+          return interaction.reply(gameAlreadyExists);
         case 'finished':
           gameManager.addGame(channelId,
             new Game(channelId, clueManager.data, {
@@ -38,16 +35,13 @@ export class NewGameCommand implements Command {
             }));
           break;
         default:
-          return interaction.reply({
-            content: 'There was an error processing that command.',
-            ephemeral: true
-          });
-      }
+          return interaction.reply(errorProcessingCommand);
+        }
     } else {
       gameManager.addGame(channelId, new Game(channelId, clueManager.data));
-      gameContext = gameManager.getGame(channelId);
     }
 
+    gameContext = gameManager.getGame(channelId);
     gameContext.join(interaction.user.id);
 
     try {
@@ -58,7 +52,7 @@ export class NewGameCommand implements Command {
       interaction.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
     }
 
-    return interaction.reply(`${userMention(interaction.user.id)} started a new Wavelength game! Use \`/join\` to get in!`);
+    return interaction.reply(newGameStarted(interaction.user.id));
   }
 }
 

@@ -34,7 +34,7 @@ export class Game {
 
   get threshold(): number {
     if (this._settings.threshold === 'default') {
-      return Math.max(this.team1.players.length, this.team2.players.length) * 5;
+      return Math.max(Math.max(this.team1.players.length, this.team2.players.length) * 5, 5);
     } else {
       return this._settings.threshold;
     }

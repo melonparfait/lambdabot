@@ -1,13 +1,27 @@
 import { Game } from '../models/game';
 import { Round } from '../models/round';
-import { TextChannel, Message, Channel, TextBasedChannels } from 'discord.js';
-import { DiscordMessage } from './lambda.interface';
+import { TextChannel, TextBasedChannels } from 'discord.js';
 import { GameManager } from '../game-manager';
+import { userMention } from '@discordjs/builders';
 
 export const noActiveGameMessage = {
   content: 'No one has started a game yet. Use the `/newgame` command to start one!',
   ephemeral: true
 };
+
+export const gameAlreadyExists = {
+  content: 'It looks like there\'s already a game running in this channel.',
+  ephemeral: true
+};
+
+export const errorProcessingCommand = {
+  content: 'There was an error processing that command.',
+  ephemeral: true
+};
+
+export function newGameStarted(byUser: string) {
+  return `${userMention(byUser)} started a new Wavelength game! Use \`/join\` to get in!`;
+}
 
 export function roundStatus(game: Game): string {
   return `**Round: ${game.roundCounter + 1}**`
