@@ -4,7 +4,7 @@ import { ClueManager } from '../clue-manager';
 import { DBService } from '../db.service';
 import { GameManager } from '../game-manager';
 import { Command } from '../helpers/lambda.interface';
-import { noActiveGameMessage } from '../helpers/print.gameinfo';
+import { couldNotUnPin, noActiveGameMessage } from '../helpers/print.gameinfo';
 
 class QuitCommand implements Command {
   isRestricted = false;
@@ -27,7 +27,7 @@ class QuitCommand implements Command {
       try {
         await game.pinnedInfo.unpin();
       } catch (err) {
-        interaction.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
+        interaction.channel.send(couldNotUnPin);
         console.log(err);
       }
       return interaction.reply('I stopped the current game.');

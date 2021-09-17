@@ -1,6 +1,6 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { checkForGame, checkGamePhase } from '../helpers/command.errorchecks';
-import { errorProcessingCommand, gameSettings, maximumThresholDError, minimumDefenseTimerError, minimumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameSettings, maximumThresholdError, minimumDefenseTimerError, minimumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -54,7 +54,7 @@ export class ConfigCommand implements Command {
         } else if (defenseTimerConfig && defenseTimerConfig < 1) {
           return interaction.reply(minimumDefenseTimerError(defenseTimerConfig));
         } else if (thresholdConfig > 2147483647) {
-          return interaction.reply(maximumThresholDError(thresholdConfig));
+          return interaction.reply(maximumThresholdError(thresholdConfig));
         }
         // conversion to seconds
         defenseTimerConfig = defenseTimerConfig * 1000;
@@ -72,9 +72,13 @@ export class ConfigCommand implements Command {
       trackStats: trackStatsConfig
     });
 
-    updateGameInfo(interaction.channel, gameManager);
-    return interaction.reply('Changed the settings to:\n'
-      + gameSettings(gameManager.getGame(channelId)));
+    await updateGameInfo(interaction.channel, gameManager);
+    return interaction.reply(this.sendUpdatedSettings(interaction.channelId, gameManager));
+  }
+
+  sendUpdatedSettings(channelId: string, gameManager: GameManager) {
+    return 'Changed the settings to:\n'
+    + gameSettings(gameManager.getGame(channelId));
   }
 }
 

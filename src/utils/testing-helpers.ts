@@ -24,6 +24,7 @@ export class MockInteraction {
   reply: sinon.SinonStub;
   channelSend: sinon.SinonStub;
   messagePin: sinon.SinonStub;
+  editPinnedMsg: sinon.SinonStub;
 
   mockOptions: CommandInteractionOptionResolver;
   optionInstance: CommandInteractionOptionResolver;
@@ -52,14 +53,14 @@ export class MockInteraction {
     this.mockChannel = mock(TextBasedChannel);
     this.channelInstance = instance(this.mockChannel);
     when(this.mockChannel.id).thenReturn(this.channelId);
-    when(this.mockChannel.send(anything())).thenCall((arg: {
-      content: string,
-      ephemeral: boolean
-    }) => this.channelSend(arg));
+    when(this.mockChannel.send(anything())).thenCall(arg => this.channelSend(arg));
 
-    this.messagePin = sinon.stub().resolves(true);
+    this.messagePin = sinon.stub().resolves(this.messageInstance);
+    this.editPinnedMsg = sinon.stub().resolves(this.messageInstance);
     this.mockMessage = mock(Message);
     this.messageInstance = instance(this.mockMessage);
+    when(this.mockMessage.edit(anything())).thenCall(arg => this.editPinnedMsg(arg));
+
     this.channelSend = sinon.stub().resolves({
       pin: this.messagePin
     });
@@ -111,6 +112,10 @@ export class MockInteraction {
 
   resetMock() {
     reset(this.mockedInteraction);
+    reset(this.mockChannel);
+    reset(this.mockMessage);
+    reset(this.mockOptions);
+    reset(this.mockUser);
     this.initMockInteraction();
     this.initMockChannel();
     this.initMockUser();
@@ -118,5 +123,17 @@ export class MockInteraction {
 
   resetCalls() {
     resetCalls(this.mockedInteraction);
+    resetCalls(this.mockChannel);
+    resetCalls(this.mockMessage);
+    resetCalls(this.mockOptions);
+    resetCalls(this.mockUser);
+  }
+
+  clearMocks() {
+    reset(this.mockedInteraction);
+    reset(this.mockChannel);
+    reset(this.mockMessage);
+    reset(this.mockOptions);
+    reset(this.mockUser);
   }
 }

@@ -24,6 +24,9 @@ export const setupOnly = {
   ephemeral: true
 };
 
+export const couldNotPin = 'I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?';
+export const couldNotUnPin = 'I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?';
+
 export function minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
   return {
     content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${threshold}.)`,
@@ -38,7 +41,7 @@ export function minimumDefenseTimerError(dTimer: number): InteractionReplyOption
   }
 }
 
-export function maximumThresholDError(threshold: number | 'default'): InteractionReplyOptions {
+export function maximumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
   return {
     content: `Sorry, that threshold (${threshold}) is too big. please give me a smaller number.`,
     ephemeral: true
@@ -162,7 +165,7 @@ export async function updateGameInfo(channel: TextBasedChannels, gameManager: Ga
       await game.pinnedInfo.edit(gameInfo(game));
     } catch (err) {
       console.log(err);
-      channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+      await channel.send(couldNotPin);
     }
   } else {
     const msg = await channel.send(gameInfo(game));
@@ -171,7 +174,7 @@ export async function updateGameInfo(channel: TextBasedChannels, gameManager: Ga
       game.pinnedInfo = msg;
     } catch (err) {
       console.log(err);
-      channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+      await channel.send(couldNotPin);
     }
   }
 }

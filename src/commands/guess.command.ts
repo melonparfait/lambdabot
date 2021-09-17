@@ -1,7 +1,7 @@
 import { sendNewRoundMessages } from '../helpers/newround';
 import { DiscordMessage } from '../helpers/lambda.interface';
 import { TextChannel, Collection, Message } from 'discord.js';
-import { sendGameEndScoreboard, clue, currentClue } from '../helpers/print.gameinfo';
+import { sendGameEndScoreboard, clue, currentClue, couldNotPin } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { owner_id } from '../../../keys.json';
 
@@ -133,7 +133,7 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
     sendGameEndScoreboard(message.channel as TextChannel, game, winner);
     game.pinnedInfo.unpin().then(() => game.pinnedInfo = undefined)
       .catch(err => {
-        message.channel.send('I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?');
+        message.channel.send(couldNotPin);
         console.log(err);
       });
   } else {

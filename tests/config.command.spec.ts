@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import * as ConfigCommand from '../src/commands/config.new.command';
-import { minimumThresholdError, noActiveGameMessage, setupOnly } from '../src/helpers/print.gameinfo';
+import { gameInfo, minimumDefenseTimerError, minimumThresholdError, maximumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 
 const TEST_USER_ID = '54321';
@@ -17,6 +17,14 @@ describe('config command', () => {
   let command: any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
+
+  function configureUserInput(mockInteraction: MockInteraction, asyncConfig: boolean,
+      trackStatsConfig: boolean, thresholdConfig: number, defenseTimerConfig: number) {
+    mockInteraction.setInteractionInput('boolean', 'async', asyncConfig);
+    mockInteraction.setInteractionInput('boolean', 'trackstats', trackStatsConfig);
+    mockInteraction.setInteractionInput('integer', 'threshold', thresholdConfig);
+    mockInteraction.setInteractionInput('integer', 'defensetimer', defenseTimerConfig);
+  }
 
   beforeEach(() => {
     command = ConfigCommand;
@@ -60,17 +68,20 @@ describe('config command', () => {
       let setSettingsSpy: sinon.SinonSpy;
   
       beforeEach(async () => {
-        gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
-        gameRef = gameManager.getGame(TEST_CHANNEL_ID)
+        gameRef = new Game(TEST_CHANNEL_ID, []);
         gameRef.status = 'setup';
-        mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
-        mockInteraction.setInteractionInput('boolean', 'async', async);
-        mockInteraction.setInteractionInput('boolean', 'trackstats', trackStats);
-        mockInteraction.setInteractionInput('integer', 'threshold', threshold);
-        mockInteraction.setInteractionInput('integer', 'defensetimer', defenseTimer);
-        mockInteraction.reply.resetHistory();
 
+        gameRef.join(TEST_USER_ID);
+        gameManager.addGame(TEST_CHANNEL_ID, gameRef);
         setSettingsSpy = sinon.spy(gameRef, 'setSettings');
+
+        mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
+        configureUserInput(mockInteraction, async, trackStats, threshold, defenseTimer);
+
+        gameRef.pinnedInfo = mockInteraction.messageInstance;
+
+        mockInteraction.reply.resetHistory();
+        mockInteraction.editPinnedMsg.resetHistory();
 
         await command.execute(mockInteraction.interactionInstance, gameManager);
       });
@@ -86,11 +97,12 @@ describe('config command', () => {
       });
 
       it('should update the pinned game info', () => {
-
+        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
       });
 
       it('should send a message with the new settings', () => {
-
+        expect(mockInteraction.reply).to.have.been.calledOnceWith(
+          command.sendUpdatedSettings(TEST_CHANNEL_ID, gameManager));
       });
     }
 
@@ -111,10 +123,7 @@ describe('config command', () => {
         gameRef = gameManager.getGame(TEST_CHANNEL_ID)
         gameRef.status = 'setup';
         mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
-        mockInteraction.setInteractionInput('boolean', 'async', asyncConfig);
-        mockInteraction.setInteractionInput('boolean', 'trackstats', trackStatsConfig);
-        mockInteraction.setInteractionInput('integer', 'threshold', thresholdConfig);
-        mockInteraction.setInteractionInput('integer', 'defensetimer', defenseTimerConfig);
+        configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
         mockInteraction.reply.resetHistory();
 
         await command.execute(mockInteraction.interactionInstance, gameManager);
@@ -122,6 +131,52 @@ describe('config command', () => {
   
       it('should reply with an minimum threshold error', () => {
         expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(minimumThresholdError(thresholdConfig));
+      });
+    });
+
+    describe('when a user inputs an invalid minimum defense timer error', () => {
+      const asyncConfig = false;
+      const trackStatsConfig = false;
+      const thresholdConfig = 10;
+      const defenseTimerConfig = -4;
+      let gameRef: Game;
+  
+      beforeEach(async () => {
+        gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
+        gameRef = gameManager.getGame(TEST_CHANNEL_ID)
+        gameRef.status = 'setup';
+        mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
+        configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
+        mockInteraction.reply.resetHistory();
+
+        await command.execute(mockInteraction.interactionInstance, gameManager);
+      });
+  
+      it('should reply with an minimum defense timer error', () => {
+        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(minimumDefenseTimerError(defenseTimerConfig));
+      });
+    });
+
+    describe('when a user inputs an invalid maximum threshold timer error', () => {
+      const asyncConfig = false;
+      const trackStatsConfig = false;
+      const thresholdConfig = 2147483648;
+      const defenseTimerConfig = 5;
+      let gameRef: Game;
+  
+      beforeEach(async () => {
+        gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
+        gameRef = gameManager.getGame(TEST_CHANNEL_ID)
+        gameRef.status = 'setup';
+        mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
+        configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
+        mockInteraction.reply.resetHistory();
+
+        await command.execute(mockInteraction.interactionInstance, gameManager);
+      });
+  
+      it('should reply with an maximum threshold timer error', () => {
+        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(maximumThresholdError(thresholdConfig));
       });
     });
   });
