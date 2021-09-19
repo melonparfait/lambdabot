@@ -24,6 +24,7 @@ export class MockInteraction {
   reply: sinon.SinonStub;
   channelSend: sinon.SinonStub;
   messagePin: sinon.SinonStub;
+  messageUnpin: sinon.SinonStub;
   editPinnedMsg: sinon.SinonStub;
 
   mockOptions: CommandInteractionOptionResolver;
@@ -56,13 +57,16 @@ export class MockInteraction {
     when(this.mockChannel.send(anything())).thenCall(arg => this.channelSend(arg));
 
     this.messagePin = sinon.stub().resolves(this.messageInstance);
+    this.messageUnpin = sinon.stub().resolves(this.messageInstance);
     this.editPinnedMsg = sinon.stub().resolves(this.messageInstance);
     this.mockMessage = mock(Message);
     this.messageInstance = instance(this.mockMessage);
     when(this.mockMessage.edit(anything())).thenCall(arg => this.editPinnedMsg(arg));
+    when(this.mockMessage.unpin()).thenCall(() => this.messageUnpin());
 
     this.channelSend = sinon.stub().resolves({
-      pin: this.messagePin
+      pin: this.messagePin,
+      unpin: this.messageUnpin
     });
 
     when(this.mockedInteraction.channel).thenReturn(this.channelInstance);

@@ -44,11 +44,6 @@ export class ConfigCommand implements Command {
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 
-        // console.log('asyncConfig: ', asyncConfig,
-        //   '\ntrackStatsConfig: ', trackStatsConfig,
-        //   '\nthresholdConfig: ', thresholdConfig,
-        //   '\ndefenseTimer: ', defenseTimerConfig);
-
         if (thresholdConfig < 5) {
           return interaction.reply(minimumThresholdError(thresholdConfig));
         } else if (defenseTimerConfig && defenseTimerConfig < 1) {

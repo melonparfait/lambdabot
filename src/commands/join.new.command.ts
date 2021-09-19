@@ -1,8 +1,8 @@
 import { Command } from '../helpers/lambda.interface';
 import { remove } from 'lodash';
-import { noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { CommandInteraction } from 'discord.js';
+import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
 
 export class JoinCommand implements Command {
@@ -19,59 +19,59 @@ export class JoinCommand implements Command {
     .setDefaultPermission(true);
   async execute(interaction: CommandInteraction, gameManager: GameManager) {
     const game = gameManager.getGame(interaction.channelId);
+    const userId = interaction.user.id;
     if (!game || game.status === 'finished') {
       return interaction.reply(noActiveGameMessage);
     } else if (game.status !== 'setup') {
       // TODO: allow joining an in-progress game
-      return interaction.reply({
-        content: 'Sorry, it looks like the game is already running.',
-        ephemeral: true
-      });
+      return interaction.reply(gameInProgress);
     } else {
       let teamArg = interaction.options.getString('team', false);
 
       if (teamArg) {
         if (!['1', '2', 'random'].includes(teamArg)) {
-          return interaction.reply({
-            content: `Sorry, ${teamArg} is not a valid team. Please try again with 1, 2, or random.`,
-            ephemeral: true
-          });
+          return interaction.reply(this.invalidTeamArgument(teamArg));
         } else if (teamArg === 'random') {
           teamArg = (Math.round(Math.random()) + 1).toString();
-        }
-        let response: string;
-
-        if (game.join(interaction.user.id)) {
-          response = `${userMention(interaction.user.id)} joined the game on team `;
-        } else {
-          if (game.team1.players.includes(interaction.user.id)) {
-            remove(game.team1.players, player => player === interaction.user.id);
-          }
-          if (game.team2.players.includes(interaction.user.id)) {
-            remove(game.team2.players, player => player === interaction.user.id);
-          }
-          response = `${userMention(interaction.user.id)} joined team `;
+        } else if ((game.team1.players.includes(userId) && teamArg === '1')
+            || (game.team2.players.includes(userId) && teamArg === '2')) {
+          return interaction.reply(this.alreadyOnTeam(teamArg));
         }
 
-        if (teamArg === '1') {
-          game.team1.players.push(interaction.user.id);
-        } else {
-          game.team2.players.push(interaction.user.id);
-        }
+        const newPlayer = game.join(userId);
+        game.addPlayerToTeam(userId, teamArg as '1' | '2');
 
-        response += `${teamArg}.`;
         updateGameInfo(interaction.channel, gameManager);
-        return interaction.reply(response);
-      } else if (game.join(interaction.user.id)) {
+        return interaction.reply(this.teamJoinedMsg(newPlayer, userId, teamArg));
+      } else if (game.join(userId)) {
         updateGameInfo(interaction.channel, gameManager);
-        return interaction.reply(`${userMention(interaction.user.id)} joined the game!`);
+        return interaction.reply(this.userJoinedGame(userId));
       } else {
-        return interaction.reply({
-          content: 'Sorry, you\'re already in the game!',
-          ephemeral: true
-        });
+        return interaction.reply(alreadyInGame);
       }
     }
+  }
+
+  alreadyOnTeam(teamArg: string): InteractionReplyOptions {
+    return {
+      content: `You're already on team ${teamArg}!`,
+      ephemeral: true
+    }
+  }
+
+  invalidTeamArgument(teamArg: string): InteractionReplyOptions {
+    return {
+      content: `Sorry, ${teamArg} is not a valid team. Please try again with 1, 2, or random.`,
+      ephemeral: true
+    };
+  }
+
+  userJoinedGame(userId: string): string {
+    return `${userMention(userId)} joined the game!`;
+  }
+
+  teamJoinedMsg(newPlayer: boolean, userId: string, team: string): string {
+    return `${userMention(userId)} joined ${newPlayer ? 'the game on team' : 'team'} ${team}.`
   }
 }
 

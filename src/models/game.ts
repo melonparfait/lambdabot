@@ -4,7 +4,7 @@ import { Channel, Message } from 'discord.js';
 import { GameSettings, DEFAULT_SETTINGS } from './game.settings';
 import { shuffleArray } from '../helpers/shufflearray';
 import { GamePhase } from '../helpers/lambda.interface';
-import { isUndefined, cloneDeep } from 'lodash';
+import { isUndefined, cloneDeep, remove } from 'lodash';
 import { ScoringResults, OffenseScore } from './scoring.results';
 import { Clue } from './clue';
 import { v4 as uuidv4 } from 'uuid';
@@ -81,6 +81,31 @@ export class Game {
       return true;
     } else {
       return false;
+    }
+  }
+
+  /**
+   * Adds a userId to a team. If the user is already on another team, they are 
+   * removed and added to the specified team. If the player has not joined the
+   * game yet, they are added to the game.
+   * @param userId player to add to a team
+   * @param team either team '1' or '2'
+   */
+  addPlayerToTeam(userId: string, team: '1' | '2') {
+    if (!this.players.has(userId)) {
+      this.players.add(userId);
+    }
+
+    if (team === '1') {
+      if (this.team2.players.includes(userId)) {
+        remove(this.team2.players, player => player === userId);
+      }
+      this.team1.players.push(userId);
+    } else if (team === '2') {
+      if (this.team1.players.includes(userId)) {
+        remove(this.team1.players, player => player === userId);
+      }
+      this.team2.players.push(userId);
     }
   }
 

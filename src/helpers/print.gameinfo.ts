@@ -4,6 +4,16 @@ import { TextChannel, TextBasedChannels, InteractionReplyOptions } from 'discord
 import { GameManager } from '../game-manager';
 import { userMention } from '@discordjs/builders';
 
+export const alreadyInGame = {
+  content: 'Sorry, you\'re already in the game!',
+  ephemeral: true
+}
+
+export const gameInProgress = {
+  content: 'Sorry, it looks like the game is already running.',
+  ephemeral: true
+};
+
 export const noActiveGameMessage = {
   content: 'No one has started a game yet. Use the `/newgame` command to start one!',
   ephemeral: true

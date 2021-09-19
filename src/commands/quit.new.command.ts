@@ -30,9 +30,11 @@ class QuitCommand implements Command {
         interaction.channel.send(couldNotUnPin);
         console.log(err);
       }
-      return interaction.reply('I stopped the current game.');
+      return interaction.reply(this.stoppedGameMsg);
     }
   }
+
+  stoppedGameMsg = 'I stopped the current game.';
 }
 
 module.exports = new QuitCommand();
