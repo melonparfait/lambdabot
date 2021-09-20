@@ -4,6 +4,11 @@ import { TextChannel, TextBasedChannels, InteractionReplyOptions } from 'discord
 import { GameManager } from '../game-manager';
 import { userMention } from '@discordjs/builders';
 
+export const clueGiverOnly = {
+  content: 'Sorry, only the clue giver can use this command!',
+  ephemeral: true
+}
+
 export const alreadyInGame = {
   content: 'Sorry, you\'re already in the game!',
   ephemeral: true
@@ -13,6 +18,11 @@ export const gameInProgress = {
   content: 'Sorry, it looks like the game is already running.',
   ephemeral: true
 };
+
+export const gameNotInProgress = {
+  content: 'Sorry, it looks like the game isn\'t in progress yet.',
+  ephemeral: true
+}
 
 export const noActiveGameMessage = {
   content: 'No one has started a game yet. Use the `/newgame` command to start one!',

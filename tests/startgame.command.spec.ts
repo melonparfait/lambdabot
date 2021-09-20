@@ -12,7 +12,7 @@ import * as  StartGameCommand from '../src/commands/startgame.new.command';
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
-describe.only('startgame command', () => {
+describe('startgame command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
   let command: any;

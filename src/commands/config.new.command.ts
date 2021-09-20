@@ -1,5 +1,5 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
-import { checkForGame, checkGamePhase } from '../helpers/command.errorchecks';
+import { checkGamePhase } from '../helpers/command.errorchecks';
 import { errorProcessingCommand, gameSettings, maximumThresholdError, minimumDefenseTimerError, minimumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
