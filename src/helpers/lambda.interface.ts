@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { Awaited, CommandInteraction, Interaction, Message } from 'discord.js';
+import { Awaited, CommandInteraction, Interaction, Message, UserManager } from 'discord.js';
 import { ClueManager } from '../clue-manager';
 import { DBService } from '../db.service';
 import { GameManager } from '../game-manager';
@@ -33,6 +33,7 @@ export interface Command {
   execute: (interaction: CommandInteraction,
     gameManager?: GameManager,
     clueManager?: ClueManager,
+    userManager?: UserManager,
     dbService?: DBService) => Awaited<any>
 }
 

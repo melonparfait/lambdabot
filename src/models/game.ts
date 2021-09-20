@@ -285,24 +285,26 @@ export class Game {
   }
 
   /**
-   * Splits the players in the game evenly into two teams at random
+   * Assign the unassigned players in the game to 
+   * a random team
    */
   assignRandomTeams() {
-    const players = Array.from(this.players);
-    if (this.players.size > 1) {
-      shuffleArray(players);
-      const splitIndex = players.length / 2;
-      players.forEach((userId, index) => {
-        if (index < splitIndex) {
+    const unassignedPlayers = Array.from(this.unassignedPlayers);
+    if (unassignedPlayers.length > 0) {
+      shuffleArray(unassignedPlayers);
+      unassignedPlayers.forEach(userId => {
+        if (this.team1.players.length < this.team2.players.length) {
           this.team1.players.push(userId);
-        } else {
+        } else if (this.team2.players.length < this.team1.players.length) {
           this.team2.players.push(userId);
+        } else {
+          if (Math.random() > 0.5) {
+            this.team1.players.push(userId);
+          } else {
+            this.team2.players.push(userId);
+          }
         }
       });
-    } else if (Math.random() > 0.5) {
-      this.team1.players.push(players[0]);
-    } else {
-      this.team2.players.push(players[0]);
     }
   }
 }

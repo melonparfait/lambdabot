@@ -53,7 +53,7 @@ lambdaClient.on('interactionCreate', async (interaction: Interaction) => {
   }
 
   try {
-    await command.execute(interaction, lambdaClient.gameManager, lambdaClient.clueManager);
+    await command.execute(interaction, lambdaClient.gameManager, lambdaClient.clueManager, lambdaClient.users);
   } catch (error) {
     console.log(error);
     await interaction.reply({

@@ -6,7 +6,7 @@ import { GameManager } from '../game-manager';
 import { Command } from '../helpers/lambda.interface';
 import { couldNotUnPin, noActiveGameMessage } from '../helpers/print.gameinfo';
 
-class QuitCommand implements Command {
+export class QuitCommand implements Command {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;

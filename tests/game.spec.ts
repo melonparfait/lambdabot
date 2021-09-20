@@ -7,14 +7,16 @@ import { GameTeam } from '../src/models/team';
 import { OffenseScore, ScoringResults } from '../src/models/scoring.results';
 
 let game: Game;
+let team1Players: string[];
+let team2Players: string[];
 
 describe('Game model tests', () => {
   const threshold = 42;
   const asyncPlay = true;
   const dGuessTime = 100;
   const oGuessTime = 99;
-  const team1Players = ['1', '2', '3'];
-  const team2Players = ['4', '5', '6'];
+  team1Players = ['1', '2', '3'];
+  team2Players = ['4', '5', '6'];
   const trackStats = false;
 
   describe('Initialization tests', () => {
@@ -74,6 +76,197 @@ describe('Game model tests', () => {
         game.team2.players.push('1', '2', '3', '4');
         expect(game.threshold).to.equal(20);
       });
+    });
+  });
+
+  describe('team creation tests', () => {
+    let player1Id: string;
+
+    beforeEach(() => {
+      game = new Game('testGame', []);
+      player1Id = 'PLAYER_1';
+    });
+
+    context('when a player is added to the game', () => {
+      context('if the player is already in the game', () => {
+        let result: boolean;
+        beforeEach(() => {
+          game.players.add('1');
+          result = game.join('1');
+        });
+
+        it('should fail to add the player to the game', () => {
+          expect(result).to.be.false;
+        });
+      });
+
+      context('if the player is not in the game', () => {
+        let result: boolean;
+        beforeEach(() => {
+          result = game.join('1');
+        });
+
+        it('should add the player to the game', () => {
+          expect(result).to.be.true;
+          expect(game.players).to.include('1');
+        });
+      });
+    });
+    
+    context('when a player is added to team 1...', () => {
+      afterEach(() => {
+        game.players.clear();
+        game.team1.players = [];
+        game.team2.players = [];
+      });
+
+      context('...and the player is already on team 1', () => {
+        beforeEach(() => {
+          game.players.add(player1Id);
+          game.team1.players.push(player1Id);
+          game.addPlayerToTeam(player1Id, '1');
+        });
+
+        it('shouldn\'t have changed the teams or players', () => {
+          expect(game.team1.players).to.include(player1Id);
+          expect(game.team2.players).to.not.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+
+      context('...and the player is already on team 2', () => {
+        beforeEach(() => {
+          game.players.add(player1Id);
+          game.team2.players.push(player1Id);
+          game.addPlayerToTeam(player1Id, '1');
+        });
+
+        it('should have moved the player to team 1', () => {
+          expect(game.team1.players).to.include(player1Id);
+          expect(game.team2.players).to.not.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+
+      context('...and the player is not in the game', () => {
+        beforeEach(() => {
+          game.addPlayerToTeam(player1Id, '1');
+        });
+
+        it('should have added the player to team 1', () => {
+          expect(game.team1.players).to.include(player1Id);
+          expect(game.team2.players).to.not.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+    });
+
+    context('when a player is added to team 2', () => {
+      afterEach(() => {
+        game.players.clear();
+        game.team1.players = [];
+        game.team2.players = [];
+      });
+
+      context('...and the player is already on team 1', () => {
+        beforeEach(() => {
+          game.players.add(player1Id);
+          game.team1.players.push(player1Id);
+          game.addPlayerToTeam(player1Id, '2');
+        });
+
+        it('shouldn\'t have changed the teams or players', () => {
+          expect(game.team1.players).to.not.include(player1Id);
+          expect(game.team2.players).to.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+
+      context('...and the player is already on team 2', () => {
+        beforeEach(() => {
+          game.players.add(player1Id);
+          game.team2.players.push(player1Id);
+          game.addPlayerToTeam(player1Id, '2');
+        });
+
+        it('should have moved the player to team 2', () => {
+          expect(game.team1.players).to.not.include(player1Id);
+          expect(game.team2.players).to.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+
+      context('...and the player is not in the game', () => {
+        beforeEach(() => {
+          game.addPlayerToTeam(player1Id, '2');
+        });
+
+        it('should have added the player to team 2', () => {
+          expect(game.team1.players).to.not.include(player1Id);
+          expect(game.team2.players).to.include(player1Id);
+          expect(game.players).to.include(player1Id);
+        });
+      });
+    });
+
+    describe('assignRandomTeams tests', () => {
+      function testAssignRandomTeams(team1: string[], team2: string[], unassigned: string[]) {
+        let initPlayerDifference: number;
+
+        beforeEach(() => {
+          initPlayerDifference = Math.abs(team1.length - team2.length);
+          game.team1.players = team1;
+          game.team2.players = team2;
+          [...team1, ...team2, ...unassigned].forEach(player => {
+            game.players.add(player);
+          });
+          game.assignRandomTeams();
+        });
+
+        afterEach(() => {
+          game.team1.players = [];
+          game.team2.players = [];
+          game.players.clear();
+        });
+
+        it('should assign teams correctly', () => {
+          // for debugging
+          // console.log('\tteam1: ', game.team1.players,
+          //   '\n\tteam2: ', game.team2.players,
+          //   '\n\tunassigned: ', game.unassignedPlayers);
+
+          const diffInPlayerNumber = Math.abs(game.team1.players.length - game.team2.players.length);
+          const addingPlayersToBalancedTeam = initPlayerDifference === 0 && unassigned.length;
+          const degreeOfFreedom = (addingPlayersToBalancedTeam || !unassigned.length)
+            ? 1 : 0;
+          expect(diffInPlayerNumber).to.be.lessThanOrEqual(initPlayerDifference + degreeOfFreedom);
+        });
+
+        it('should leave the game with no unassigned players', () => {
+          expect(game.unassignedPlayers).to.be.empty;
+        });
+      }
+      context('with no players ', () => testAssignRandomTeams([], [], []));
+      context('a single unassigned player with no assigned players', () => 
+        testAssignRandomTeams([], [], ['1']));
+      context('multiple unassigned players (odd) with no assigned players', () => 
+        testAssignRandomTeams([], [], ['1', '2', '3', '4', '5']));
+      context('multiple unassigned players (even) with no assigned players', () => 
+        testAssignRandomTeams([], [], ['1', '2', '3', '4']));
+      context('a single unassigned player with existing balanced team', () =>
+        testAssignRandomTeams(['6', '7'], ['8', '9'], ['1']));
+      context('multiple unassigned players (odd) with existing balanced team', () =>
+        testAssignRandomTeams(['6', '7'], ['8', '9'],  ['1', '2', '3', '4', '5']));
+      context('multiple unassigned players (even) with existing balanced team', () =>
+        testAssignRandomTeams(['6', '7'], ['8', '9'], ['1', '2', '3', '4']));
+      context('a single unassigned player with existing unbalanced team', () =>
+        testAssignRandomTeams(['6', '7', '8', '9'], ['10'], ['1']));
+      context('multiple unassigned players (odd) with existing unbalanced team', () =>
+        testAssignRandomTeams(['6', '7', '8', '9'], ['10'],  ['1', '2', '3', '4', '5']));
+      context('multiple unassigned players (even) with existing unbalanced team', () =>
+        testAssignRandomTeams(['6', '7', '8', '9'], ['10'], ['1', '2', '3', '4']));
+      context('with no unassigned players', () =>
+        testAssignRandomTeams(['1'], ['2'], []));
     });
   });
 
