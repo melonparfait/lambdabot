@@ -4,7 +4,7 @@ import { Clue } from './models/clue';
 
 export class ClueManager {
   /** The client's clue set */
-  data: any;
+  data: {Lower: string, Higher: string}[];
 
   loadClues() {
     const results: Clue[] = [];

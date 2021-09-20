@@ -1,5 +1,5 @@
 import { InteractionType } from 'discord-api-types';
-import { Channel, Client, CommandInteraction, CommandInteractionOptionResolver, DMChannel, Intents, Message, TextBasedChannel, TextBasedChannels, TextChannel, User } from 'discord.js';
+import { Channel, Client, Collection, CommandInteraction, CommandInteractionOptionResolver, DMChannel, Intents, Message, TextBasedChannel, TextBasedChannels, TextChannel, User, UserManager } from 'discord.js';
 import _ from 'lodash';
 import * as sinon from 'sinon';
 import { anyString, anything, instance, mock, reset, resetCalls, when } from 'ts-mockito';
@@ -15,7 +15,7 @@ export class MockInteraction {
   mockChannel: TextBasedChannels;
   channelInstance: TextBasedChannels;
 
-  mockUser: User;
+  mockUser: MockUser;
   userInstance: User;
 
   mockMessage: Message;
@@ -73,9 +73,8 @@ export class MockInteraction {
   }
 
   private initMockUser() {
-    this.mockUser = mock(User);
-    this.userInstance = instance(this.mockUser);
-    when(this.mockUser.id).thenReturn(this.userId);
+    this.mockUser = new MockUser(this.userId);
+    this.userInstance = this.mockUser.userInstance;
     when(this.mockedInteraction.user).thenReturn(this.userInstance);
   }
 
@@ -126,6 +125,11 @@ export class MockInteraction {
   }
 
   resetCalls() {
+    this.reply.resetHistory();
+    this.channelSend.resetHistory();
+    this.messagePin.resetHistory();
+    this.messageUnpin.resetHistory();
+    this.editPinnedMsg.resetHistory();
     resetCalls(this.mockedInteraction);
     resetCalls(this.mockChannel);
     resetCalls(this.mockMessage);
@@ -138,6 +142,100 @@ export class MockInteraction {
     reset(this.mockChannel);
     reset(this.mockMessage);
     reset(this.mockOptions);
+    reset(this.mockUser);
+  }
+}
+
+export class MockUserManager {
+  mockedUserManager: UserManager;
+  userManagerInstance: UserManager;
+
+  userCache: Collection<string, User>;
+  mockUserCache: Collection<string, MockUser>;
+
+  constructor(public usersInCache: MockUser[]) {
+    this.initUser();
+  }
+
+  initUser() {
+    this.userCache = new Collection<string, User>();
+    this.mockUserCache = new Collection<string, MockUser>();
+    this.usersInCache.forEach(mockUser => {
+      this.userCache.set(mockUser.userId, mockUser.userInstance);
+      this.mockUserCache.set(mockUser.userId, mockUser);
+    })
+    this.mockedUserManager = mock(UserManager);
+    this.userManagerInstance = instance(this.mockedUserManager);
+    when(this.mockedUserManager.cache).thenReturn(this.userCache);
+  }
+
+  addUserToCache(mockUsers: MockUser[]) {
+    mockUsers.forEach(user => {
+      this.userCache.set(user.userId, user.userInstance);
+      this.mockUserCache.set(user.userId, user);
+    });
+  }
+
+  getMockUserFromCache(userId: string) {
+    return this.mockUserCache.get(userId);
+  }
+
+  removeUserFromCache(userId: string) {
+    this.userCache.delete(userId);
+    this.mockUserCache.delete(userId);
+  }
+
+  clearCache() {
+    this.userCache.clear();
+    this.mockUserCache.clear();
+  }
+
+  resetMock() {
+    reset(this.mockedUserManager);
+    this.initUser();
+  }
+
+  resetCalls() {
+    resetCalls(this.mockedUserManager);
+  }
+
+  clearMocks() {
+    this.clearCache();
+    reset(this.mockedUserManager);
+  }
+}
+
+export class MockUser {
+  mockUser: User;
+  userInstance: User;
+
+  send: sinon.SinonStub;
+
+  constructor(public userId: string) {
+    this.initUser();
+  }
+
+  initUser() {
+    this.send = sinon.stub();
+    this.mockUser = mock(User);
+    this.userInstance = instance(this.mockUser);
+    when(this.mockUser.id).thenReturn(this.userId);
+    when(this.mockUser.tag).thenReturn(this.userId);
+    when(this.mockUser.send(anything())).thenCall(args => this.send(args))
+      .thenReturn(Promise.resolve(undefined));
+  }
+
+  resetMock() {
+    reset(this.mockUser);
+    this.initUser();
+  }
+
+  resetCalls() {
+    this.send.resetHistory
+    resetCalls(this.mockUser);
+  }
+
+  clearMocks() {
     reset(this.mockUser);
   }
 }

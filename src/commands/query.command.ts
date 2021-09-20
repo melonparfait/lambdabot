@@ -1,5 +1,5 @@
 import { DiscordMessage } from '../helpers/lambda.interface';
-import { owner_id } from '../../../keys.json';
+import { owner_id } from '../../keys.json';
 
 export const name = 'query';
 export const aliases = [];

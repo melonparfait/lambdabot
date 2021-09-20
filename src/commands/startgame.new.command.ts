@@ -23,19 +23,31 @@ export class StartGameCommand implements Command {
     } else if (game.status === 'playing') {
       return interaction.reply(gameAlreadyExists);
     } else {
-      const teamCheckReply = 'We need at least 2 players on each team to start a game.';
-      const team1NeedsMorePlayers = game.team1.players.length < 2 ?
-        `Team 1 has ${game.team1.players.length} players.` : false;
-      const team2NeedsMorePlayers = game.team2.players.length < 2 ?
-        `Team 2 has ${game.team2.players.length} players.` : false;
-      if (team1NeedsMorePlayers || team2NeedsMorePlayers) {
-        return interaction.reply(teamCheckReply
-          + `\n${team1NeedsMorePlayers}`
-          + `\n${team2NeedsMorePlayers}`);
+      const team1Difference = Math.max(2 - game.team1.players.length, 0);
+      const team2Difference = Math.max(2 - game.team2.players.length, 0);
+      if (team1Difference || team2Difference) {
+        return interaction.reply(this.insufficientPlayersMessage(team1Difference, team2Difference));
       } else {
         game.start();
-        sendNewRoundMessages(interaction, game, clueManager, userManager);
+        const msgToSend = await sendNewRoundMessages(interaction, game, clueManager, userManager);
+        interaction.reply(msgToSend);
       }
     }
   }
+
+  insufficientPlayersMessage(team1Difference: number, team2Difference: number) {
+    if (team1Difference && team2Difference) {
+      return 'We need at least 2 players on each team to start a game.'
+        + `\nTeam 1 needs ${team1Difference} more player(s).`
+        + `\nTeam 2 needs ${team2Difference} more player(s).`
+    } else if (team1Difference) {
+      return 'We need at least 2 players on each team to start a game.'
+        + `\nTeam 1 needs ${team1Difference} more player(s).`
+    } else if (team2Difference) {
+      return 'We need at least 2 players on each team to start a game.'
+        + `\nTeam 2 needs ${team2Difference} more player(s).`
+    }
+  }
 }
+
+module.exports = new StartGameCommand();
