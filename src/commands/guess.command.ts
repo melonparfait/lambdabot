@@ -1,9 +1,12 @@
 import { sendNewRoundMessages } from '../helpers/newround';
-import { DiscordMessage } from '../helpers/lambda.interface';
-import { TextChannel, Collection, Message } from 'discord.js';
-import { sendGameEndScoreboard, clue, currentClue, couldNotPin } from '../helpers/print.gameinfo';
+import { Command, DiscordMessage } from '../helpers/lambda.interface';
+import { TextChannel, Collection, Message, CommandInteraction, InteractionReplyOptions, UserManager } from 'discord.js';
+import { sendGameEndScoreboard, clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
-import { owner_id } from '../../../keys.json';
+import { owner_id } from '../../keys.json';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { GameManager } from '../game-manager';
+import { ClueManager } from '../clue-manager';
 
 export const name = 'guess';
 export const aliases = ['g'];
@@ -143,5 +146,113 @@ function closeRound(message: DiscordMessage, results: ScoringResults) {
     }
     game.newRound();
     sendNewRoundMessages(message.client, message.channel as TextChannel);
+  }
+}
+
+export class GuessCommand implements Command {
+  isRestricted = false;
+  cooldown?: 3;
+  hasChannelCooldown = true;
+  isGuildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName('guess')
+    .setDescription('Submits a guess for the guessing team')
+    .addIntegerOption(option => option.setName('guess')
+      .setDescription('An integer between 1 and 100')
+      .setRequired(true))
+    .setDefaultPermission(true);
+  async execute(interaction: CommandInteraction, gameManager: GameManager,
+      clueManager: ClueManager, userManager: UserManager) {
+    const game = gameManager.getGame(interaction.channelId);
+    if (!game || game.status === 'finished') {
+      return interaction.reply(noActiveGameMessage);
+    } else if (game.status !== 'playing') {
+      return interaction.reply(gameNotInProgress);
+    } else if (interaction.user.id === game.round.clueGiver) {
+      return interaction.reply(this.clueGiverCannotGuess);
+    } else if (!game.round.oTeam.players.includes(interaction.user.id)) {
+      return interaction.reply(this.wrongTeamCannotGuess(game.offenseTeamNumber()));
+    } else if (game.round.oGuess) {
+      return interaction.reply(this.alreadyGuessed(game.round.oGuess));
+    } else {
+      const guess = parseInt(args[0], 10);
+      if (!Number.isInteger(guess) || guess < 1 || guess > 100) {
+        return interaction.reply(this.invalidInteger);
+      } else {
+        game.round.makeOGuess(guess);
+  
+        const givenClue = game.currentClue ? `\n${currentClue(game)}` : '';
+        let response = `Team ${game.offenseTeamNumber()} guessed ${guess}.`
+          + '\n' + clue(game.round, guess)
+          + givenClue
+          + `\nTeam ${game.defenseTeamNumber()} `
+          + `(${game.defenseTeam.players.map(id => `<@${id}>`).join(', ')}), `
+          + 'do you think the target is `!higher` or `!lower`?';
+  
+        if (!game.asyncPlay) {
+          response += `\nYou have ${game.dGuessTime / 1000} seconds to answer!`;
+        }
+  
+        interaction.channel.send(response);
+  
+        if (!game.asyncPlay) {
+          let countdownCounter = 1;
+          const timer = setInterval(() => {
+            if (game.round.dGuess !== undefined || countdownCounter === (game.dGuessTime / TIMER_TICK)) {
+              clearInterval(timer);
+              return;
+            }
+            interaction.channel.send(`${(game.dGuessTime - TIMER_TICK * countdownCounter) / 1000} seconds left!`);
+            countdownCounter++;
+          }, TIMER_TICK);
+  
+          interaction.channel.awaitMessages({ filter: dTeamReply, time: game.dGuessTime, max: 1, errors: ['time'] })
+            .then((messages: Collection<string, Message>) => {
+              clearInterval(timer);
+              processReply(messages, message);
+            })
+            .catch((err) => {
+              console.log('Timeout error: ', err);
+              const scoreResult = game.score(false);
+              interaction.channel.send(`Team ${game.defenseTeamNumber()} ran out of time!`
+                + `\nThe real answer was ${game.round.value}!`);
+              closeRound(message, scoreResult);
+            });
+        } else {
+          interaction.channel.awaitMessages({ filter: dTeamReply, max: 1 })
+            .then((messages: Collection<string, Message>) => processReply(messages, message))
+            .catch(err => {
+              console.log(err);
+              interaction.channel.send('Sorry, there was an error processing that reply. I notified the admin about this.');
+              userManager.cache.get(owner_id).send(`Got an error: ${err}`)
+                .catch(err => console.log(`Couldn't send this error: \n${err}`));
+            });
+        }
+      }
+    }
+  }
+
+  clueGiverCannotGuess: InteractionReplyOptions = {
+    content: 'You can\'t guess as the clue giver! No cheating!',
+    ephemeral: true
+  }
+
+  wrongTeamCannotGuess(teamNumber: number): InteractionReplyOptions {
+    return {
+      content: `Sorry, only members from Team ${teamNumber} can guess!`,
+      ephemeral: true
+    }
+  };
+
+  alreadyGuessed(guess: number): InteractionReplyOptions {
+    return {
+      content: `You can only guess once, and it looks like your team already guessed ${guess}.`,
+      ephemeral: true
+    }
+  }
+
+  invalidInteger: InteractionReplyOptions = {
+    content: 'Sorry, you can only guess an integer between 1 and 100.',
+    ephemeral: true
   }
 }
