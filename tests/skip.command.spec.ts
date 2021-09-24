@@ -5,14 +5,14 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import * as SkipCommand from '../src/commands/skip.new.command';
-import { gameInfo, minimumDefenseTimerError, minimumThresholdError, maximumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo, gameNotInProgress, clueGiverOnly, roundStatus } from '../src/helpers/print.gameinfo';
+import { gameInfo, noActiveGameMessage, setupOnly, updateGameInfo, gameNotInProgress, clueGiverOnly, roundStatus } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
-describe.only('skip command', () => {
+describe('skip command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
   let command: any;

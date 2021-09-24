@@ -1,3 +1,5 @@
+import { userMention } from '@discordjs/builders';
+import { round } from 'lodash';
 import { PlayerStats } from './print.stats';
 
 export function printLeaderboard(statArray: PlayerStats[], stat: string): string {
@@ -17,7 +19,7 @@ export function printLeaderboard(statArray: PlayerStats[], stat: string): string
   });
   ranking.sort((a, b) => b.value - a.value);
   ranking.forEach((rank, index) => {
-    msg += `#${index + 1} (${rank.value}): ${rank.players.map(id => `<@!${id}>`).join(', ')}\n`;
+    msg += `#${index + 1} (${rank.value}): ${rank.players.map(id => userMention(id)).join(', ')}\n`;
   });
   return msg;
 }
@@ -32,7 +34,7 @@ export function getPlayerStat(playerStat: PlayerStats, stat: 'wins' | 'win%' | '
   case 'wins':
     return playerStat.gamesWon;
   case 'win%':
-    return playerStat.gamesPlayed !== 0 ? (playerStat.gamesWon * 100 / playerStat.gamesPlayed) : 0;
+    return playerStat.gamesPlayed !== 0 ? round((playerStat.gamesWon * 100 / playerStat.gamesPlayed), 2) : 0;
   case 'avg':
     return playerStat.cluesGiven !== 0
       ? parseFloat((

@@ -167,6 +167,8 @@ export class MockUserManager {
     this.mockedUserManager = mock(UserManager);
     this.userManagerInstance = instance(this.mockedUserManager);
     when(this.mockedUserManager.cache).thenReturn(this.userCache);
+    when(this.mockedUserManager.fetch(anyString()))
+      .thenCall(userId => Promise.resolve(this.userCache.get(userId)));
   }
 
   addUserToCache(mockUsers: MockUser[]) {

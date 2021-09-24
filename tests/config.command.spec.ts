@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import * as ConfigCommand from '../src/commands/config.new.command';
-import { gameInfo, minimumDefenseTimerError, minimumThresholdError, maximumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../src/helpers/print.gameinfo';
+import { gameInfo, noActiveGameMessage, setupOnly, updateGameInfo } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 
 const TEST_USER_ID = '54321';
@@ -130,7 +130,7 @@ describe('config command', () => {
       });
   
       it('should reply with an minimum threshold error', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(minimumThresholdError(thresholdConfig));
+        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(command.minimumThresholdError(thresholdConfig));
       });
     });
 
@@ -153,7 +153,7 @@ describe('config command', () => {
       });
   
       it('should reply with an minimum defense timer error', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(minimumDefenseTimerError(defenseTimerConfig));
+        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(command.minimumDefenseTimerError(defenseTimerConfig));
       });
     });
 
@@ -176,7 +176,7 @@ describe('config command', () => {
       });
   
       it('should reply with an maximum threshold timer error', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(maximumThresholdError(thresholdConfig));
+        expect(mockInteraction.reply).to.have.been.calledOnceWithExactly(command.maximumThresholdError(thresholdConfig));
       });
     });
   });

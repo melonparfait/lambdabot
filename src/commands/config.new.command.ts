@@ -1,6 +1,6 @@
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { checkGamePhase } from '../helpers/command.errorchecks';
-import { errorProcessingCommand, gameSettings, maximumThresholdError, minimumDefenseTimerError, minimumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameSettings, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -45,11 +45,11 @@ export class ConfigCommand implements Command {
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 
         if (thresholdConfig < 5) {
-          return interaction.reply(minimumThresholdError(thresholdConfig));
-        } else if (defenseTimerConfig && defenseTimerConfig < 1) {
-          return interaction.reply(minimumDefenseTimerError(defenseTimerConfig));
+          return interaction.reply(this.minimumThresholdError(thresholdConfig));
+        } else if (defenseTimerConfig && defenseTimerConfig < 5) {
+          return interaction.reply(this.minimumDefenseTimerError(defenseTimerConfig));
         } else if (thresholdConfig > 2147483647) {
-          return interaction.reply(maximumThresholdError(thresholdConfig));
+          return interaction.reply(this.maximumThresholdError(thresholdConfig));
         }
         // conversion to seconds
         defenseTimerConfig = defenseTimerConfig * 1000;
@@ -74,6 +74,27 @@ export class ConfigCommand implements Command {
   sendUpdatedSettings(channelId: string, gameManager: GameManager) {
     return 'Changed the settings to:\n'
     + gameSettings(gameManager.getGame(channelId));
+  }
+
+  minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
+    return {
+      content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${threshold}.)`,
+      ephemeral: true
+    }
+  }
+  
+  minimumDefenseTimerError(dTimer: number): InteractionReplyOptions {
+    return {
+      content: `Sorry, the minimum defense timer is 5 seconds. (You tried to set it to ${dTimer}.)`,
+      ephemeral: true
+    }
+  }
+  
+  maximumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
+    return {
+      content: `Sorry, that threshold (${threshold}) is too big. please give me a smaller number.`,
+      ephemeral: true
+    }
   }
 }
 

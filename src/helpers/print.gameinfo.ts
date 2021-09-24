@@ -47,27 +47,6 @@ export const setupOnly = {
 export const couldNotPin = 'I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?';
 export const couldNotUnPin = 'I couldn\'t unpin the game info to this channel. Do I have permission to manage messages on this channel?';
 
-export function minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
-  return {
-    content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${threshold}.)`,
-    ephemeral: true
-  }
-}
-
-export function minimumDefenseTimerError(dTimer: number): InteractionReplyOptions {
-  return {
-    content: `Sorry, the minimum defense timer is 1 second. (You tried to set it to ${dTimer}.)`,
-    ephemeral: true
-  }
-}
-
-export function maximumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
-  return {
-    content: `Sorry, that threshold (${threshold}) is too big. please give me a smaller number.`,
-    ephemeral: true
-  }
-}
-
 export function newGameStarted(byUser: string) {
   return `${userMention(byUser)} started a new Wavelength game! Use \`/join\` to get in!`;
 }
@@ -75,7 +54,7 @@ export function newGameStarted(byUser: string) {
 export function roundStatus(game: Game): string {
   return `**Round: ${game.roundCounter + 1}**`
     + `\nTeam ${game.offenseTeamNumber()} guesses.`
-    + `\n<@${game.round.clueGiver}> is the clue giver.`
+    + `\n${userMention(game.round.clueGiver)} is the clue giver.`
     + `\n${clue(game.round)}`;
 }
 
@@ -114,13 +93,13 @@ export function clue(round: Round, guess?: number): string {
 
 export function currentClue(game: Game): string {
   if (game.currentClue) {
-    return `<@${game.clueGiver()}> gave this clue: ${game.currentClue}`;
+    return `${userMention(game.clueGiver())} gave this clue: ${game.currentClue}`;
   } else {
     return undefined;
   }
 }
 
-export function sendGameEndScoreboard(channel: TextChannel, game: Game, winner: string) {
+export function sendGameEndScoreboard(channel: TextBasedChannels, game: Game, winner: string) {
   channel.send(winner + ' has won the game!'
     + '\nFinal stats:'
     + `\nRounds played: ${game.roundCounter}` + '\n'
@@ -130,19 +109,19 @@ export function sendGameEndScoreboard(channel: TextChannel, game: Game, winner: 
 export function scoreboard(game: Game): string {
   return '**Scoreboard**'
     + '\nTeam 1'
-    + `\n├─ Players: ${game.team1.players.map(id => `<@${id}>`).join(', ')}`
+    + `\n├─ Players: ${game.team1.players.map(id => userMention(id)).join(', ')}`
     + `\n└─ Points: ${game.team1.points}`
     + '\nTeam 2'
-    + `\n├─ Players: ${game.team2.players.map(id => `<@${id}>`).join(', ')}`
+    + `\n├─ Players: ${game.team2.players.map(id => userMention(id)).join(', ')}`
     + `\n└─ Points: ${game.team2.points}`;
 }
 
 export function roster(game: Game): string {
   const team1Players = game.team1.players.length
-    ? game.team1.players.map(id => `<@${id}>`).join(', ')
+    ? game.team1.players.map(id => userMention(id)).join(', ')
     : 'No one is currently on Team 1.';
   const team2Players = game.team2.players.length
-    ? game.team2.players.map(id => `<@${id}>`).join(', ')
+    ? game.team2.players.map(id => userMention(id)).join(', ')
     : 'No one is currently on Team 2.';
 
   let output = '**Roster**'
@@ -153,7 +132,7 @@ export function roster(game: Game): string {
 
   const unassigned = game.unassignedPlayers;
   if (unassigned.length) {
-    output += `\nUnassigned\n└─ Players: ${unassigned.map(id => `<@${id}>`).join(', ')}`;
+    output += `\nUnassigned\n└─ Players: ${unassigned.map(id => userMention(id)).join(', ')}`;
   }
 
   return output;

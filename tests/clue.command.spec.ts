@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import * as ClueCommand from '../src/commands/clue.new.command';
-import { gameInfo, minimumDefenseTimerError, minimumThresholdError, maximumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo, gameNotInProgress, clueGiverOnly } from '../src/helpers/print.gameinfo';
+import { gameInfo, noActiveGameMessage, gameNotInProgress, clueGiverOnly } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
 

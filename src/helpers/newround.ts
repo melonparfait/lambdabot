@@ -15,7 +15,7 @@ export async function sendNewRoundMessages(interaction: CommandInteraction,
   game.round.leftClue = clueManager.data[clueIndex].Lower;
   game.round.rightClue = clueManager.data[clueIndex].Higher;
 
-  const user = userManager.cache.get(game.round.clueGiver);
+  const user = await userManager.fetch(game.round.clueGiver);
   try {
     await user.send(`\n**Round ${game.roundCounter + 1}:**`
       + '\nYou\'re the clue giver!\n'

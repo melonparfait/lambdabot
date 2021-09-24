@@ -23,7 +23,7 @@ const cooldownManager = new CooldownManager();
 const gameManager = new GameManager();
 const clueManager = new ClueManager();
 const lambdaClient = new LambdaClient(dbService, commandLoader, cooldownManager, gameManager, clueManager);
-const session = new AuthSession(dbService, lambdaClient);
+const session = new AuthSession(lambdaClient);
 
 lambdaClient.on('ready', () => {
   console.log(`Logged in as ${lambdaClient.user.tag}!`);
@@ -85,5 +85,5 @@ session.authorize()
   })
   .catch(err => {
     console.log(`Unable to login to discord: ${err}`);
-  });
+});
 

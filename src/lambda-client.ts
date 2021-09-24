@@ -32,18 +32,4 @@ export class LambdaClient extends Client {
 
     // TODO: set command permissions
   }
-
-  finalizeGame(channelId: string, commit = true) {
-    const game = this.gameManager.getGame(channelId);
-    if (commit) {
-      this.dbService.updateDatabase(game.team1.players,
-        game.team2.players,
-        game.id,
-        channelId,
-        game.team1.points,
-        game.team2.points,
-        game.outcomes);
-    }
-    this.gameManager.removeGame(channelId);
-  }
 }

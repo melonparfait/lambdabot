@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import * as ConfigCommand from '../src/commands/config.new.command';
-import { gameInfo, minimumDefenseTimerError, minimumThresholdError, maximumThresholdError, noActiveGameMessage, setupOnly, updateGameInfo, gameAlreadyExists, roundStatus } from '../src/helpers/print.gameinfo';
+import { noActiveGameMessage, gameAlreadyExists, roundStatus } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import * as  StartGameCommand from '../src/commands/startgame.new.command';
 

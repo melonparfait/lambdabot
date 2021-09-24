@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
 import { Awaited, CommandInteraction, Interaction, Message, UserManager } from 'discord.js';
 import { ClueManager } from '../clue-manager';
 import { DBService } from '../db.service';
@@ -27,7 +27,7 @@ export interface Command {
   isGuildOnly: boolean,
 
   /** The command metadata */
-  data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>,
+  data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | SlashCommandSubcommandsOnlyBuilder,
 
   /** The function to run when the command is executed */
   execute: (interaction: CommandInteraction,

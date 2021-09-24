@@ -1,3 +1,4 @@
+import { userMention } from '@discordjs/builders';
 import { getPlayerStat } from './print.leaderboard';
 
 export interface PlayerStats {
@@ -13,7 +14,7 @@ export interface PlayerStats {
 }
 
 export function printStats(stats: PlayerStats, channel = false) {
-  return `Stats for <@!${stats.id}>${channel ? ' in this channel' : ''}:
+  return `Stats for ${userMention(stats.id)}${channel ? ' in this channel' : ''}:
   Games played: ${stats.gamesPlayed}
   Games won: ${stats.gamesWon}
   W/L: ${stats.gamesPlayed !== 0 ? getPlayerStat(stats, 'win%') : '--'}%
