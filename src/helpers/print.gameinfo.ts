@@ -99,13 +99,6 @@ export function currentClue(game: Game): string {
   }
 }
 
-export function sendGameEndScoreboard(channel: TextBasedChannels, game: Game, winner: string) {
-  channel.send(winner + ' has won the game!'
-    + '\nFinal stats:'
-    + `\nRounds played: ${game.roundCounter}` + '\n'
-    + scoreboard(game));
-}
-
 export function scoreboard(game: Game): string {
   return '**Scoreboard**'
     + '\nTeam 1'

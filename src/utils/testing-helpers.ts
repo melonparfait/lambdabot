@@ -1,6 +1,6 @@
 import { InteractionType } from 'discord-api-types';
 import { Channel, Client, Collection, CommandInteraction, CommandInteractionOptionResolver, DMChannel, Intents, Message, TextBasedChannel, TextBasedChannels, TextChannel, User, UserManager } from 'discord.js';
-import _ from 'lodash';
+import _, { isUndefined } from 'lodash';
 import * as sinon from 'sinon';
 import { anyString, anything, instance, mock, reset, resetCalls, when } from 'ts-mockito';
 
@@ -111,6 +111,11 @@ export class MockInteraction {
       default:
         throw new Error('Incorrect arguments');
     }
+  }
+
+  setSubcommandInput(name: string) {
+    when(this.mockOptions.getSubcommand()).thenReturn(name);
+    when(this.mockOptions.getSubcommand(anything())).thenReturn(name);
   }
 
   resetMock() {

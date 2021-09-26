@@ -5,7 +5,10 @@ export class GameManager {
   /** A collection of the client's games keyed by channelId */
   private readonly _games = new Collection<string, Game>();
 
-  /** Adds a game to the client's collection of games */
+  /** 
+   * Adds a game to the client's collection of games. If a game 
+   * already exists for the channel, it is overwritten.
+   */
   addGame(channelId: string, game: Game) {
     this._games.set(channelId, game);
   }

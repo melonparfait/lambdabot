@@ -1,7 +1,7 @@
 import { sendNewRoundMessages } from '../helpers/newround';
 import { Command, DiscordMessage } from '../helpers/lambda.interface';
 import { TextChannel, Collection, Message, CommandInteraction, InteractionReplyOptions, UserManager, CollectorFilter, Interaction } from 'discord.js';
-import { sendGameEndScoreboard, clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand } from '../helpers/print.gameinfo';
+import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { GameManager } from '../game-manager';
@@ -36,14 +36,16 @@ export class GuessCommand implements Command {
   async execute(interaction: CommandInteraction, gameManager: GameManager,
       clueManager: ClueManager, userManager: UserManager, dbService: DBService) {
     const game = gameManager.getGame(interaction.channelId);
+    if (!game || game.status === 'finished') {
+      return interaction.reply(noActiveGameMessage);
+    } else if (game.status !== 'playing') {
+      return interaction.reply(gameNotInProgress);
+    }
+
     const subcmd = interaction.options.getSubcommand();
     switch(subcmd) {
       case 'clue':
-        if (!game || game.status === 'finished') {
-          return interaction.reply(noActiveGameMessage);
-        } else if (game.status !== 'playing') {
-          return interaction.reply(gameNotInProgress);
-        } else if (interaction.user.id === game.round.clueGiver) {
+        if (interaction.user.id === game.round.clueGiver) {
           return interaction.reply(this.clueGiverCannotGuess);
         } else if (!game.round.oTeam.players.includes(interaction.user.id)) {
           return interaction.reply(this.wrongTeamCannotGuess(game.offenseTeamNumber()));
@@ -95,22 +97,7 @@ export class GuessCommand implements Command {
           game.round.makeDGuess(isHigher);
 
           const scoreResult = game.score();
-          const dGuess = isHigher ? 'higher' : 'lower';
-          let response = `Team ${game.defenseTeamNumber()} thought the answer was ${dGuess}...`;
-      
-          const correctness = scoreResult.defenseResult
-            ? '\n...and they were right!'
-            : '\n...but they were wrong!';
-      
-          const accuracy = scoreResult.offenseResult === OffenseScore.bullseye
-            ? `\n...but Team ${game.offenseTeamNumber()}'s guess was too good.`
-            : undefined;
-      
-          const result = accuracy ?? correctness;
-      
-          response += result + `\nThe real answer was ${game.round.value}!`;
-      
-          interaction.channel.send(response);
+          interaction.channel.send(this.resolveGuessMessage(scoreResult, game));
           const msg = await this.closeRound(interaction, gameManager, clueManager, userManager, scoreResult, dbService);
           interaction.reply(msg);
         }
@@ -127,8 +114,7 @@ export class GuessCommand implements Command {
       clueManager: ClueManager, userManager: UserManager, results: ScoringResults, dbService: DBService) {
     const game = gameManager.getGame(interaction.channelId);
 
-    interaction.channel.send(`Team 1 gains ${results.team1PointChange} points! (total points: ${game.team1.points})`
-      + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${game.team2.points})`);
+    interaction.channel.send(this.pointChange(results, game));
 
     // End the round
     game.endRound();
@@ -137,37 +123,34 @@ export class GuessCommand implements Command {
     const winner = game.determineWinner();
     if (winner) {
       game.endGame();
-      this.finalizeGame(interaction.channelId, gameManager, dbService, game.trackStats);
-      sendGameEndScoreboard(interaction.channel, game, winner);
+
+      if (game.trackStats) {
+        dbService.updateDatabase(game.team1.players,
+          game.team2.players,
+          game.id,
+          interaction.channelId,
+          game.team1.points,
+          game.team2.points,
+          game.outcomes);
+      }
+
+      const msg = this.gameEndScoreboard(game, winner);
       try {
         await game.pinnedInfo.unpin();
         game.pinnedInfo = undefined;
+        return msg;
       } catch (err) {
-        interaction.reply(couldNotPin);
         console.log(err);
+        return couldNotPin;
       }
     } else {
       if (game.team1.points > game.threshold
           && game.team2.points > game.threshold) {
-        interaction.channel.send('Wow, this is a close game! Whichever team gets a lead first wins!');
+        interaction.channel.send(this.closeGame);
       }
       game.newRound();
       return await sendNewRoundMessages(interaction, game, clueManager, userManager);
     }
-  }
-
-  finalizeGame(channelId: string, gameManager: GameManager, dbService: DBService, commit = true) {
-    const game = gameManager.getGame(channelId);
-    if (commit) {
-      dbService.updateDatabase(game.team1.players,
-        game.team2.players,
-        game.id,
-        channelId,
-        game.team1.points,
-        game.team2.points,
-        game.outcomes);
-    }
-    gameManager.removeGame(channelId);
   }
 
   counterPrompt(game: Game) {
@@ -178,13 +161,46 @@ export class GuessCommand implements Command {
       + givenClue
       + `\nTeam ${game.defenseTeamNumber()} `
       + `(${game.defenseTeam.players.map(id => userMention(id)).join(', ')}), `
-      + 'do you think the target is `!higher` or `!lower`?';
+      + 'do you think the target is higher or lower?'
+      + '\nUse the `/guess higher` and `/guess lower` commands  to respond.';
 
     if (!game.asyncPlay) {
       response += `\nYou have ${game.dGuessTime / 1000} seconds to answer!`;
     }
     return response;
   }
+
+  resolveGuessMessage(scoreResult: ScoringResults, game: Game): string {
+    const dGuess = game.round.dGuess ? 'higher' : 'lower';
+    let response = `Team ${game.defenseTeamNumber()} thought the answer was ${dGuess}...`;
+      
+    const correctness = scoreResult.defenseResult
+      ? '\n...and they were right!'
+      : '\n...but they were wrong!';
+
+    const accuracy = scoreResult.offenseResult === OffenseScore.bullseye
+      ? `\n...but Team ${game.offenseTeamNumber()}'s guess was too good.`
+      : undefined;
+
+    const result = accuracy ?? correctness;
+
+    response += result + `\nThe real answer was ${game.round.value}!`;
+    return response;
+  }
+
+  gameEndScoreboard(game: Game, winner: string) {
+    return winner + ' has won the game!'
+      + '\nFinal stats:'
+      + `\nRounds played: ${game.roundCounter}` + '\n'
+      + scoreboard(game);
+  }
+
+  pointChange(results: ScoringResults, game: Game): string {
+    return `Team 1 gains ${results.team1PointChange} points! (total points: ${game.team1.points})`
+    + `\nTeam 2 gains ${results.team2PointChange} points! (total points: ${game.team2.points})`
+  }
+
+  closeGame = 'Wow, this is a close game! Whichever team gets a lead first wins!';
 
   getDefenseTimerInterval(dGuessTime: number) {
     return dGuessTime / this.TIMER_DIVISION;
