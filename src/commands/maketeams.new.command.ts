@@ -16,9 +16,12 @@ class MakeTeamsCommand implements Command {
     .setDescription('assigns players to teams')
     .setDefaultPermission(true)
     .addStringOption(option => option.setName('assignmentmode')
+      .addChoice('random', 'random')
       .setDescription('Choose how to assign players to a team. (Options: random)')
       .setRequired(true))
-    .addBooleanOption(option => option.setName('reset')
+    .addStringOption(option => option.setName('reset')
+      .addChoice('Reset teams', 'reset')
+      .addChoice('Don\'t reset teams', 'no_reset')
       .setDescription('Reset teams before assignment?')
       .setRequired(true));
   async execute (interaction: CommandInteraction, gameManager: GameManager) {
@@ -34,7 +37,7 @@ class MakeTeamsCommand implements Command {
         return interaction.reply(this.invalidArgument(arg));
       }
 
-      if (interaction.options.getBoolean('reset', true)) {
+      if (interaction.options.getString('reset', true) === 'reset') {
         game.resetTeams();
       }
 

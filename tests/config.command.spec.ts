@@ -18,10 +18,10 @@ describe('config command', () => {
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
-  function configureUserInput(mockInteraction: MockInteraction, asyncConfig: boolean,
-      trackStatsConfig: boolean, thresholdConfig: number, defenseTimerConfig: number) {
-    mockInteraction.setInteractionInput('boolean', 'async', asyncConfig);
-    mockInteraction.setInteractionInput('boolean', 'trackstats', trackStatsConfig);
+  function configureUserInput(mockInteraction: MockInteraction, asyncConfig: 'on' | 'off',
+      trackStatsConfig: 'on' | 'off', thresholdConfig: number, defenseTimerConfig: number) {
+    mockInteraction.setInteractionInput('string', 'timers', asyncConfig);
+    mockInteraction.setInteractionInput('string', 'trackstats', trackStatsConfig);
     mockInteraction.setInteractionInput('integer', 'threshold', thresholdConfig);
     mockInteraction.setInteractionInput('integer', 'defensetimer', defenseTimerConfig);
   }
@@ -62,7 +62,7 @@ describe('config command', () => {
   });
 
   describe('when there is a game in the setup phase', () => {
-    function testValidArguments(async: boolean, trackStats: boolean,
+    function testValidArguments(async: 'on' | 'off', trackStats: 'on' | 'off',
         threshold: number, defenseTimer: number) {
       let gameRef: Game;
       let setSettingsSpy: sinon.SinonSpy;
@@ -88,11 +88,11 @@ describe('config command', () => {
   
       it('should set the game config properly', () => {
         expect(setSettingsSpy).to.have.been.calledOnceWithExactly({
-          asyncPlay: async,
+          asyncPlay: async === 'off',
           threshold: threshold,
           oGuessTime: 0,
           dGuessTime: defenseTimer * 1000,
-          trackStats: trackStats
+          trackStats: trackStats === 'on'
         });
       });
 
@@ -106,14 +106,14 @@ describe('config command', () => {
       });
     }
 
-    describe('when a user inputs valid arguments (1)', () => testValidArguments(true, true, 10, 10));
-    describe('when a user inputs valid arguments (2)', () => testValidArguments(false, false, 25, 398));
-    describe('when a user inputs valid arguments (3)', () => testValidArguments(true, false, 2957, 19999));
-    describe('when a user inputs valid arguments (4)', () => testValidArguments(false, true, 5, 2147483646));
+    describe('when a user inputs valid arguments (1)', () => testValidArguments('off', 'on', 10, 10));
+    describe('when a user inputs valid arguments (2)', () => testValidArguments('on', 'off', 25, 398));
+    describe('when a user inputs valid arguments (3)', () => testValidArguments('off', 'off', 2957, 19999));
+    describe('when a user inputs valid arguments (4)', () => testValidArguments('on', 'on', 5, 2147483646));
 
     describe('when a user inputs an invalid minimum threshold error', () => {
-      const asyncConfig = false;
-      const trackStatsConfig = false;
+      const asyncConfig = 'on';
+      const trackStatsConfig = 'off';
       const thresholdConfig = 4;
       const defenseTimerConfig = 10;
       let gameRef: Game;
@@ -135,8 +135,8 @@ describe('config command', () => {
     });
 
     describe('when a user inputs an invalid minimum defense timer error', () => {
-      const asyncConfig = false;
-      const trackStatsConfig = false;
+      const asyncConfig = 'on';
+      const trackStatsConfig = 'off';
       const thresholdConfig = 10;
       const defenseTimerConfig = -4;
       let gameRef: Game;
@@ -158,8 +158,8 @@ describe('config command', () => {
     });
 
     describe('when a user inputs an invalid maximum threshold timer error', () => {
-      const asyncConfig = false;
-      const trackStatsConfig = false;
+      const asyncConfig = 'on';
+      const trackStatsConfig = 'off';
       const thresholdConfig = 2147483648;
       const defenseTimerConfig = 5;
       let gameRef: Game;

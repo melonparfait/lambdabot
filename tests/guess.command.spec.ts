@@ -431,6 +431,76 @@ describe('guess command', () => {
         });
       });
 
+      context('if the guess triggers catchup', () => {
+        let roundEndSpy: sinon.SinonSpy; 
+        beforeEach(async () => {
+          roundEndSpy = sinon.spy(gameRef, 'endRound');
+          scoreSpy = sinon.spy(gameRef, 'score');
+          gameRef.team1.points = 0;
+          gameRef.team2.points = 9;
+          gameRef.round.value = 50;
+          gameRef.round.oGuess = 49;
+          gameRef.setSettings({
+            threshold: 10,
+            asyncPlay: true,
+            trackStats: false,
+            dGuessTime: 0,
+            oGuessTime: 0
+          });
+          roundValue = gameRef.round.value;
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockInteraction.channelSend.resetHistory();
+          mockInteraction.reply.resetHistory();
+          mockInteraction.editPinnedMsg.resetHistory();
+          await command.execute(mockInteraction.interactionInstance, gameManager,
+            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        });
+
+        it('should send a message to the channel with the results', () => {
+          const scoringResults: ScoringResults = scoreSpy.returnValues[0];
+          const expectedMessage = command.resolveGuessMessage(scoringResults, {
+            round: {
+              dGuess: true,
+              value: roundValue,
+            },
+            defenseTeamNumber: () => 2,
+            offenseTeamNumber: () => 1,
+          });
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+        });
+
+        it('should send a message to the channel with the point gains', () => {
+          const scoringResults: ScoringResults = scoreSpy.returnValues[0];
+          const expectedMessage = command.pointChange(scoringResults, gameRef);
+          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+        });
+
+        it('should send a message to the channel indicating that catch was triggered', () => {
+          expect(mockInteraction.channelSend.getCall(2).args[0]).to.equal(command.catchupTriggered(1));
+        });
+
+        it('should indicate that catchup was triggered when ending the round', () => {
+          expect(roundEndSpy).to.have.been.calledOnceWith(true);
+        });
+
+        it('should have scored the game', () => {
+          expect(scoreSpy).to.have.been.calledOnce;
+        });
+
+        it('should reply to the interaction with the new round status', () => {
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+        });
+
+        it('should message the user info about the round', () => {
+          const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
+          expect(clueGiver.send).to.have.been.calledOnce;
+        });
+
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        });
+      });
+
       context('if the guess ends the game', () => {
         let endGameSpy: sinon.SinonSpy;
         beforeEach(async () => {

@@ -20,9 +20,9 @@ describe('maketeams command', () => {
   let assignRandomTeamsSpy: sinon.SinonSpy;
   let resetTeamsSpy: sinon.SinonSpy;
 
-  function configureUserInput(mockInteraction: MockInteraction, mode: string, reset: boolean) {
+  function configureUserInput(mockInteraction: MockInteraction, mode: string, reset: 'reset' | 'no_reset') {
     mockInteraction.setInteractionInput('string', 'assignmentmode', mode);
-    mockInteraction.setInteractionInput('boolean', 'reset', reset);
+    mockInteraction.setInteractionInput('string', 'reset', reset);
   }
 
   beforeEach(() => {
@@ -37,7 +37,7 @@ describe('maketeams command', () => {
 
   context('if there is no game in the channel', () => {
     beforeEach(async () => {
-      configureUserInput(mockInteraction, 'random', true);
+      configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
       await command.execute(mockInteraction.interactionInstance, gameManager);
     });
@@ -52,7 +52,7 @@ describe('maketeams command', () => {
       gameRef = new Game(TEST_CHANNEL_ID, []);
       gameRef.status = 'finished';
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
-      configureUserInput(mockInteraction, 'random', true);
+      configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
       await command.execute(mockInteraction.interactionInstance, gameManager);
     });
@@ -67,7 +67,7 @@ describe('maketeams command', () => {
       gameRef = new Game(TEST_CHANNEL_ID, []);
       gameRef.status = 'playing';
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
-      configureUserInput(mockInteraction, 'random', true);
+      configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
       await command.execute(mockInteraction.interactionInstance, gameManager);
     });
@@ -89,7 +89,7 @@ describe('maketeams command', () => {
       beforeEach(async () => {
         assignRandomTeamsSpy = sinon.spy(gameRef, 'assignRandomTeams');
         resetTeamsSpy = sinon.spy(gameRef, 'resetTeams');
-        configureUserInput(mockInteraction, 'random', false);
+        configureUserInput(mockInteraction, 'random', 'no_reset');
         mockInteraction.editPinnedMsg.resetHistory();
         mockInteraction.reply.resetHistory();
         await command.execute(mockInteraction.interactionInstance, gameManager);
@@ -116,7 +116,7 @@ describe('maketeams command', () => {
       beforeEach(async () => {
         assignRandomTeamsSpy = sinon.spy(gameRef, 'assignRandomTeams');
         resetTeamsSpy = sinon.spy(gameRef, 'resetTeams');
-        configureUserInput(mockInteraction, 'random', true);
+        configureUserInput(mockInteraction, 'random', 'reset');
         mockInteraction.editPinnedMsg.resetHistory();
         mockInteraction.reply.resetHistory();
         await command.execute(mockInteraction.interactionInstance, gameManager);
@@ -142,7 +142,7 @@ describe('maketeams command', () => {
     context('if the user provided an invalid argument', () => {
       const invalidArg = 'foobar'
       beforeEach(async () => {
-        configureUserInput(mockInteraction, invalidArg, true);
+        configureUserInput(mockInteraction, invalidArg, 'reset');
         mockInteraction.reply.resetHistory();
         await command.execute(mockInteraction.interactionInstance, gameManager);
       });

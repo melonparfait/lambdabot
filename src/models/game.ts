@@ -21,6 +21,7 @@ export class Game {
   pinnedInfo: Message;
   playedClues: number[] = [];
   outcomes: Map<string, Map<number, number>> = new Map();
+  catchupParity: 0 | 1 = 0;
 
   get unassignedPlayers(): string[] {
     const players = [];
@@ -108,6 +109,16 @@ export class Game {
       this.team2.players.push(userId);
     }
   }
+  
+  /** Removes the user from both Team 1 and Team 2 */
+  movePlayerToUnassignedTeam(userId: string) {
+    if (this.team1.players.includes(userId)) {
+      remove(this.team1.players, player => player === userId);
+    }
+    if (this.team2.players.includes(userId)) {
+      remove(this.team2.players, player => player === userId);
+    }
+  }
 
   /** Clears both teams in the game */
   resetTeams() {
@@ -157,13 +168,19 @@ export class Game {
     this.playedClues.push(clueIndex);
   }
 
-  endRound() {
+  endRound(triggerCatchup: boolean = false) {
     this.currentClue = undefined;
+
     if (this.offenseTeamNumber() === 1) {
       this.team1.clueGiverCounter++;
     } else {
       this.team2.clueGiverCounter++;
     }
+
+    if (triggerCatchup) {
+      this.catchupParity = this.catchupParity === 0 ? 1 : 0;
+    }
+
     this.roundCounter++;
   }
 
@@ -249,7 +266,7 @@ export class Game {
   }
 
   offenseTeamNumber(): number {
-    return (this.roundCounter % 2) + 1;
+    return ((this.roundCounter + this.catchupParity) % 2) + 1;
   }
 
   get offenseTeam(): GameTeam {

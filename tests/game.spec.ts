@@ -209,6 +209,42 @@ describe('Game model tests', () => {
       });
     });
 
+    context('when a player is in team 1 and moves to unassigned', () => {
+      beforeEach(() => {
+        game.players.add(player1Id);
+        game.team1.players.push(player1Id);
+        game.movePlayerToUnassignedTeam(player1Id);
+      });
+
+      afterEach(() => {
+        game.players.clear();
+        game.team1.players = [];
+        game.team2.players = [];
+      });
+
+      it('should remove the player from team 1', () => {
+        expect(game.team1.players).to.not.include(player1Id);
+      });
+    });
+
+    context('when a player is in team 2 and moves to unassigned', () => {
+      beforeEach(() => {
+        game.players.add(player1Id);
+        game.team2.players.push(player1Id);
+        game.movePlayerToUnassignedTeam(player1Id);
+      });
+
+      afterEach(() => {
+        game.players.clear();
+        game.team1.players = [];
+        game.team2.players = [];
+      });
+
+      it('should remove the player from team 2', () => {
+        expect(game.team2.players).to.not.include(player1Id);
+      });
+    });
+
     describe('assignRandomTeams tests', () => {
       function testAssignRandomTeams(team1: string[], team2: string[], unassigned: string[]) {
         let initPlayerDifference: number;
@@ -341,6 +377,28 @@ describe('Game model tests', () => {
         game.endRound();
         expect(game.team1.clueGiverCounter).to.equal(counter1);
         expect(game.team2.clueGiverCounter).to.equal(counter2 + 1);
+      });
+
+      describe('if catchup was triggered', () => {
+        let previousOffenseTeam: number;
+        beforeEach(() => {
+          previousOffenseTeam = game.offenseTeamNumber();
+          game.endRound(true);
+        });
+
+        it('should give the same team the offensive', () => {
+          expect(game.offenseTeamNumber() === previousOffenseTeam);
+        });
+
+        describe('if catchup was triggered again', () => {
+          beforeEach(() => {
+            game.endRound(true);
+          });
+
+          it('should give the same team the offensive', () => {
+            expect(game.offenseTeamNumber() === previousOffenseTeam);
+          });
+        });
       });
     });
 

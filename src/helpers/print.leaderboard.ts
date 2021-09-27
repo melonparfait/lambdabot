@@ -39,7 +39,7 @@ export function getPlayerStat(playerStat: PlayerStats, stat: 'wins' | 'win%' | '
     return playerStat.cluesGiven !== 0
       ? parseFloat((
         ((playerStat['4pts'] * 4) + (playerStat['3pts'] * 3) + (playerStat['2pts'] * 2))
-        / playerStat.cluesGiven).toFixed(2))
+          / playerStat.cluesGiven).toFixed(2))
       : 0;
   case 'perfect':
     return playerStat.perfects;

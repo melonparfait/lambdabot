@@ -9,11 +9,6 @@ export const clueGiverOnly = {
   ephemeral: true
 }
 
-export const alreadyInGame = {
-  content: 'Sorry, you\'re already in the game!',
-  ephemeral: true
-}
-
 export const gameInProgress = {
   content: 'Sorry, it looks like the game is already running.',
   ephemeral: true
@@ -59,15 +54,15 @@ export function roundStatus(game: Game): string {
 }
 
 export function gameSettings(game: Game): string {
-  const threshold = game.isDefaultThreshold ? 'default' : game.threshold;
-  const asyncLabel = game.asyncPlay ? 'enabled' : 'disabled';
-  const trackStats = game.trackStats ? 'on' : 'off';
+  const threshold = game.isDefaultThreshold ? `default (${game.threshold})` : game.threshold;
+  const asyncLabel = game.asyncPlay ? 'disabled' : 'enabled';
+  const trackStats = game.trackStats ? 'enabled' : 'disabled';
   const counterGuess = !game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
   return '**Settings**'
     + `\n├─ Points to win: ${threshold}`
     + counterGuess
     + `\n├─ Track stats: ${trackStats}`
-    + `\n└─ Asynchronous play: ${asyncLabel}`;
+    + `\n└─ Timers: ${asyncLabel}`;
 }
 
 export function spectrumBar(target?: number, side?: 'higher' | 'lower'): string {

@@ -1,6 +1,6 @@
 import { Command } from '../helpers/lambda.interface';
 import { remove } from 'lodash';
-import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { gameInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -12,9 +12,15 @@ export class JoinCommand implements Command {
   isGuildOnly = true;
   data = new SlashCommandBuilder()
     .setName('join')
-    .setDescription('Joins the current game. If a team number argument is provided, joins that team.')
+    .setDescription('Join the current game')
     .addStringOption(option => option.setName('team')
-      .setDescription('Which team to join. Can be 1, 2, or random.')
+      .addChoices([
+        ['Team 1', '1'],
+        ['Team 2', '2'],
+        ['Random', 'random'],
+        ['Neither team', 'no_team'],
+      ])
+      .setDescription('Which team to join.')
       .setRequired(false))
     .setDefaultPermission(true);
   async execute(interaction: CommandInteraction, gameManager: GameManager) {
@@ -29,27 +35,44 @@ export class JoinCommand implements Command {
       let teamArg = interaction.options.getString('team', false);
 
       if (teamArg) {
-        if (!['1', '2', 'random'].includes(teamArg)) {
-          return interaction.reply(this.invalidTeamArgument(teamArg));
-        } else if (teamArg === 'random') {
+        if (teamArg === 'random') {
           teamArg = (Math.round(Math.random()) + 1).toString();
         } else if ((game.team1.players.includes(userId) && teamArg === '1')
             || (game.team2.players.includes(userId) && teamArg === '2')) {
           return interaction.reply(this.alreadyOnTeam(teamArg));
+        } else if (teamArg === 'no_team' && game.unassignedPlayers.includes(userId)) {
+          return interaction.reply(this.alreadyInGame);
+        }
+        const newPlayer = game.join(userId);
+        const prevTeam = game.team1.players.includes(userId) ? '1'
+          : game.team2.players.includes(userId) ? '2'
+          : 'Unassigned';
+
+        if (teamArg === '1' || teamArg === '2') {
+          game.addPlayerToTeam(userId, teamArg);
+        } else if (teamArg === 'no_team') {
+          game.movePlayerToUnassignedTeam(userId);
         }
 
-        const newPlayer = game.join(userId);
-        game.addPlayerToTeam(userId, teamArg as '1' | '2');
-
         updateGameInfo(interaction.channel, gameManager);
-        return interaction.reply(this.teamJoinedMsg(newPlayer, userId, teamArg));
+        const msg = teamArg === 'no_team'
+          ? newPlayer
+            ? this.userJoinedGame(userId)
+            : this.userLeftTeam(userId, prevTeam)
+          : this.teamJoinedMsg(newPlayer, userId, teamArg);
+        return interaction.reply(msg);
       } else if (game.join(userId)) {
         updateGameInfo(interaction.channel, gameManager);
         return interaction.reply(this.userJoinedGame(userId));
       } else {
-        return interaction.reply(alreadyInGame);
+        return interaction.reply(this.alreadyInGame);
       }
     }
+  }
+
+  alreadyInGame: InteractionReplyOptions = {
+    content: 'Sorry, you\'re already in the game!',
+    ephemeral: true
   }
 
   alreadyOnTeam(teamArg: string): InteractionReplyOptions {
@@ -59,15 +82,12 @@ export class JoinCommand implements Command {
     }
   }
 
-  invalidTeamArgument(teamArg: string): InteractionReplyOptions {
-    return {
-      content: `Sorry, ${teamArg} is not a valid team. Please try again with 1, 2, or random.`,
-      ephemeral: true
-    };
-  }
-
   userJoinedGame(userId: string): string {
     return `${userMention(userId)} joined the game!`;
+  }
+
+  userLeftTeam(userId: string, teamNumber: string): string {
+    return `${userMention(userId)} left Team ${teamNumber}.`;
   }
 
   teamJoinedMsg(newPlayer: boolean, userId: string, team: string): string {

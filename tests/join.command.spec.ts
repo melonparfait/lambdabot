@@ -6,7 +6,7 @@ import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import { Game } from '../src/models/game';
 import * as JoinCommand from '../src/commands/join.new.command';
-import { alreadyInGame, gameInfo, gameInProgress, noActiveGameMessage } from '../src/helpers/print.gameinfo';
+import { gameInfo, gameInProgress, noActiveGameMessage } from '../src/helpers/print.gameinfo';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -185,15 +185,15 @@ describe('join command', () => {
         });
       });
 
-      context('if the user provided invalid arguments', () => {
+      context('if the user asked to join neither team', () => {
         beforeEach(async () => {
-          mockInteraction.setInteractionInput('string', 'team', '3');
+          mockInteraction.setInteractionInput('string', 'team', 'no_team');
           mockInteraction.reply.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager)
         });
 
-        it('should reply with an invalid team argument message', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.invalidTeamArgument('3'));
+        it('should reply that the user joined the game', () => {
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.userJoinedGame(TEST_USER_ID));
         });
       });
     });
@@ -219,7 +219,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
           });
         });
   
@@ -288,18 +288,23 @@ describe('join command', () => {
           });
         });
   
-        context('if the user provided invalid arguments', () => {
+        context('if the user asked to join neither team', () => {
+          let unassignSpy: sinon.SinonSpy;
           beforeEach(async () => {
-            mockInteraction.setInteractionInput('string', 'team', '3');
+            unassignSpy = sinon.spy(gameRef, 'movePlayerToUnassignedTeam');
+            mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
             await command.execute(mockInteraction.interactionInstance, gameManager)
           });
   
-          it('should reply with an invalid team argument message', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.invalidTeamArgument('3'));
+          it('should reply that the user left their previous team', () => {
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.userLeftTeam(TEST_USER_ID, '1'));
+          });
+
+          it('should move the player out of team 1', () => {
+            expect(unassignSpy).to.have.been.calledOnceWith(TEST_USER_ID);
           });
         });
-
       });
 
       context('if the user is on team 2', () => {
@@ -317,7 +322,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
           });
         });
   
@@ -386,15 +391,21 @@ describe('join command', () => {
           });
         });
   
-        context('if the user provided invalid arguments', () => {
+        context('if the user asked to join neither team', () => {
+          let unassignSpy: sinon.SinonSpy;
           beforeEach(async () => {
-            mockInteraction.setInteractionInput('string', 'team', '3');
+            unassignSpy = sinon.spy(gameRef, 'movePlayerToUnassignedTeam');
+            mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
             await command.execute(mockInteraction.interactionInstance, gameManager)
           });
   
-          it('should reply with an invalid team argument message', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.invalidTeamArgument('3'));
+          it('should reply that the user left their previous team', () => {
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.userLeftTeam(TEST_USER_ID, '2'));
+          });
+
+          it('should move the player out of team 1', () => {
+            expect(unassignSpy).to.have.been.calledOnceWith(TEST_USER_ID);
           });
         });
       });
@@ -410,7 +421,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
           });
         });
   
@@ -494,15 +505,15 @@ describe('join command', () => {
           });
         });
   
-        context('if the user provided invalid arguments', () => {
+        context('if the user asked to join neither team', () => {
           beforeEach(async () => {
-            mockInteraction.setInteractionInput('string', 'team', '3');
+            mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
             await command.execute(mockInteraction.interactionInstance, gameManager)
           });
   
-          it('should reply with an invalid team argument message', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.invalidTeamArgument('3'));
+          it('should reply that the user is already in the game', () => {
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
           });
         });
       });

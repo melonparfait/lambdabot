@@ -116,8 +116,11 @@ export class GuessCommand implements Command {
 
     interaction.channel.send(this.pointChange(results, game));
 
+    const catchup = results.offenseResult === OffenseScore.bullseye
+      && game.offenseTeam.points < game.defenseTeam.points;
+
     // End the round
-    game.endRound();
+    game.endRound(catchup);
 
     // Check if the game has ended
     const winner = game.determineWinner();
@@ -148,6 +151,11 @@ export class GuessCommand implements Command {
           && game.team2.points > game.threshold) {
         interaction.channel.send(this.closeGame);
       }
+
+      if (catchup) {
+        interaction.channel.send(this.catchupTriggered(game.offenseTeamNumber()));
+      }
+
       game.newRound();
       return await sendNewRoundMessages(interaction, game, clueManager, userManager);
     }
@@ -186,6 +194,10 @@ export class GuessCommand implements Command {
 
     response += result + `\nThe real answer was ${game.round.value}!`;
     return response;
+  }
+
+  catchupTriggered(teamNumber: number): string {
+    return `Team ${teamNumber} is still behind after an excellent guess! They get to keep giving clues!`;
   }
 
   gameEndScoreboard(game: Game, winner: string) {

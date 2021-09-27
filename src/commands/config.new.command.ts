@@ -13,10 +13,14 @@ export class ConfigCommand implements Command {
   data = new SlashCommandBuilder()
     .setName('config')
     .setDescription('Changes the configuration for the current game. Usable only during setup.')
-    .addBooleanOption(option => option.setName('async')
-      .setDescription('Enables/disables timers for making guesses. Use `true` to play without timers.')
+    .addStringOption(option => option.setName('timers')
+      .addChoice('Play with timers', 'on')
+      .addChoice('Play without timers', 'off')
+      .setDescription('Enables/disables timers for making guesses.')
       .setRequired(true))
-    .addBooleanOption(option => option.setName('trackstats')
+    .addStringOption(option => option.setName('trackstats')
+      .addChoice('Track stats', 'on')
+      .addChoice('Don\'t track stats', 'off')
       .setDescription('Enables/disables stat tracking. Use `true` to track stats.')
       .setRequired(true))
     .addIntegerOption(option => option.setName('threshold')
@@ -39,8 +43,8 @@ export class ConfigCommand implements Command {
       return interaction.reply(setupOnly);
     } else {
       try {
-        asyncConfig = interaction.options.getBoolean('async', true);
-        trackStatsConfig = interaction.options.getBoolean('trackstats', true);
+        asyncConfig = interaction.options.getString('timers', true) === 'off';
+        trackStatsConfig = interaction.options.getString('trackstats', true) === 'on';
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer');
 
