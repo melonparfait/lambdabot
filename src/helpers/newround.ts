@@ -2,7 +2,7 @@ import { userMention } from '@discordjs/builders';
 import { CommandInteraction, TextChannel, UserManager } from 'discord.js';
 import { ClueManager } from '../clue-manager';
 import { Game } from '../models/game';
-import { roundStatus, clue, gameSettings, roster, gameInfo } from './print.gameinfo';
+import { roundStatus, clue, gameSettings, roster, gameInfo, couldNotPin } from './print.gameinfo';
 
 export async function sendNewRoundMessages(interaction: CommandInteraction,
     game: Game, clueManager: ClueManager, userManager: UserManager) {
@@ -34,7 +34,7 @@ export async function sendNewRoundMessages(interaction: CommandInteraction,
     return(roundStatus(game));
   } catch (err) {
     console.log(err);
-    return 'I couldn\'t edit the pinned game info on this channel. Do I have permission to manage messages on this channel?';
+    return couldNotPin;
   }
 }
 

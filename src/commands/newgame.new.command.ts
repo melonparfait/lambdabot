@@ -1,6 +1,6 @@
 import { Game } from '../models/game';
 import { Command } from '../helpers/lambda.interface';
-import { errorProcessingCommand, gameAlreadyExists, gameInfo, newGameStarted } from '../helpers/print.gameinfo';
+import { couldNotPin, errorProcessingCommand, gameAlreadyExists, gameInfo, newGameStarted } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { CommandInteraction, Message } from 'discord.js';
 import { GameManager } from '../game-manager';
@@ -49,7 +49,12 @@ export class NewGameCommand implements Command {
       await msg.pin();
       gameContext.pinnedInfo = msg;
     } catch(err) {
-      interaction.channel.send('I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?');
+      gameManager.removeGame(interaction.channelId);
+      try {
+        return interaction.reply(couldNotPin);
+      } catch (err) {
+        console.log('application error: ', err);
+      }
     }
 
     return interaction.reply(newGameStarted(interaction.user.id));
