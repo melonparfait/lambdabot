@@ -1,13 +1,10 @@
 import { expect } from 'chai';
 import * as NewGameCommand from '../src/commands/newgame.new.command';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
-import * as sinon from 'sinon';
 import { GameManager } from '../src/game-manager';
 import { ClueManager } from '../src/clue-manager';
 import { Game } from '../src/models/game';
-import { CommandInteraction, Message, TextBasedChannel, TextBasedChannels } from 'discord.js';
-import { anyString, anything, instance, mock, verify, when } from 'ts-mockito';
 import { gameAlreadyExists, gameInfo, newGameStarted } from '../src/helpers/print.gameinfo';
 import { DEFAULT_SETTINGS, GameSettings } from '../src/models/game.settings';
 
@@ -75,7 +72,7 @@ describe('newgame command', () => {
 
       beforeEach(async () => {
         mockInteraction.reply.resetHistory();
-        mockInteraction.channelSend.resetHistory();
+        mockInteraction.followUp.resetHistory();
         mockInteraction.messagePin.resetHistory();
         gameManager.getGame(TEST_CHANNEL_ID).status = 'finished';
         oldGame = gameManager.getGame(TEST_CHANNEL_ID);
@@ -99,7 +96,7 @@ describe('newgame command', () => {
       });
 
       it('should send a game info message to the channel', () => {
-        expect(mockInteraction.channelSend).to.have.been.calledOnceWith(gameInfo(newGame));
+        expect(mockInteraction.reply).to.have.been.calledOnceWith(gameInfo(newGame));
       });
 
       it('should pinned the sent message', () => {
@@ -107,7 +104,7 @@ describe('newgame command', () => {
       });
 
       it('should have notified the channel that a game started', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
+        expect(mockInteraction.followUp).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
       });
     });
 
@@ -138,7 +135,7 @@ describe('newgame command', () => {
     });
 
     it('should send a game info message to the channel', () => {
-      expect(mockInteraction.channelSend).to.have.been.calledOnceWith(gameInfo(newGame));
+      expect(mockInteraction.reply).to.have.been.calledOnceWith(gameInfo(newGame));
     });
 
     it('should pinned the sent message', () => {
@@ -146,7 +143,7 @@ describe('newgame command', () => {
     });
 
     it('should have notified the channel that a game started', () => {
-      expect(mockInteraction.reply).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
+      expect(mockInteraction.followUp).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
     });
   });
 });

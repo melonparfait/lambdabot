@@ -71,8 +71,8 @@ export class ConfigCommand implements Command {
       trackStats: trackStatsConfig
     });
 
+    await interaction.reply(this.sendUpdatedSettings(interaction.channelId, gameManager));
     await updateGameInfo(interaction.channel, gameManager);
-    return interaction.reply(this.sendUpdatedSettings(interaction.channelId, gameManager));
   }
 
   sendUpdatedSettings(channelId: string, gameManager: GameManager) {

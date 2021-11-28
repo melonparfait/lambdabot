@@ -22,6 +22,8 @@ export class MockInteraction {
   messageInstance: Message;
 
   reply: sinon.SinonStub;
+  fetchReply: sinon.SinonStub;
+
   channelSend: sinon.SinonStub;
   messagePin: sinon.SinonStub;
   messageUnpin: sinon.SinonStub;
@@ -50,6 +52,9 @@ export class MockInteraction {
       ephemeral: boolean
     }) => this.reply(arg));
 
+    this.fetchReply = sinon.stub();
+    when(this.mockedInteraction.fetchReply()).thenCall(() => this.fetchReply());
+
     this.followUp = sinon.stub().resolves(true);
     when(this.mockedInteraction.followUp(anything())).thenCall((arg: {
       content: string,
@@ -70,6 +75,12 @@ export class MockInteraction {
     this.messageInstance = instance(this.mockMessage);
     when(this.mockMessage.edit(anything())).thenCall(arg => this.editPinnedMsg(arg));
     when(this.mockMessage.unpin()).thenCall(() => this.messageUnpin());
+
+    this.fetchReply.resolves({
+      pin: this.messagePin,
+      unpin: this.messageUnpin
+    });
+
 
     this.channelSend = sinon.stub().resolves({
       pin: this.messagePin,
@@ -143,6 +154,7 @@ export class MockInteraction {
     this.messageUnpin.resetHistory();
     this.editPinnedMsg.resetHistory();
     this.followUp.resetHistory();
+    this.fetchReply.resetHistory();
     resetCalls(this.mockedInteraction);
     resetCalls(this.mockChannel);
     resetCalls(this.mockMessage);
@@ -155,7 +167,6 @@ export class MockInteraction {
     reset(this.mockChannel);
     reset(this.mockMessage);
     reset(this.mockOptions);
-    reset(this.followUp);
     reset(this.mockUser);
   }
 }

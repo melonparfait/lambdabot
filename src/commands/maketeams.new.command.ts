@@ -49,8 +49,8 @@ class MakeTeamsCommand implements Command {
           return interaction.reply(this.invalidArgument(arg));
       }
 
-      updateGameInfo(interaction.channel, gameManager);
-      return interaction.reply(roster(game));
+      await interaction.reply(roster(game));
+      await updateGameInfo(interaction.channel, gameManager);
     }
   };
 

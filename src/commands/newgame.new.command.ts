@@ -44,20 +44,21 @@ export class NewGameCommand implements Command {
     gameContext = gameManager.getGame(channelId);
     gameContext.join(interaction.user.id);
 
+    await interaction.reply(gameInfo(gameContext));
+    const msg = await interaction.fetchReply() as Message;
     try {
-      const msg = await interaction.channel.send(gameInfo(gameContext));
       await msg.pin();
       gameContext.pinnedInfo = msg;
     } catch(err) {
       gameManager.removeGame(interaction.channelId);
       try {
-        return interaction.reply(couldNotPin);
+        return interaction.followUp(couldNotPin);
       } catch (err) {
         console.log('application error: ', err);
       }
     }
 
-    return interaction.reply(newGameStarted(interaction.user.id));
+    return interaction.followUp(newGameStarted(interaction.user.id));
   }
 }
 

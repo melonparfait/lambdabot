@@ -54,16 +54,16 @@ export class JoinCommand implements Command {
           game.movePlayerToUnassignedTeam(userId);
         }
 
-        updateGameInfo(interaction.channel, gameManager);
         const msg = teamArg === 'no_team'
           ? newPlayer
             ? this.userJoinedGame(userId)
             : this.userLeftTeam(userId, prevTeam)
           : this.teamJoinedMsg(newPlayer, userId, teamArg);
-        return interaction.reply(msg);
+        await interaction.reply(msg);
+        await updateGameInfo(interaction.channel, gameManager);
       } else if (game.join(userId)) {
-        updateGameInfo(interaction.channel, gameManager);
-        return interaction.reply(this.userJoinedGame(userId));
+        await interaction.reply(this.userJoinedGame(userId));
+        await updateGameInfo(interaction.channel, gameManager);
       } else {
         return interaction.reply(this.alreadyInGame);
       }

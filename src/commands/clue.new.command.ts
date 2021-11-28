@@ -28,8 +28,8 @@ export class ClueCommand implements Command {
       return interaction.reply(clueGiverOnly);
     } else {
       game.currentClue = interaction.options.getString('clue', true);
-      updateGameInfo(interaction.channel, gameManager);
-      return interaction.reply(this.replyMsg(interaction.user.id, game));
+      await interaction.reply(this.replyMsg(interaction.user.id, game));
+      await updateGameInfo(interaction.channel, gameManager);
     }
   }
   replyMsg(userId: string, gameRef: Game) {
