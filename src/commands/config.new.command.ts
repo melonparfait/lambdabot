@@ -52,7 +52,7 @@ export class ConfigCommand implements Command {
           return interaction.reply(this.minimumThresholdError(thresholdConfig));
         } else if (defenseTimerConfig && defenseTimerConfig < 5) {
           return interaction.reply(this.minimumDefenseTimerError(defenseTimerConfig));
-        } else if (thresholdConfig > 2147483647) {
+        } else if (thresholdConfig > 900000) {
           return interaction.reply(this.maximumThresholdError(thresholdConfig));
         }
         // conversion to seconds

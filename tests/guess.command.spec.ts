@@ -285,7 +285,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 55;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -302,13 +302,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -316,7 +316,7 @@ describe('guess command', () => {
         });
     
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -336,7 +336,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 45;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -353,13 +353,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -367,7 +367,7 @@ describe('guess command', () => {
         });
 
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -387,7 +387,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 49;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -404,13 +404,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -418,7 +418,7 @@ describe('guess command', () => {
         });
 
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -449,7 +449,7 @@ describe('guess command', () => {
           });
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -466,17 +466,17 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should send a message to the channel indicating that catch was triggered', () => {
-          expect(mockInteraction.channelSend.getCall(2).args[0]).to.equal(command.catchupTriggered(1));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(command.catchupTriggered(1));
         });
 
         it('should indicate that catchup was triggered when ending the round', () => {
@@ -488,7 +488,7 @@ describe('guess command', () => {
         });
 
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(2).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -519,7 +519,7 @@ describe('guess command', () => {
           });
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.messageUnpin.resetHistory();
@@ -532,7 +532,7 @@ describe('guess command', () => {
         });
 
         it('should reply that Team 1 has won the game', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(command.
             gameEndScoreboard(gameRef, 'Team 1'));
         });
 
@@ -551,13 +551,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
       });
     });
@@ -628,7 +628,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 42;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -645,13 +645,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -659,7 +659,7 @@ describe('guess command', () => {
         });
     
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -679,7 +679,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 69;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -696,13 +696,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -710,7 +710,7 @@ describe('guess command', () => {
         });
 
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -730,7 +730,7 @@ describe('guess command', () => {
           gameRef.round.oGuess = 50;
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           await command.execute(mockInteraction.interactionInstance, gameManager,
@@ -747,13 +747,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
 
         it('should have scored the game', () => {
@@ -761,7 +761,7 @@ describe('guess command', () => {
         });
 
         it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(roundStatus(gameRef));
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -792,7 +792,7 @@ describe('guess command', () => {
           });
           roundValue = gameRef.round.value;
           mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
-          mockInteraction.channelSend.resetHistory();
+          mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.messageUnpin.resetHistory();
@@ -805,7 +805,7 @@ describe('guess command', () => {
         });
 
         it('should reply that Team 1 has won the game', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.
+          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(command.
             gameEndScoreboard(gameRef, 'Team 1'));
         });
 
@@ -824,13 +824,13 @@ describe('guess command', () => {
             defenseTeamNumber: () => 2,
             offenseTeamNumber: () => 1,
           });
-          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(expectedMessage);
         });
 
         it('should send a message to the channel with the point gains', () => {
           const scoringResults: ScoringResults = scoreSpy.returnValues[0];
           const expectedMessage = command.pointChange(scoringResults, gameRef);
-          expect(mockInteraction.channelSend.getCall(1).args[0]).to.equal(expectedMessage);
+          expect(mockInteraction.followUp.getCall(0).args[0]).to.equal(expectedMessage);
         });
       });
     });

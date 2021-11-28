@@ -26,6 +26,7 @@ export class MockInteraction {
   messagePin: sinon.SinonStub;
   messageUnpin: sinon.SinonStub;
   editPinnedMsg: sinon.SinonStub;
+  followUp: sinon.SinonStub;
 
   mockOptions: CommandInteractionOptionResolver;
   optionInstance: CommandInteractionOptionResolver;
@@ -48,6 +49,12 @@ export class MockInteraction {
       content: string,
       ephemeral: boolean
     }) => this.reply(arg));
+
+    this.followUp = sinon.stub().resolves(true);
+    when(this.mockedInteraction.followUp(anything())).thenCall((arg: {
+      content: string,
+      ephemeral: boolean
+    }) => this.followUp(arg));
   }
 
   private initMockChannel() {
@@ -135,6 +142,7 @@ export class MockInteraction {
     this.messagePin.resetHistory();
     this.messageUnpin.resetHistory();
     this.editPinnedMsg.resetHistory();
+    this.followUp.resetHistory();
     resetCalls(this.mockedInteraction);
     resetCalls(this.mockChannel);
     resetCalls(this.mockMessage);
@@ -147,6 +155,7 @@ export class MockInteraction {
     reset(this.mockChannel);
     reset(this.mockMessage);
     reset(this.mockOptions);
+    reset(this.followUp);
     reset(this.mockUser);
   }
 }

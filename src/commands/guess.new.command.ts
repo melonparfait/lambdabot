@@ -68,17 +68,17 @@ export class GuessCommand implements Command {
                 if (game.round.dGuess !== undefined || countdownCounter === this.TIMER_DIVISION) {
                   clearInterval(timer);
                   const scoreResult = game.score(false);
-                  interaction.channel.send(`Team ${game.defenseTeamNumber()} ran out of time!`
+                  interaction.followUp(`Team ${game.defenseTeamNumber()} ran out of time!`
                     + `\nThe real answer was ${game.round.value}!`);
                   const closeRoundMsg = await this.closeRound(interaction, gameManager,
                     clueManager, userManager, scoreResult, dbService);
-                  interaction.channel.send(closeRoundMsg);
+                  interaction.followUp(closeRoundMsg);
                   return;
                 } else if (game.status === 'finished') {
                   // someone quit the game
                   clearInterval(timer);
                 }
-                interaction.channel.send(`${(Math.floor(game.dGuessTime - timerTick * countdownCounter) / 1000)} seconds left!`);
+                interaction.followUp(`${(Math.floor(game.dGuessTime - timerTick * countdownCounter) / 1000)} seconds left!`);
                 countdownCounter++;
               }, timerTick);
             }
@@ -97,9 +97,9 @@ export class GuessCommand implements Command {
           game.round.makeDGuess(isHigher);
 
           const scoreResult = game.score();
-          interaction.channel.send(this.resolveGuessMessage(scoreResult, game));
-          const msg = await this.closeRound(interaction, gameManager, clueManager, userManager, scoreResult, dbService);
-          interaction.reply(msg);
+          interaction.reply(this.resolveGuessMessage(scoreResult, game));
+          const roundResults = await this.closeRound(interaction, gameManager, clueManager, userManager, scoreResult, dbService);
+          interaction.followUp(roundResults);
         }
         break;
       default:
@@ -114,7 +114,7 @@ export class GuessCommand implements Command {
       clueManager: ClueManager, userManager: UserManager, results: ScoringResults, dbService: DBService) {
     const game = gameManager.getGame(interaction.channelId);
 
-    interaction.channel.send(this.pointChange(results, game));
+    interaction.followUp(this.pointChange(results, game));
 
     const catchup = results.offenseResult === OffenseScore.bullseye
       && game.offenseTeam.points < game.defenseTeam.points;
@@ -149,11 +149,11 @@ export class GuessCommand implements Command {
     } else {
       if (game.team1.points > game.threshold
           && game.team2.points > game.threshold) {
-        interaction.channel.send(this.closeGame);
+        interaction.followUp(this.closeGame);
       }
 
       if (catchup) {
-        interaction.channel.send(this.catchupTriggered(game.offenseTeamNumber()));
+        interaction.followUp(this.catchupTriggered(game.offenseTeamNumber()));
       }
 
       game.newRound();
