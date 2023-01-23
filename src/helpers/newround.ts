@@ -1,10 +1,10 @@
 import { userMention } from '@discordjs/builders';
-import { CommandInteraction, TextChannel, UserManager } from 'discord.js';
-import { ClueManager } from '../clue-manager';
+import { ChatInputCommandInteraction, CommandInteraction, TextChannel, UserManager } from 'discord.js';
+import { ClueManager } from '../services/clue-manager';
 import { Game } from '../models/game';
 import { roundStatus, clue, gameSettings, roster, gameInfo, couldNotPin } from './print.gameinfo';
 
-export async function sendNewRoundMessages(interaction: CommandInteraction,
+export async function sendNewRoundMessages(interaction: ChatInputCommandInteraction,
     game: Game, clueManager: ClueManager, userManager: UserManager) {
   game.currentClue = undefined;
 
@@ -30,7 +30,7 @@ export async function sendNewRoundMessages(interaction: CommandInteraction,
   }
 
   try {
-    await game.pinnedInfo.edit(gameInfo(game));
+    await game.pinnedInfo?.edit(gameInfo(game));
     return(roundStatus(game));
   } catch (err) {
     console.log(err);

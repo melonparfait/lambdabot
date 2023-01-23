@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction } from 'discord.js';
-import { Command } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, CommandInteraction } from 'discord.js';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 
-export class EchoCommand implements Command {
+export class EchoCommand extends LambdabotCommand {
   isRestricted = true;
   cooldown = 5;
   hasChannelCooldown = true;
@@ -12,10 +12,9 @@ export class EchoCommand implements Command {
     .setDescription('Echo!')
     .addStringOption(option => option.setName('input')
       .setDescription('Enter a string to echo')
-      .setRequired(true))
-    .setDefaultPermission(false);
-  async execute(interaction: CommandInteraction) {
-    const arg = interaction.options.getString('input');
+      .setRequired(true));
+  async execute(interaction: ChatInputCommandInteraction) {
+    const arg = interaction.options.getString('input', true);
     return interaction.reply(arg);
   }
 }

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import neatCSV = require('csv-parser');
-import { Clue } from './models/clue';
+import { Clue } from '../models/clue';
 
 export class ClueManager {
   /** The client's clue set */

@@ -8,8 +8,8 @@ export class Round {
   leftClue: string;
   rightClue: string;
   value: number;
-  oGuess: number;
-  dGuess: boolean;
+  oGuess: number | undefined;
+  dGuess: boolean | undefined;
 
   constructor(oTeam: GameTeam, dTeam: GameTeam) {
     this.clueGiver = oTeam.clueGiver();

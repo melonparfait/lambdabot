@@ -1,8 +1,8 @@
 import { Game } from '../models/game';
 import { Round } from '../models/round';
-import { TextChannel, TextBasedChannels, InteractionReplyOptions } from 'discord.js';
-import { GameManager } from '../game-manager';
+import { GameManager } from '../services/game-manager';
 import { userMention } from '@discordjs/builders';
+import { TextBasedChannel } from 'discord.js';
 
 export const clueGiverOnly = {
   content: 'Sorry, only the clue giver can use this command!',
@@ -86,7 +86,7 @@ export function clue(round: Round, guess?: number): string {
   + `\n${round.leftClue} 0 [${spectrumBar(guess)}] 100 ${round.rightClue}`;
 }
 
-export function currentClue(game: Game): string {
+export function currentClue(game: Game): string | undefined {
   if (game.currentClue) {
     return `${userMention(game.clueGiver())} gave this clue: ${game.currentClue}`;
   } else {
@@ -145,7 +145,7 @@ export function gameInfo(game: Game): string {
   return response;
 }
 
-export async function updateGameInfo(channel: TextBasedChannels, gameManager: GameManager) {
+export async function updateGameInfo(channel: TextBasedChannel, gameManager: GameManager) {
   const game = gameManager.getGame(channel.id);
   if (game.pinnedInfo) {
     try {

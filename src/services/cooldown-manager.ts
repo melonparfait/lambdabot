@@ -1,6 +1,6 @@
 import { Collection, CommandInteraction } from 'discord.js';
-import { Command } from './helpers/lambda.interface';
-import { default_cooldown } from '../config.json';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { default_cooldown } from '../../config.json';
 
 export interface CooldownCheckResult {
   onCooldown: boolean;
@@ -10,7 +10,7 @@ export interface CooldownCheckResult {
 export class CooldownManager {
   cooldowns = new Collection<string, Collection<string, Collection<string, number>>>();
 
-  checkCooldown(interaction: CommandInteraction, command: Command): CooldownCheckResult {
+  checkCooldown(interaction: CommandInteraction, command: LambdabotCommand): CooldownCheckResult {
     const cooldownAmount = (command.cooldown || default_cooldown) * 1000;
 
     if (cooldownAmount !== 0) {

@@ -1,12 +1,13 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as ConfigCommand from '../src/commands/config.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
+import * as ConfigCommand from '../src/commands/config.command';
 import { gameInfo, noActiveGameMessage, setupOnly, updateGameInfo } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -14,7 +15,7 @@ const TEST_CHANNEL_ID = '12345';
 describe('config command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
@@ -27,9 +28,12 @@ describe('config command', () => {
   }
 
   beforeEach(() => {
-    command = ConfigCommand;
+    command = <LambdabotCommand><unknown>ConfigCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
   });
 
@@ -40,7 +44,7 @@ describe('config command', () => {
   describe('when there is no game running', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that there\'s no active game', () => {
@@ -53,7 +57,7 @@ describe('config command', () => {
       mockInteraction.reply.resetHistory();
       gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
       gameManager.getGame(TEST_CHANNEL_ID).status = 'playing';
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply the command is only available during setup', () => {
@@ -83,7 +87,7 @@ describe('config command', () => {
         mockInteraction.reply.resetHistory();
         mockInteraction.editPinnedMsg.resetHistory();
 
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
   
       it('should set the game config properly', () => {
@@ -126,7 +130,7 @@ describe('config command', () => {
         configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
         mockInteraction.reply.resetHistory();
 
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
   
       it('should reply with an minimum threshold error', () => {
@@ -172,7 +176,7 @@ describe('config command', () => {
         configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
         mockInteraction.reply.resetHistory();
 
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
   
       it('should reply with an maximum threshold timer error', () => {

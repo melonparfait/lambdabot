@@ -1,12 +1,12 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as MakeTeamsCommand from '../src/commands/maketeams.new.command';
+import { GameManager } from '../src/services/game-manager';
+import * as MakeTeamsCommand from '../src/commands/maketeams.command';
 import { Game } from '../src/models/game';
 import { gameAlreadyExists, gameInfo, noActiveGameMessage, roster } from '../src/helpers/print.gameinfo';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -14,7 +14,7 @@ const TEST_CHANNEL_ID = '12345';
 describe('maketeams command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let gameRef: Game;
   let assignRandomTeamsSpy: sinon.SinonSpy;
@@ -26,8 +26,10 @@ describe('maketeams command', () => {
   }
 
   beforeEach(() => {
-    command = MakeTeamsCommand;
+    command = <LambdabotCommand><unknown>MakeTeamsCommand;
     gameManager = new GameManager();
+    command.gameManager = gameManager;
+
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
   });
 
@@ -39,7 +41,7 @@ describe('maketeams command', () => {
     beforeEach(async () => {
       configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should notify the user that there\'s no game running', () => {
@@ -54,7 +56,7 @@ describe('maketeams command', () => {
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
       configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should notify the user that there\'s no game running', () => {
@@ -69,7 +71,7 @@ describe('maketeams command', () => {
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
       configureUserInput(mockInteraction, 'random', 'reset');
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should notify the user that a game is already in progress', () => {
@@ -92,7 +94,7 @@ describe('maketeams command', () => {
         configureUserInput(mockInteraction, 'random', 'no_reset');
         mockInteraction.editPinnedMsg.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should not reset teams', () => {
@@ -119,7 +121,7 @@ describe('maketeams command', () => {
         configureUserInput(mockInteraction, 'random', 'reset');
         mockInteraction.editPinnedMsg.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should have reset teams', () => {
@@ -144,7 +146,7 @@ describe('maketeams command', () => {
       beforeEach(async () => {
         configureUserInput(mockInteraction, invalidArg, 'reset');
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should inform that the user provided an invalid argument', () => {

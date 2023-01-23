@@ -1,16 +1,13 @@
 import { sendNewRoundMessages } from '../helpers/newround';
-import { Command, DiscordMessage } from '../helpers/lambda.interface';
-import { TextChannel, Collection, Message, CommandInteraction, InteractionReplyOptions, UserManager, CollectorFilter, Interaction } from 'discord.js';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { InteractionReplyOptions, ChatInputCommandInteraction } from 'discord.js';
 import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { GameManager } from '../game-manager';
-import { ClueManager } from '../clue-manager';
 import { Game } from '../models/game';
-import { DBService } from '../db.service';
 import { isUndefined } from 'lodash';
 
-export class GuessCommand implements Command {
+export class GuessCommand extends LambdabotCommand {
   isRestricted = false;
   hasChannelCooldown = true;
   isGuildOnly = true;
@@ -18,7 +15,6 @@ export class GuessCommand implements Command {
   data = new SlashCommandBuilder()
     .setName('guess')
     .setDescription('Parent command for guessing')
-    .setDefaultPermission(true)
     .addSubcommand(subcommand => subcommand
       .setName('clue')
       .setDescription('Submits a guess for the guessing team')
@@ -33,9 +29,8 @@ export class GuessCommand implements Command {
       .setName('lower')
       .setDescription('Submits a guess that the clue is loser than the guess from the other team'));
 
-  async execute(interaction: CommandInteraction, gameManager: GameManager,
-      clueManager: ClueManager, userManager: UserManager, dbService: DBService) {
-    const game = gameManager.getGame(interaction.channelId);
+  async execute(interaction: ChatInputCommandInteraction) {
+    const game = this.gameManager.getGame(interaction.channelId);
     if (!game || game.status === 'finished') {
       return interaction.reply(noActiveGameMessage);
     } else if (game.status !== 'playing') {
@@ -54,7 +49,7 @@ export class GuessCommand implements Command {
         } else if (isUndefined(game.currentClue)) {
           return interaction.reply(this.noClueYet);
         } else {
-          const guess = interaction.options.getInteger('number');
+          const guess = interaction.options.getInteger('number', true);
           if (guess < 1 || guess > 100) {
             return interaction.reply(this.invalidInteger);
           } else {
@@ -70,8 +65,7 @@ export class GuessCommand implements Command {
                   const scoreResult = game.score(false);
                   interaction.followUp(`Team ${game.defenseTeamNumber()} ran out of time!`
                     + `\nThe real answer was ${game.round.value}!`);
-                  const closeRoundMsg = await this.closeRound(interaction, gameManager,
-                    clueManager, userManager, scoreResult, dbService);
+                  const closeRoundMsg = await this.closeRound(interaction, scoreResult);
                   interaction.followUp(closeRoundMsg);
                   return;
                 } else if (game.status === 'finished') {
@@ -98,7 +92,7 @@ export class GuessCommand implements Command {
 
           const scoreResult = game.score();
           interaction.reply(this.resolveGuessMessage(scoreResult, game));
-          const roundResults = await this.closeRound(interaction, gameManager, clueManager, userManager, scoreResult, dbService);
+          const roundResults = await this.closeRound(interaction, scoreResult);
           interaction.followUp(roundResults);
         }
         break;
@@ -110,9 +104,8 @@ export class GuessCommand implements Command {
 
   TIMER_DIVISION = 4;
 
-  async closeRound(interaction: CommandInteraction, gameManager: GameManager,
-      clueManager: ClueManager, userManager: UserManager, results: ScoringResults, dbService: DBService) {
-    const game = gameManager.getGame(interaction.channelId);
+  async closeRound(interaction: ChatInputCommandInteraction, results: ScoringResults) {
+    const game = this.gameManager.getGame(interaction.channelId);
 
     interaction.followUp(this.pointChange(results, game));
 
@@ -128,7 +121,7 @@ export class GuessCommand implements Command {
       game.endGame();
 
       if (game.trackStats) {
-        dbService.updateDatabase(game.team1.players,
+        this.dbService.updateDatabase(game.team1.players,
           game.team2.players,
           game.id,
           interaction.channelId,
@@ -139,7 +132,7 @@ export class GuessCommand implements Command {
 
       const msg = this.gameEndScoreboard(game, winner);
       try {
-        await game.pinnedInfo.unpin();
+        await game.pinnedInfo?.unpin();
         game.pinnedInfo = undefined;
         return msg;
       } catch (err) {
@@ -157,7 +150,7 @@ export class GuessCommand implements Command {
       }
 
       game.newRound();
-      return await sendNewRoundMessages(interaction, game, clueManager, userManager);
+      return await sendNewRoundMessages(interaction, game, this.clueManager, this.lambdaClient.users);
     }
   }
 

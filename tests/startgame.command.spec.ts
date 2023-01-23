@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import { CommandArgType, MockInteraction, MockUser, MockUserManager } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as ConfigCommand from '../src/commands/config.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
 import { noActiveGameMessage, gameAlreadyExists, roundStatus } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
-import * as  StartGameCommand from '../src/commands/startgame.new.command';
+import * as  StartGameCommand from '../src/commands/startgame.command';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -15,13 +15,13 @@ const TEST_CHANNEL_ID = '12345';
 describe('startgame command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
   let mockUserManager: MockUserManager;
 
   beforeEach(() => {
-    command = StartGameCommand;
+    command = <LambdabotCommand><unknown>StartGameCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
@@ -30,6 +30,12 @@ describe('startgame command', () => {
     }});
     mockUserManager = new MockUserManager([new MockUser(TEST_USER_ID)]);
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
+
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+    command.lambdaClient = {
+      users: mockUserManager.userManagerInstance
+    };
   });
 
   it('should create', () => {
@@ -39,7 +45,7 @@ describe('startgame command', () => {
   context('when there is no game running', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that there\'s no active game', () => {
@@ -52,7 +58,7 @@ describe('startgame command', () => {
       mockInteraction.reply.resetHistory();
       gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
       gameManager.getGame(TEST_CHANNEL_ID).status = 'playing';
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that the game is already running', () => {
@@ -92,8 +98,7 @@ describe('startgame command', () => {
         gameManager.addGame(TEST_CHANNEL_ID, gameRef);
         gameStartSpy.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance,
-          gameManager, clueManager, mockUserManager.userManagerInstance)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should not start the game', () => {
@@ -118,8 +123,7 @@ describe('startgame command', () => {
         gameManager.addGame(TEST_CHANNEL_ID, gameRef);
         gameStartSpy.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance,
-          gameManager, clueManager, mockUserManager.userManagerInstance)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should not start the game', () => {
@@ -142,8 +146,7 @@ describe('startgame command', () => {
         gameManager.addGame(TEST_CHANNEL_ID, gameRef);
         gameStartSpy.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance,
-          gameManager, clueManager, mockUserManager.userManagerInstance)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should not start the game', () => {
@@ -174,8 +177,7 @@ describe('startgame command', () => {
         gameManager.addGame(TEST_CHANNEL_ID, gameRef);
         gameStartSpy.resetHistory();
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance,
-          gameManager, clueManager, mockUserManager.userManagerInstance)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should start the game', () => {
@@ -199,7 +201,7 @@ describe('startgame command', () => {
 
       it('should message the user info about the round', () => {
         const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-        expect(clueGiver.send).to.have.been.calledOnce;
+        expect(clueGiver?.send).to.have.been.calledOnce;
       });
 
       it('should message the channel information about the round', () => {

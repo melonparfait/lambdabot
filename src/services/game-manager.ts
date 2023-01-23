@@ -1,5 +1,5 @@
 import { Collection } from 'discord.js';
-import { Game } from './models/game';
+import { Game } from '../models/game';
 
 export class GameManager {
   /** A collection of the client's games keyed by channelId */

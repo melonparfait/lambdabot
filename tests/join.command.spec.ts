@@ -2,11 +2,12 @@ import { expect } from 'chai';
 import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
 import { Game } from '../src/models/game';
-import * as JoinCommand from '../src/commands/join.new.command';
+import * as JoinCommand from '../src/commands/join.command';
 import { gameInfo, gameInProgress, noActiveGameMessage } from '../src/helpers/print.gameinfo';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -14,14 +15,17 @@ const TEST_CHANNEL_ID = '12345';
 describe('join command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = JoinCommand;
+    command = <LambdabotCommand><unknown>JoinCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
+
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
   });
 
@@ -32,7 +36,7 @@ describe('join command', () => {
   context('if there is no game in the channel', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager, clueManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should tell the user that there is no active game', () => {
@@ -46,7 +50,7 @@ describe('join command', () => {
       const gameRef = new Game(TEST_CHANNEL_ID, []);
       gameRef.status = 'finished';
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
-      await command.execute(mockInteraction.interactionInstance, gameManager, clueManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should tell the user that there is no active game', () => {
@@ -60,7 +64,7 @@ describe('join command', () => {
       const gameRef = new Game(TEST_CHANNEL_ID, []);
       gameRef.status = 'playing';
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
-      await command.execute(mockInteraction.interactionInstance, gameManager, clueManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should tell the user that there is a game in progress', () => {
@@ -89,7 +93,7 @@ describe('join command', () => {
           joinSpy.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager)
+          await command.execute(mockInteraction.interactionInstance)
         });
 
         it('should let the player join the game', () => {
@@ -112,7 +116,7 @@ describe('join command', () => {
           addPlayerToTeamSpy.resetHistory()
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager)
+          await command.execute(mockInteraction.interactionInstance)
         });
 
         it('should let the player join the game', () => {
@@ -139,7 +143,7 @@ describe('join command', () => {
           addPlayerToTeamSpy.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager)
+          await command.execute(mockInteraction.interactionInstance)
         });
 
         it('should let the player join the game', () => {
@@ -165,7 +169,7 @@ describe('join command', () => {
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.reply.resetHistory();
           joinSpy.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager)
+          await command.execute(mockInteraction.interactionInstance)
         });
 
         it('should let the player join the game', () => {
@@ -189,7 +193,7 @@ describe('join command', () => {
         beforeEach(async () => {
           mockInteraction.setInteractionInput('string', 'team', 'no_team');
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager)
+          await command.execute(mockInteraction.interactionInstance)
         });
 
         it('should reply that the user joined the game', () => {
@@ -215,7 +219,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should send a reply that the user is already in the game', () => {
@@ -227,7 +231,7 @@ describe('join command', () => {
           beforeEach(async () => {
             mockInteraction.setInteractionInput('string', 'team', '1');
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should send a reply that the user is already on team 1', () => {
@@ -242,7 +246,7 @@ describe('join command', () => {
             addPlayerToTeamSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -294,7 +298,7 @@ describe('join command', () => {
             unassignSpy = sinon.spy(gameRef, 'movePlayerToUnassignedTeam');
             mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should reply that the user left their previous team', () => {
@@ -318,7 +322,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should send a reply that the user is already in the game', () => {
@@ -333,7 +337,7 @@ describe('join command', () => {
             addPlayerToTeamSpy.resetHistory()
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -357,7 +361,7 @@ describe('join command', () => {
           beforeEach(async () => {
             mockInteraction.setInteractionInput('string', 'team', '2');
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should send a reply that the user is already on team 1', () => {
@@ -371,7 +375,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -397,7 +401,7 @@ describe('join command', () => {
             unassignSpy = sinon.spy(gameRef, 'movePlayerToUnassignedTeam');
             mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should reply that the user left their previous team', () => {
@@ -417,7 +421,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should send a reply that the user is already in the game', () => {
@@ -432,7 +436,7 @@ describe('join command', () => {
             addPlayerToTeamSpy.resetHistory()
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -459,7 +463,7 @@ describe('join command', () => {
             addPlayerToTeamSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -485,7 +489,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {
@@ -509,7 +513,7 @@ describe('join command', () => {
           beforeEach(async () => {
             mockInteraction.setInteractionInput('string', 'team', 'no_team');
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should reply that the user is already in the game', () => {

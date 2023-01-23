@@ -2,12 +2,13 @@ import { expect } from 'chai';
 import { CommandArgType, MockInteraction, MockUser, MockUserManager } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as SkipCommand from '../src/commands/skip.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
+import * as SkipCommand from '../src/commands/skip.command';
 import { gameInfo, noActiveGameMessage, setupOnly, updateGameInfo, gameNotInProgress, clueGiverOnly, roundStatus } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -15,13 +16,13 @@ const TEST_CHANNEL_ID = '12345';
 describe('skip command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
   let mockUserManager: MockUserManager;
   
   beforeEach(() => {
-    command = SkipCommand;
+    command = <LambdabotCommand><unknown>SkipCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
@@ -30,6 +31,12 @@ describe('skip command', () => {
     }});
     mockUserManager = new MockUserManager([new MockUser(TEST_USER_ID)]);
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
+
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+    command.lambdaClient = {
+      users: mockUserManager.userManagerInstance
+    };
   });
 
   it('should create', () => {
@@ -39,8 +46,7 @@ describe('skip command', () => {
   context('when there is no game running', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance,
-        gameManager, clueManager, mockUserManager.userManagerInstance);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that there\'s no active game', () => {
@@ -53,8 +59,7 @@ describe('skip command', () => {
       mockInteraction.reply.resetHistory();
       gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
       gameManager.getGame(TEST_CHANNEL_ID).status = 'setup';
-      await command.execute(mockInteraction.interactionInstance,
-        gameManager, clueManager, mockUserManager.userManagerInstance);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that the game is already running', () => {
@@ -93,8 +98,7 @@ describe('skip command', () => {
       beforeEach(async () => {
         gameRef.roundCounter = 0;
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance,
-          gameManager, clueManager, mockUserManager.userManagerInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should tell the user that they\'re not the clue giver', () => {
@@ -116,8 +120,7 @@ describe('skip command', () => {
         beforeEach(async() => {
           gameRef.round.oGuess = 50;
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance,
-            gameManager, clueManager, mockUserManager.userManagerInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should tell the user that they cannot skip after a guess has been made', () => {
@@ -132,8 +135,7 @@ describe('skip command', () => {
           mockInteraction.reply.resetHistory();
           gameRef.pinnedInfo = mockInteraction.messageInstance;
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance,
-            gameManager, clueManager, mockUserManager.userManagerInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should generate a new value for the round', () => {

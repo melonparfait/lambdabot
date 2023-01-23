@@ -21,7 +21,7 @@
   },
   "include": [
     "src/*"
-  ],
+, "src/services/command-loader.ts", "src/utils/cooldown-manager.ts", "src/utils/game-manager.ts", "src/services/clue-manager.ts", "src/services/db.service.ts", "src/services/auth.ts"  ],
   "exclude": [
     "node_modules",
     "**.spec.ts"

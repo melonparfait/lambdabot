@@ -1,14 +1,14 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, InteractionReplyOptions, UserManager } from 'discord.js';
-import { ClueManager } from '../clue-manager';
-import { DBService } from '../db.service';
-import { GameManager } from '../game-manager';
-import { Command } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, UserManager } from 'discord.js';
+import { ClueManager } from '../services/clue-manager';
+import { DBService } from '../services/db.service';
+import { GameManager } from '../services/game-manager';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { errorProcessingCommand } from '../helpers/print.gameinfo';
 import { printLeaderboard, trimLeaderboard } from '../helpers/print.leaderboard';
 import { PlayerStats } from '../helpers/print.stats';
 
-export class LeaderboardCommand implements Command {
+export class LeaderboardCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;
@@ -17,20 +17,21 @@ export class LeaderboardCommand implements Command {
     .setName('leaderboard')
     .setDescription('Reports the leaderboard for this channel by either wins, win%, avg, or perfect')
     .addStringOption(option => option.setName('metric')
-      .addChoice('Number of wins', 'wins')
-      .addChoice('Percentage of games won', 'win%')
-      .addChoice('Average score as clue giver', 'avg')
-      .addChoice('Number of perfect clues as clue giver', 'perfect')
       .setDescription('Either wins, win%, avg, or perfect')
-      .setRequired(true))
-    .setDefaultPermission(true);
-  async execute(interaction: CommandInteraction, gameManager: GameManager,
-      clueManager: ClueManager, userManager: UserManager, dbService: DBService) {
-    const metric = interaction.options.getString('metric');
+      .setRequired(true)
+      .addChoices(
+        { name: 'Number of wins', value: 'wins' },
+        { name: 'Percentage of games won', value: 'win%' },
+        { name: 'Average score as clue giver', value: 'avg' },
+        { name: 'Number of perfect clues as clue giver', value: 'perfect' },
+      ));
+
+  async execute(interaction: ChatInputCommandInteraction) {
+    const metric = interaction.options.getString('metric', true);
     let channelPlayers: string[];
 
     try {
-      channelPlayers = await dbService.getChannelPlayers(interaction.channelId);
+      channelPlayers = await this.dbService.getChannelPlayers(interaction.channelId);
     } catch (err) {
       console.log(`Failed to get channel players: ${err}`);
       return interaction.reply(errorProcessingCommand);
@@ -40,7 +41,7 @@ export class LeaderboardCommand implements Command {
     let playerStats: PlayerStats[];
     try {
       channelPlayers.forEach(player => {
-        statQuery.push(dbService.getPlayerStats(player, interaction.channelId));
+        statQuery.push(this.dbService.getPlayerStats(player, interaction.channelId));
       });
       playerStats = await Promise.all(statQuery);
     } catch (err) {

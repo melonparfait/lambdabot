@@ -1,28 +1,28 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { REST } from '@discordjs/rest';
 import { APIApplicationCommand, Routes } from 'discord-api-types/v9';
-import path = require('path');
 import { exit } from 'process';
-import { bot_token, client_id, dev_guild_id } from '../keys.json';
-import * as fs from 'fs';
-import { Command } from './helpers/lambda.interface';
+import { bot_token, client_id, dev_guild_id } from '../../keys.json';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { ApplicationCommand, ApplicationCommandData, Collection } from 'discord.js';
 import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
 
 export class CommandLoader {
-  rest = new REST({ version: '9' }).setToken(bot_token);
+  rest = new REST({ version: '10' }).setToken(bot_token);
   apiCommandData: (SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup"> | SlashCommandSubcommandsOnlyBuilder)[] = [];
-  commandDirectory = path.resolve(__dirname, './commands');
+  commandDirectory = path.resolve(__dirname, '../commands');
 
   constructor() {}
 
-  async getCommands(): Promise<Collection<string, Command>> {
-    const commands = new Collection<string, Command>();
+  async getCommands(): Promise<Collection<string, LambdabotCommand>> {
+    const commands = new Collection<string, LambdabotCommand>();
     const commandFiles = fs.readdirSync(this.commandDirectory)
-      .filter(file => file.endsWith('new.command.ts'));
+      .filter(file => file.endsWith('command.ts'));
 
     for (const file of commandFiles) {
       try {
-        const newCommand: Command = await import(`${this.commandDirectory}/${file}`);
+        const newCommand: LambdabotCommand = await import(`${this.commandDirectory}/${file}`);
         commands.set(newCommand.data.name, newCommand);
         console.log(`Got command: ${newCommand.data.name}`);
         this.apiCommandData.push(newCommand.data);

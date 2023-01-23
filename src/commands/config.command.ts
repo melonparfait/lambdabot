@@ -1,11 +1,11 @@
-import { Command, DiscordMessage } from '../helpers/lambda.interface';
+import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
 import { checkGamePhase } from '../helpers/command.errorchecks';
 import { errorProcessingCommand, gameSettings, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
-import { GameManager } from '../game-manager';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { GameManager } from '../services/game-manager';
 
-export class ConfigCommand implements Command {
+export class ConfigCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;
@@ -14,39 +14,42 @@ export class ConfigCommand implements Command {
     .setName('config')
     .setDescription('Changes the configuration for the current game. Usable only during setup.')
     .addStringOption(option => option.setName('timers')
-      .addChoice('Play with timers', 'on')
-      .addChoice('Play without timers', 'off')
       .setDescription('Enables/disables timers for making guesses.')
-      .setRequired(true))
+      .setRequired(true)
+      .addChoices(
+        { name: 'Play with timers', value: 'on' },
+        { name: 'Play without timers', value: 'off' },
+      ))
     .addStringOption(option => option.setName('trackstats')
-      .addChoice('Track stats', 'on')
-      .addChoice('Don\'t track stats', 'off')
       .setDescription('Enables/disables stat tracking. Use `true` to track stats.')
-      .setRequired(true))
+      .setRequired(true)
+      .addChoices(
+        { name: 'Track stats', value: 'on' },
+        { name: 'Don\'t track stats', value: 'off' }
+      ))
     .addIntegerOption(option => option.setName('threshold')
       .setDescription('Number of points a team needs to win.')
       .setRequired(false))
     .addIntegerOption(option => option.setName('defensetimer')
       .setDescription('Number of seconds the defending team has to make a counter guess. (disabled if async)')
-      .setRequired(false))
-    .setDefaultPermission(true);
-  async execute(interaction: CommandInteraction, gameManager: GameManager) {
+      .setRequired(false));
+  async execute(interaction: ChatInputCommandInteraction) {
     let asyncConfig: boolean;
     let trackStatsConfig: boolean;
     let thresholdConfig: number | 'default';
     let defenseTimerConfig: number;
 
     const channelId = interaction.channelId;
-    if (!gameManager.hasGame(channelId) || gameManager.checkForFinishedGame(channelId)) {
+    if (!this.gameManager.hasGame(channelId) || this.gameManager.checkForFinishedGame(channelId)) {
       return interaction.reply(noActiveGameMessage);
-    } else if (gameManager.getGame(channelId).status !== 'setup') {
+    } else if (this.gameManager.getGame(channelId).status !== 'setup') {
       return interaction.reply(setupOnly);
     } else {
       try {
         asyncConfig = interaction.options.getString('timers', true) === 'off';
         trackStatsConfig = interaction.options.getString('trackstats', true) === 'on';
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
-        defenseTimerConfig = interaction.options.getInteger('defensetimer');
+        defenseTimerConfig = interaction.options.getInteger('defensetimer') ?? 90;
 
         if (thresholdConfig < 5) {
           return interaction.reply(this.minimumThresholdError(thresholdConfig));
@@ -59,11 +62,11 @@ export class ConfigCommand implements Command {
         defenseTimerConfig = defenseTimerConfig * 1000;
 
       } catch (err) {
-        interaction.reply(errorProcessingCommand);
+        return interaction.reply(errorProcessingCommand);
       }
     }
 
-    gameManager.getGame(channelId).setSettings({
+    this.gameManager.getGame(channelId).setSettings({
       threshold: thresholdConfig,
       asyncPlay: asyncConfig,
       oGuessTime: 0,
@@ -71,8 +74,8 @@ export class ConfigCommand implements Command {
       trackStats: trackStatsConfig
     });
 
-    await interaction.reply(this.sendUpdatedSettings(interaction.channelId, gameManager));
-    await updateGameInfo(interaction.channel, gameManager);
+    await interaction.reply(this.sendUpdatedSettings(interaction.channelId, this.gameManager));
+    await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
   }
 
   sendUpdatedSettings(channelId: string, gameManager: GameManager) {

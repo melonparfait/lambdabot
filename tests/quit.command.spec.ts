@@ -1,12 +1,13 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as QuitCommand from '../src/commands/quit.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
+import * as QuitCommand from '../src/commands/quit.command';
 import { Game } from '../src/models/game';
 import { noActiveGameMessage } from '../src/helpers/print.gameinfo';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -14,14 +15,17 @@ const TEST_CHANNEL_ID = '12345';
 describe('quit command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = QuitCommand;
+    command = <LambdabotCommand><unknown>QuitCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
   });
 
@@ -32,7 +36,7 @@ describe('quit command', () => {
   context('when there is no game in the channel', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should send a message that there\'s no game in the channel', () =>{
@@ -49,7 +53,7 @@ describe('quit command', () => {
       gameManager.addGame(TEST_CHANNEL_ID, gameRef);
       endGameSpy = sinon.spy(gameRef, 'endGame');
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should end the game', () => {

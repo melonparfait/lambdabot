@@ -1,19 +1,19 @@
-import { InteractionType } from 'discord-api-types';
-import { Channel, Client, Collection, CommandInteraction, CommandInteractionOptionResolver, DMChannel, Intents, Message, TextBasedChannel, TextBasedChannels, TextChannel, User, UserManager } from 'discord.js';
-import _, { isUndefined } from 'lodash';
+import { ChatInputCommandInteraction, Collection, CommandInteractionOptionResolver, Message, TextBasedChannel, TextChannel, User, UserManager } from 'discord.js';
+import _ from 'lodash';
 import * as sinon from 'sinon';
 import { anyString, anything, instance, mock, reset, resetCalls, when } from 'ts-mockito';
+import { LambdaClient } from '../lambda-client';
 
 export enum CommandArgType {
   boolean, integer, string, number
 }
 
 export class MockInteraction {
-  mockedInteraction: CommandInteraction;
-  interactionInstance: CommandInteraction;
+  mockedInteraction: ChatInputCommandInteraction;
+  interactionInstance: ChatInputCommandInteraction;
 
-  mockChannel: TextBasedChannels;
-  channelInstance: TextBasedChannels;
+  mockChannel: TextBasedChannel;
+  channelInstance: TextBasedChannel;
 
   mockUser: MockUser;
   userInstance: User;
@@ -41,7 +41,7 @@ export class MockInteraction {
   }
 
   private initMockInteraction() {
-    this.mockedInteraction = mock(CommandInteraction);
+    this.mockedInteraction = mock(ChatInputCommandInteraction);
     this.interactionInstance = instance(this.mockedInteraction);
 
     when(this.mockedInteraction.channelId).thenReturn(this.channelId);
@@ -63,7 +63,7 @@ export class MockInteraction {
   }
 
   private initMockChannel() {
-    this.mockChannel = mock(TextBasedChannel);
+    this.mockChannel = mock(TextChannel);
     this.channelInstance = instance(this.mockChannel);
     when(this.mockChannel.id).thenReturn(this.channelId);
     when(this.mockChannel.send(anything())).thenCall(arg => this.channelSend(arg));
@@ -104,7 +104,7 @@ export class MockInteraction {
 
   setInteractionInput(type: 'string' | 'boolean' | 'number' | 'integer',
       name: string,
-      value: string | boolean | number) {
+      value: string | boolean | number | undefined) {
     switch (type) {
       case 'string':
         when(this.mockOptions.getString(name)).thenReturn(value as string);
@@ -249,7 +249,7 @@ export class MockUser {
     when(this.mockUser.id).thenReturn(this.userId);
     when(this.mockUser.tag).thenReturn(this.userId);
     when(this.mockUser.send(anything())).thenCall(args => this.send(args))
-      .thenReturn(Promise.resolve(undefined));
+      .thenReturn(Promise.resolve(mock(Message)));
   }
 
   resetMock() {

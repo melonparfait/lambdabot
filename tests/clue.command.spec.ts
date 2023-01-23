@@ -2,12 +2,13 @@ import { expect } from 'chai';
 import { CommandArgType, MockInteraction, MockUser } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as ClueCommand from '../src/commands/clue.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
+import * as ClueCommand from '../src/commands/clue.command';
 import { gameInfo, noActiveGameMessage, gameNotInProgress, clueGiverOnly } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -15,14 +16,17 @@ const TEST_CHANNEL_ID = '12345';
 describe('clue command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = ClueCommand;
+    command = <LambdabotCommand><unknown>ClueCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
   });
 
@@ -33,7 +37,7 @@ describe('clue command', () => {
   context('when there is no game running', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that there\'s no active game', () => {
@@ -46,7 +50,7 @@ describe('clue command', () => {
       mockInteraction.reply.resetHistory();
       gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
       gameManager.getGame(TEST_CHANNEL_ID).status = 'setup';
-      await command.execute(mockInteraction.interactionInstance, gameManager);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that the game is already running', () => {
@@ -82,7 +86,7 @@ describe('clue command', () => {
       beforeEach(async () => {
         gameRef.roundCounter = 0;
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should tell the user that they\'re not the clue giver', () => {
@@ -99,7 +103,7 @@ describe('clue command', () => {
         mockInteraction.setInteractionInput('string', 'clue', givenClue);
         mockInteraction.reply.resetHistory();
         mockInteraction.editPinnedMsg.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager)
+        await command.execute(mockInteraction.interactionInstance)
       });
 
       it('should set the game\'s current clue to the input string', () => {

@@ -1,32 +1,31 @@
 import { Game } from '../models/game';
-import { Command } from '../helpers/lambda.interface';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { couldNotPin, errorProcessingCommand, gameAlreadyExists, gameInfo, newGameStarted } from '../helpers/print.gameinfo';
-import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { CommandInteraction, Message } from 'discord.js';
-import { GameManager } from '../game-manager';
-import { ClueManager } from '../clue-manager';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction, CommandInteraction, Message } from 'discord.js';
+import { GameManager } from '../services/game-manager';
+import { ClueManager } from '../services/clue-manager';
 
-export class NewGameCommand implements Command {
+export class NewGameCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown?: 5;
   hasChannelCooldown = true;
   isGuildOnly = true;
   data = new SlashCommandBuilder()
     .setName('newgame')
-    .setDescription('Starts a new game of Wavelength')
-    .setDefaultPermission(true);
-  async execute(interaction: CommandInteraction, gameManager: GameManager, clueManager: ClueManager) {
+    .setDescription('Starts a new game of Wavelength');
+  async execute(interaction: ChatInputCommandInteraction) {
     let gameContext: Game;
     const channelId = interaction.channelId;
-    if (gameManager.hasGame(channelId)) {
-      gameContext = gameManager.getGame(channelId);
+    if (this.gameManager.hasGame(channelId)) {
+      gameContext = this.gameManager.getGame(channelId);
       switch (gameContext.status) {
         case 'setup':
         case 'playing':
           return interaction.reply(gameAlreadyExists);
         case 'finished':
-          gameManager.addGame(channelId,
-            new Game(channelId, clueManager.data, {
+          this.gameManager.addGame(channelId,
+            new Game(channelId, this.clueManager.data, undefined, {
               threshold: gameContext.threshold,
               asyncPlay: gameContext.asyncPlay,
               oGuessTime: 180 * 1000,
@@ -38,10 +37,10 @@ export class NewGameCommand implements Command {
           return interaction.reply(errorProcessingCommand);
         }
     } else {
-      gameManager.addGame(channelId, new Game(channelId, clueManager.data));
+      this.gameManager.addGame(channelId, new Game(channelId, this.clueManager.data));
     }
 
-    gameContext = gameManager.getGame(channelId);
+    gameContext = this.gameManager.getGame(channelId);
     gameContext.join(interaction.user.id);
 
     await interaction.reply(gameInfo(gameContext));
@@ -50,7 +49,7 @@ export class NewGameCommand implements Command {
       await msg.pin();
       gameContext.pinnedInfo = msg;
     } catch(err) {
-      gameManager.removeGame(interaction.channelId);
+      this.gameManager.removeGame(interaction.channelId);
       try {
         return interaction.followUp(couldNotPin);
       } catch (err) {

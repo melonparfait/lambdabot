@@ -1,23 +1,19 @@
 import { sendNewRoundMessages } from '../helpers/newround';
-import { Command, DiscordMessage } from '../helpers/lambda.interface';
-import { CommandInteraction, InteractionReplyOptions, TextChannel, UserManager } from 'discord.js';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextChannel, UserManager } from 'discord.js';
 import { clueGiverOnly, gameNotInProgress, noActiveGameMessage as noActiveGame, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { GameManager } from '../game-manager';
-import { ClueManager } from '../clue-manager';
 
-export class SkipCommand implements Command {
+export class SkipCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;
   isGuildOnly = true;
   data = new SlashCommandBuilder()
     .setName('skip')
-    .setDescription('Get a new clue')
-    .setDefaultPermission(true);
-  async execute(interaction: CommandInteraction,
-      gameManager: GameManager, clueManager: ClueManager, userManager: UserManager) {
-    const game = gameManager.getGame(interaction.channelId);
+    .setDescription('Get a new clue');
+  async execute(interaction: ChatInputCommandInteraction) {
+    const game = this.gameManager.getGame(interaction.channelId);
     if (!game) {
       return interaction.reply(noActiveGame);
     } else if (game.status !== 'playing') {
@@ -29,7 +25,7 @@ export class SkipCommand implements Command {
     } else {
       game.round.generateNewValue();
       const msgToReply = await sendNewRoundMessages(interaction,
-        game, clueManager, userManager);
+        game, this.clueManager, this.lambdaClient.users);
       return interaction.reply(msgToReply);
     }
   }

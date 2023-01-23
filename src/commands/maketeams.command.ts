@@ -1,12 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
-import { ClueManager } from '../clue-manager';
-import { DBService } from '../db.service';
-import { GameManager } from '../game-manager';
-import { Command, DiscordMessage } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { gameAlreadyExists, noActiveGameMessage, roster, updateGameInfo } from '../helpers/print.gameinfo';
 
-class MakeTeamsCommand implements Command {
+class MakeTeamsCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 2;
   hasChannelCooldown = true;
@@ -14,18 +11,22 @@ class MakeTeamsCommand implements Command {
   data = new SlashCommandBuilder()
     .setName('maketeams')
     .setDescription('assigns players to teams')
-    .setDefaultPermission(true)
     .addStringOption(option => option.setName('assignmentmode')
-      .addChoice('random', 'random')
       .setDescription('Choose how to assign players to a team. (Options: random)')
-      .setRequired(true))
+      .setRequired(true)
+      .addChoices(
+        { name: 'random', value: 'random' }
+    ))
     .addStringOption(option => option.setName('reset')
-      .addChoice('Reset teams', 'reset')
-      .addChoice('Don\'t reset teams', 'no_reset')
       .setDescription('Reset teams before assignment?')
-      .setRequired(true));
-  async execute (interaction: CommandInteraction, gameManager: GameManager) {
-    const game = gameManager.getGame(interaction.channelId);
+      .setRequired(true)
+      .addChoices( 
+        { name: 'Reset teams', value: 'reset' },
+        { name: 'Don\'t reset teams', value: 'no_reset' }
+    ));
+
+  async execute (interaction: ChatInputCommandInteraction) {
+    const game = this.gameManager.getGame(interaction.channelId);
     if (!game || game.status === 'finished') {
       return interaction.reply(noActiveGameMessage);
     } else if (game.status === 'playing') {
@@ -50,7 +51,7 @@ class MakeTeamsCommand implements Command {
       }
 
       await interaction.reply(roster(game));
-      await updateGameInfo(interaction.channel, gameManager);
+      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
     }
   };
 

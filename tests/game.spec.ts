@@ -38,7 +38,7 @@ describe('Game model tests', () => {
     });
 
     it('should initialize a game with defined settings', () => {
-      game = new Game('testGame', [], { threshold, asyncPlay, dGuessTime, oGuessTime, trackStats });
+      game = new Game('testGame', [], undefined, { threshold, asyncPlay, dGuessTime, oGuessTime, trackStats });
 
       expect(game.threshold).to.equal(threshold);
       expect(game.asyncPlay).to.equal(asyncPlay);

@@ -1,31 +1,33 @@
-import { Client, Collection, Intents } from 'discord.js';
-import { DBService } from './db.service';
-import { Command } from './helpers/lambda.interface';
-import { Game } from './models/game';
+import { Client, ClientEvents, Collection, Events, GatewayIntentBits } from 'discord.js';
+import { DBService } from './services/db.service';
+import { EventTriggerType, LambdabotCommand, LambdabotEvent } from './helpers/lambda.interface';
 import neatCSV = require('csv-parser');
-import { Clue } from './models/clue';
-import { CommandLoader } from './command-loader';
-import { CooldownManager } from './cooldown-manager';
-import { owner_id } from '../keys.json';
-import { GameManager } from './game-manager';
-import { ClueManager } from './clue-manager';
-import { client_id } from '../keys.json';
+import { CommandLoader } from './services/command-loader';
+import { EventLoader } from './services/event-loader';
+import { CooldownManager } from './services/cooldown-manager';
+import { GameManager } from './services/game-manager';
+import { ClueManager } from './services/clue-manager';
 
 export class LambdaClient extends Client {
   /** A collection of the client's command set keyed by command name */
-  commands: Collection<string, Command>;
+  commands: Collection<string, LambdabotCommand>;
+  events: Collection<keyof ClientEvents, LambdabotEvent>;
 
   constructor(public dbService: DBService,
       public commandLoader: CommandLoader,
+      public eventLoader: EventLoader,
       public cooldownManager: CooldownManager,
       public gameManager: GameManager,
       public clueManager: ClueManager) {
-    super({ intents: [Intents.FLAGS.GUILDS] });
+    super({ intents: [GatewayIntentBits.Guilds] });
   }
 
   async initializeCommands(mode: 'dev' | 'prod') {
     const existingCommandsFromAPI = await this.commandLoader.getCommandListFromAPI(mode);
     this.commands = await this.commandLoader.getCommands();
+    this.commands.forEach((value, key) => {
+      value.setLambdaClient(this);
+    })
     if (mode === 'dev') {
       await this.commandLoader.registerCommandsToDevAPI(existingCommandsFromAPI);
     } else if (mode === 'prod') {
@@ -34,5 +36,17 @@ export class LambdaClient extends Client {
     }
 
     // TODO: set command permissions
+  }
+
+  async initializeEvents() {
+    this.events = await this.eventLoader.getEvents();
+    this.events.forEach((value, key: keyof ClientEvents) => {
+      value.setLambdaClient(this);
+      if (value.eventTriggerType === EventTriggerType.on) {
+        this.on(key, (...args) => value.execute(...args));
+      } else {
+        this.once(key, (...args) => value.execute(...args));
+      }
+    });
   }
 }

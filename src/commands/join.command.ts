@@ -1,11 +1,11 @@
-import { Command } from '../helpers/lambda.interface';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { remove } from 'lodash';
 import { gameInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { CommandInteraction, InteractionReplyOptions } from 'discord.js';
-import { GameManager } from '../game-manager';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { GameManager } from '../services/game-manager';
 
-export class JoinCommand implements Command {
+export class JoinCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 5;
   hasChannelCooldown = true;
@@ -14,17 +14,17 @@ export class JoinCommand implements Command {
     .setName('join')
     .setDescription('Join the current game')
     .addStringOption(option => option.setName('team')
-      .addChoices([
-        ['Team 1', '1'],
-        ['Team 2', '2'],
-        ['Random', 'random'],
-        ['Neither team', 'no_team'],
-      ])
       .setDescription('Which team to join.')
-      .setRequired(false))
-    .setDefaultPermission(true);
-  async execute(interaction: CommandInteraction, gameManager: GameManager) {
-    const game = gameManager.getGame(interaction.channelId);
+      .setRequired(false)
+      .addChoices(
+        { name: 'Team 1', value: '1'},
+        { name: 'Team 2', value: '2'},
+        { name: 'Random', value: 'random'},
+        { name: 'Neither team', value: 'no_team'},
+    ));
+
+  async execute(interaction: ChatInputCommandInteraction) {
+    const game = this.gameManager.getGame(interaction.channelId);
     const userId = interaction.user.id;
     if (!game || game.status === 'finished') {
       return interaction.reply(noActiveGameMessage);
@@ -60,10 +60,10 @@ export class JoinCommand implements Command {
             : this.userLeftTeam(userId, prevTeam)
           : this.teamJoinedMsg(newPlayer, userId, teamArg);
         await interaction.reply(msg);
-        await updateGameInfo(interaction.channel, gameManager);
+        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
       } else if (game.join(userId)) {
         await interaction.reply(this.userJoinedGame(userId));
-        await updateGameInfo(interaction.channel, gameManager);
+        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
       } else {
         return interaction.reply(this.alreadyInGame);
       }

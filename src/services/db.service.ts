@@ -1,6 +1,6 @@
-import * as sqlite3 from 'sqlite3';
-import { PlayerStats } from './helpers/print.stats';
-import { OffenseScore } from './models/scoring.results';
+import { Database, OPEN_CREATE, verbose } from 'sqlite3';
+import { PlayerStats } from '../helpers/print.stats';
+import { OffenseScore } from '../models/scoring.results';
 
 const genPerformanceTable = `CREATE TABLE IF NOT EXISTS performances(
   user_id TEXT NOT NULL,
@@ -27,7 +27,7 @@ export class DBService {
     return this._connected;
   }
 
-  db: sqlite3.Database;
+  db: Database;
   constructor() {}
 
   connect() {
@@ -36,16 +36,26 @@ export class DBService {
       return;
     }
 
-    this.db = new sqlite3.Database('./db/data.db',
+    this.db = new Database('./db/data.db',
       err => {
         if (err) {
           console.log(`Unable to establish connection to database: ${err}`);
         } else {
           this._connected = true;
           console.log('Connected to database!');
-          this.db.parallelize(() => {
-            this.db.run(genPerformanceTable)
-              .run(genGamesTable);
+
+          this.db.serialize(() => {
+            console.log('generating performance table...');
+            this.db.run(genPerformanceTable, (result, err) => {
+              console.log('finished generating performance table');
+              console.log('result: ', result);
+              console.log('err: ', err);
+              console.log('generating games table...');
+            }).run(genGamesTable, (result, err) => {
+              console.log('finished generating games table');
+              console.log('result: ', result);
+              console.log('err: ', err);
+            });
           });
         }
       });

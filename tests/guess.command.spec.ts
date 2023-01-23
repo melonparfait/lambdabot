@@ -2,14 +2,15 @@ import { expect } from 'chai';
 import { MockInteraction, MockUser, MockUserManager } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { GameManager } from '../src/game-manager';
-import { ClueManager } from '../src/clue-manager';
-import * as GuessCommand from '../src/commands/guess.new.command';
+import { GameManager } from '../src/services/game-manager';
+import { ClueManager } from '../src/services/clue-manager';
+import * as GuessCommand from '../src/commands/guess.command';
 import { Game } from '../src/models/game';
 import { gameInfo, gameNotInProgress, noActiveGameMessage, roundStatus } from '../src/helpers/print.gameinfo';
-import { DBService } from '../src/db.service';
+import { DBService } from '../src/services/db.service';
 import { instance, mock } from 'ts-mockito';
-import { OffenseScore, ScoringResults } from '../src/models/scoring.results';
+import { ScoringResults } from '../src/models/scoring.results';
+import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -17,7 +18,7 @@ const TEST_CHANNEL_ID = '12345';
 describe('guess command', () => {
   chai.use(require('sinon-chai'));
   let mockInteraction: MockInteraction;
-  let command: any;
+  let command: LambdabotCommand & any;
   let gameManager: GameManager;
   let clueManager: ClueManager;
   let mockUserManager: MockUserManager;
@@ -33,13 +34,16 @@ describe('guess command', () => {
   let roundValue: number;
 
   beforeEach(() => {
-    command = GuessCommand;
+    command = <LambdabotCommand><unknown>GuessCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
       Lower: `lower${index}`,
       Higher: `higher${index}`
     }});
+
+
+
     player1 = new MockUser(TEST_USER_ID);
     player2 = new MockUser('player2');
     player3 = new MockUser('player3');
@@ -49,6 +53,13 @@ describe('guess command', () => {
     mockInteraction = new MockInteraction(TEST_USER_ID, TEST_CHANNEL_ID);
     mockDBService = mock(DBService);
     dbServiceInstance = instance(mockDBService);
+
+    command.gameManager = gameManager;
+    command.clueManager = clueManager;
+    command.lambdaClient = {
+      users: mockUserManager.userManagerInstance
+    };
+    command.dbService = dbServiceInstance;
   });
 
   it('should create', () => {
@@ -58,8 +69,7 @@ describe('guess command', () => {
   context('when there is no game running', () => {
     beforeEach(async () => {
       mockInteraction.reply.resetHistory();
-      await command.execute(mockInteraction.interactionInstance, gameManager,
-        clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that there\'s no active game', () => {
@@ -72,8 +82,7 @@ describe('guess command', () => {
       mockInteraction.reply.resetHistory();
       gameManager.addGame(TEST_CHANNEL_ID, new Game(TEST_CHANNEL_ID, []));
       gameManager.getGame(TEST_CHANNEL_ID).status = 'setup';
-      await command.execute(mockInteraction.interactionInstance, gameManager,
-        clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+      await command.execute(mockInteraction.interactionInstance);
     });
 
     it('should reply that the game is already running', () => {
@@ -102,8 +111,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 50);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that the clue giver cannot guess', () => {
@@ -118,8 +126,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player1.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 50);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that only players on the right team can guess', () => {
@@ -135,8 +142,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 50);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that a guess has already been made', () => {
@@ -152,8 +158,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 50);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that a clue hasn\'t been given yet', () => {
@@ -169,8 +174,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 101);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that the guess has to be a valid integer', () => {
@@ -186,8 +190,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 0);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that the guess has to be a valid integer', () => {
@@ -206,8 +209,7 @@ describe('guess command', () => {
         gameRef.team2.players.push(player3.userId, player4.userId)
         mockInteraction.setInteractionInput('integer', 'number', 40);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should have set the offensive guess on the game', () => {
@@ -240,8 +242,7 @@ describe('guess command', () => {
         gameRef.team1.players.push(player1.userId, player2.userId);
         gameRef.team2.players.push(player3.userId, player4.userId);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that only players on the defense team can counter', () => {
@@ -257,8 +258,7 @@ describe('guess command', () => {
         gameRef.team1.players.push(player2.userId, player3.userId);
         gameRef.team2.players.push(player1.userId, player4.userId);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply there is\'nt a guess yet', () => {
@@ -284,12 +284,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 55;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -321,7 +320,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -335,12 +334,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 45;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -372,7 +370,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -386,12 +384,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 49;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -423,7 +420,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -448,12 +445,11 @@ describe('guess command', () => {
             oGuessTime: 0
           });
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -493,7 +489,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -518,13 +514,12 @@ describe('guess command', () => {
             oGuessTime: 0
           });
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.messageUnpin.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should end the game', () => {
@@ -583,8 +578,7 @@ describe('guess command', () => {
         gameRef.team1.players.push(player1.userId, player2.userId);
         gameRef.team2.players.push(player3.userId, player4.userId);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply that only players on the defense team can counter', () => {
@@ -600,8 +594,7 @@ describe('guess command', () => {
         gameRef.team1.players.push(player2.userId, player3.userId);
         gameRef.team2.players.push(player1.userId, player4.userId);
         mockInteraction.reply.resetHistory();
-        await command.execute(mockInteraction.interactionInstance, gameManager,
-          clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+        await command.execute(mockInteraction.interactionInstance);
       });
 
       it('should reply there is\'nt a guess yet', () => {
@@ -627,12 +620,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 42;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -664,7 +656,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -678,12 +670,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 69;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -715,7 +706,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -729,12 +720,11 @@ describe('guess command', () => {
           gameRef.round.value = 50;
           gameRef.round.oGuess = 50;
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should send a message to the channel with the results', () => {
@@ -766,7 +756,7 @@ describe('guess command', () => {
 
         it('should message the user info about the round', () => {
           const clueGiver = mockUserManager.mockUserCache.get(gameRef.round.clueGiver);
-          expect(clueGiver.send).to.have.been.calledOnce;
+          expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
         it('should update the pinned info', () => {
@@ -791,13 +781,12 @@ describe('guess command', () => {
             oGuessTime: 0
           });
           roundValue = gameRef.round.value;
-          mockUserManager.mockUserCache.get(gameRef.round.clueGiver).send.resetHistory();
+          mockUserManager.mockUserCache.get(gameRef.round.clueGiver)?.send.resetHistory();
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.messageUnpin.resetHistory();
-          await command.execute(mockInteraction.interactionInstance, gameManager,
-            clueManager, mockUserManager.userManagerInstance, dbServiceInstance);
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should end the game', () => {

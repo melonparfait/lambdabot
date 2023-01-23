@@ -11,14 +11,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class Game {
   private _settings: GameSettings;
+  readonly id: string;
   players = new Set<string>();
   status: GamePhase = 'setup';
   team1: GameTeam;
   team2: GameTeam;
   roundCounter: number;
   round: Round;
-  currentClue: string;
-  pinnedInfo: Message;
+  currentClue: string | undefined;
+  pinnedInfo: Message | undefined;
   playedClues: number[] = [];
   outcomes: Map<string, Map<number, number>> = new Map();
   catchupParity: 0 | 1 = 0;
@@ -56,9 +57,8 @@ export class Game {
   }
 
   constructor(public readonly channelId: string,
-      public readonly clues: Clue[],
-      settings?: GameSettings,
-      public readonly id?: string) {
+      public readonly clues: Clue[], id?: string,
+      settings?: GameSettings) {
     if (isUndefined(settings)) {
       this._settings = cloneDeep(DEFAULT_SETTINGS);
     } else {
