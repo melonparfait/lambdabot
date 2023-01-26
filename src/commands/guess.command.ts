@@ -32,49 +32,50 @@ export class GuessCommand extends LambdabotCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const game = this.gameManager.getGame(interaction.channelId);
     if (!game || game.status === 'finished') {
-      return interaction.reply(noActiveGameMessage);
+      return await interaction.reply(noActiveGameMessage);
     } else if (game.status !== 'playing') {
-      return interaction.reply(gameNotInProgress);
+      return await interaction.reply(gameNotInProgress);
     }
 
     const subcmd = interaction.options.getSubcommand();
     switch(subcmd) {
       case 'clue':
         if (interaction.user.id === game.round.clueGiver) {
-          return interaction.reply(this.clueGiverCannotGuess);
+          return await interaction.reply(this.clueGiverCannotGuess);
         } else if (!game.round.oTeam.players.includes(interaction.user.id)) {
-          return interaction.reply(this.wrongTeamCannotGuess(game.offenseTeamNumber()));
+          return await interaction.reply(this.wrongTeamCannotGuess(game.offenseTeamNumber()));
         } else if (game.round.oGuess) {
-          return interaction.reply(this.alreadyGuessed(game.round.oGuess));
+          return await interaction.reply(this.alreadyGuessed(game.round.oGuess));
         } else if (isUndefined(game.currentClue)) {
-          return interaction.reply(this.noClueYet);
+          return await interaction.reply(this.noClueYet);
         } else {
           const guess = interaction.options.getInteger('number', true);
           if (guess < 1 || guess > 100) {
-            return interaction.reply(this.invalidInteger);
+            return await interaction.reply(this.invalidInteger);
           } else {
             game.round.makeOGuess(guess);
-            interaction.reply(this.counterPrompt(game));
-      
+
             if (!game.asyncPlay) {
+              await interaction.reply(this.counterPrompt(game));
               const timerTick = this.getDefenseTimerInterval(game.dGuessTime);
               let countdownCounter = 1;
               const timer = setInterval(async () => {
                 if (game.round.dGuess !== undefined || countdownCounter === this.TIMER_DIVISION) {
                   clearInterval(timer);
                   const scoreResult = game.score(false);
-                  interaction.followUp(`Team ${game.defenseTeamNumber()} ran out of time!`
+                  await interaction.followUp(`Team ${game.defenseTeamNumber()} ran out of time!`
                     + `\nThe real answer was ${game.round.value}!`);
                   const closeRoundMsg = await this.closeRound(interaction, scoreResult);
-                  interaction.followUp(closeRoundMsg);
-                  return;
+                  return await interaction.followUp(closeRoundMsg);
                 } else if (game.status === 'finished') {
                   // someone quit the game
                   clearInterval(timer);
                 }
-                interaction.followUp(`${(Math.floor(game.dGuessTime - timerTick * countdownCounter) / 1000)} seconds left!`);
                 countdownCounter++;
+                return await interaction.followUp(`${(Math.floor(game.dGuessTime - timerTick * countdownCounter) / 1000)} seconds left!`);
               }, timerTick);
+            } else {
+              return await interaction.reply(this.counterPrompt(game));
             }
           }
         }
@@ -83,21 +84,20 @@ export class GuessCommand extends LambdabotCommand {
       case 'lower':
         const isPlayerOnDTeam = game.round.dTeam.players.includes(interaction.user.id);
         if (!isPlayerOnDTeam) {
-          interaction.reply(this.wrongTeamCannotCounter(game.defenseTeamNumber()));
+          return await interaction.reply(this.wrongTeamCannotCounter(game.defenseTeamNumber()));
         } else if (!game.round.oGuess) {
-          interaction.reply(this.noGuessYet);
+          return await interaction.reply(this.noGuessYet);
         } else {
           const isHigher = subcmd === 'higher';
           game.round.makeDGuess(isHigher);
 
           const scoreResult = game.score();
-          interaction.reply(this.resolveGuessMessage(scoreResult, game));
+          await interaction.reply(this.resolveGuessMessage(scoreResult, game));
           const roundResults = await this.closeRound(interaction, scoreResult);
-          interaction.followUp(roundResults);
+          return await interaction.followUp(roundResults);
         }
-        break;
       default:
-        interaction.reply(errorProcessingCommand);
+        return await interaction.reply(errorProcessingCommand);
     }
     
   }
@@ -107,7 +107,7 @@ export class GuessCommand extends LambdabotCommand {
   async closeRound(interaction: ChatInputCommandInteraction, results: ScoringResults) {
     const game = this.gameManager.getGame(interaction.channelId);
 
-    interaction.followUp(this.pointChange(results, game));
+    await interaction.followUp(this.pointChange(results, game));
 
     const catchup = results.offenseResult === OffenseScore.bullseye
       && game.offenseTeam.points < game.defenseTeam.points;
@@ -142,11 +142,11 @@ export class GuessCommand extends LambdabotCommand {
     } else {
       if (game.team1.points > game.threshold
           && game.team2.points > game.threshold) {
-        interaction.followUp(this.closeGame);
+        await interaction.followUp(this.closeGame);
       }
 
       if (catchup) {
-        interaction.followUp(this.catchupTriggered(game.offenseTeamNumber()));
+        await interaction.followUp(this.catchupTriggered(game.offenseTeamNumber()));
       }
 
       game.newRound();
