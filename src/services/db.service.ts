@@ -45,17 +45,8 @@ export class DBService {
           console.log('Connected to database!');
 
           this.db.serialize(() => {
-            console.log('generating performance table...');
-            this.db.run(genPerformanceTable, (result, err) => {
-              console.log('finished generating performance table');
-              console.log('result: ', result);
-              console.log('err: ', err);
-              console.log('generating games table...');
-            }).run(genGamesTable, (result, err) => {
-              console.log('finished generating games table');
-              console.log('result: ', result);
-              console.log('err: ', err);
-            });
+            this.db.run(genPerformanceTable)
+              .run(genGamesTable);
           });
         }
       });
