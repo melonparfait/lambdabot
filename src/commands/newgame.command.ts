@@ -51,13 +51,13 @@ export class NewGameCommand extends LambdabotCommand {
     } catch(err) {
       this.gameManager.removeGame(interaction.channelId);
       try {
-        return interaction.followUp(couldNotPin);
+        return await interaction.followUp(couldNotPin);
       } catch (err) {
         console.log('application error: ', err);
       }
     }
 
-    return interaction.followUp(newGameStarted(interaction.user.id));
+    return await interaction.followUp(newGameStarted(interaction.user.id));
   }
 }
 

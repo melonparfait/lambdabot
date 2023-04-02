@@ -4,7 +4,11 @@ import { Clue } from '../models/clue';
 
 export class ClueManager {
   /** The client's clue set */
-  data: {Lower: string, Higher: string}[];
+  data: Clue[];
+
+  generateClueIndex(): number {
+    return Math.floor(Math.random() * this.data.length);
+  }
 
   loadClues() {
     const results: Clue[] = [];

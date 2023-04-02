@@ -1,7 +1,7 @@
-import { sendNewRoundMessages } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver, updatePin } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { InteractionReplyOptions, ChatInputCommandInteraction } from 'discord.js';
-import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard } from '../helpers/print.gameinfo';
+import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { Game } from '../models/game';
@@ -65,8 +65,7 @@ export class GuessCommand extends LambdabotCommand {
                   const scoreResult = game.score(false);
                   await interaction.followUp(`Team ${game.defenseTeamNumber()} ran out of time!`
                     + `\nThe real answer was ${game.round.value}!`);
-                  const closeRoundMsg = await this.closeRound(interaction, scoreResult);
-                  return await interaction.followUp(closeRoundMsg);
+                  return await this.closeRound(interaction, scoreResult);
                 } else if (game.status === 'finished') {
                   // someone quit the game
                   clearInterval(timer);
@@ -93,13 +92,11 @@ export class GuessCommand extends LambdabotCommand {
 
           const scoreResult = game.score();
           await interaction.reply(this.resolveGuessMessage(scoreResult, game));
-          const roundResults = await this.closeRound(interaction, scoreResult);
-          return await interaction.followUp(roundResults);
+          return await this.closeRound(interaction, scoreResult);
         }
       default:
         return await interaction.reply(errorProcessingCommand);
     }
-    
   }
 
   TIMER_DIVISION = 4;
@@ -134,10 +131,10 @@ export class GuessCommand extends LambdabotCommand {
       try {
         await game.pinnedInfo?.unpin();
         game.pinnedInfo = undefined;
-        return msg;
+        return await interaction.followUp(msg);
       } catch (err) {
         console.log(err);
-        return couldNotPin;
+        return await interaction.followUp(couldNotPin);
       }
     } else {
       if (game.team1.points > game.threshold
@@ -150,7 +147,23 @@ export class GuessCommand extends LambdabotCommand {
       }
 
       game.newRound();
-      return await sendNewRoundMessages(interaction, game, this.clueManager, this.lambdaClient.users);
+      createNewCluePrompt(game, this.clueManager);
+      await interaction.followUp(roundStatus(game));
+
+      try {
+        await updatePin(game);
+      } catch (err) {
+        console.log(err);
+        await interaction.followUp(couldNotPin);
+      }
+
+      const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
+      try {
+        return await clueGiver.send(clueGiverPrompt(game));
+      } catch (error) {
+        console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
+        return await interaction.followUp(unableToDMClueGiver(clueGiver));
+      }
     }
   }
 

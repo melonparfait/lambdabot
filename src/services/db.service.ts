@@ -125,7 +125,7 @@ export class DBService {
           console.log('Error querying the database: ', err);
           reject('Failed to query the database');
         } else {
-          resolve(rows.map(entry => entry.user_id));
+          resolve(rows.map((entry: { user_id: string }) => entry.user_id));
         }
       });
     });
@@ -160,7 +160,14 @@ export class DBService {
           reject('Failed to query the database');
         } else {
           stats.gamesPlayed = rows.length;
-          rows.forEach(entry => {
+          rows.forEach((entry: {
+              team: number,
+              perfect: number,
+              bullseye: number,
+              strong: number,
+              medium: number,
+              miss: number
+            }) => {
             const otherTeam = entry.team == 1 ? 2 : 1;
             if (entry[`team${entry.team}_score`] > entry[`team${otherTeam}_score`]) {
               stats.gamesWon++;
