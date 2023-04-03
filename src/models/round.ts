@@ -1,21 +1,18 @@
-import { ScoringResults } from './scoring.results';
 import { GameTeam } from './team';
 
 export class Round {
   clueGiver: string;
-  oTeam: GameTeam;
-  dTeam: GameTeam;
   leftClue: string;
   rightClue: string;
   value: number;
   oGuess: number | undefined;
   dGuess: boolean | undefined;
 
-  constructor(oTeam: GameTeam, dTeam: GameTeam) {
+  constructor(public oTeam: GameTeam, public dTeam: GameTeam, newValue = true) {
     this.clueGiver = oTeam.clueGiver();
-    this.oTeam = oTeam;
-    this.dTeam = dTeam;
-    this.generateNewValue();
+    if (newValue) {
+      this.generateNewValue();
+    }
   }
 
   makeOGuess(guess: number) {

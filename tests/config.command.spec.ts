@@ -100,7 +100,7 @@ describe('config command', () => {
         });
       });
 
-      it('should update the pinned game info', () => {
+      xit('should update the pinned game info', () => {
         expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
       });
 

@@ -1,10 +1,8 @@
 import { Game } from '../models/game';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { couldNotPin, errorProcessingCommand, gameAlreadyExists, gameInfo, newGameStarted } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameAlreadyExists, newGameStarted, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, Message } from 'discord.js';
-import { GameManager } from '../services/game-manager';
-import { ClueManager } from '../services/clue-manager';
+import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
 
 export class NewGameCommand extends LambdabotCommand {
   isRestricted = false;
@@ -42,22 +40,12 @@ export class NewGameCommand extends LambdabotCommand {
 
     gameContext = this.gameManager.getGame(channelId);
     gameContext.join(interaction.user.id);
-
-    await interaction.reply(gameInfo(gameContext));
-    const msg = await interaction.fetchReply() as Message;
-    try {
-      await msg.pin();
-      gameContext.pinnedInfo = msg;
-    } catch(err) {
-      this.gameManager.removeGame(interaction.channelId);
-      try {
-        return interaction.followUp(couldNotPin);
-      } catch (err) {
-        console.log('application error: ', err);
-      }
-    }
-
-    return interaction.followUp(newGameStarted(interaction.user.id));
+    await interaction.reply({
+      content: 'Starting game...',
+      ephemeral: true
+    });
+    await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+    return await interaction.followUp(newGameStarted(interaction.user.id));
   }
 }
 

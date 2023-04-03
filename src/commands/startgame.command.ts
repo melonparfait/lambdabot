@@ -1,8 +1,8 @@
 import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, TextChannel, UserManager } from 'discord.js';
-import { gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus } from '../helpers/print.gameinfo';
+import { ChatInputCommandInteraction, CommandInteraction, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
+import { couldNotPin, gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { sendNewRoundMessages } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 
 export class StartGameCommand extends LambdabotCommand {
   isRestricted = false;
@@ -16,19 +16,31 @@ export class StartGameCommand extends LambdabotCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const game = this.gameManager.getGame(interaction.channelId);
     if (!game) {
-      return interaction.reply(noActiveGameMessage);
+      return await interaction.reply(noActiveGameMessage);
     } else if (game.status === 'playing') {
-      return interaction.reply(gameAlreadyExists);
+      return await interaction.reply(gameAlreadyExists);
     } else {
       const team1Difference = Math.max(2 - game.team1.players.length, 0);
       const team2Difference = Math.max(2 - game.team2.players.length, 0);
       if (team1Difference || team2Difference) {
-        return interaction.reply(this.insufficientPlayersMessage(team1Difference, team2Difference));
+        return await interaction.reply(this.insufficientPlayersMessage(team1Difference, team2Difference));
       } else {
         game.start();
-        const msgToSend = await sendNewRoundMessages(interaction, game, this.clueManager,
-          this.lambdaClient.users);
-        interaction.reply(msgToSend);
+        createNewCluePrompt(game, this.clueManager);
+        await interaction.reply({
+          content: 'Starting game...',
+          ephemeral: true
+        });
+
+        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+  
+        const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
+        try {
+          return await clueGiver.send(clueGiverPrompt(game));
+        } catch (error) {
+          console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
+          return await interaction.followUp(unableToDMClueGiver(clueGiver));
+        }
       }
     }
   }

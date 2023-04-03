@@ -41,9 +41,9 @@ export class ConfigCommand extends LambdabotCommand {
 
     const channelId = interaction.channelId;
     if (!this.gameManager.hasGame(channelId) || this.gameManager.checkForFinishedGame(channelId)) {
-      return interaction.reply(noActiveGameMessage);
+      return await interaction.reply(noActiveGameMessage);
     } else if (this.gameManager.getGame(channelId).status !== 'setup') {
-      return interaction.reply(setupOnly);
+      return await interaction.reply(setupOnly);
     } else {
       try {
         asyncConfig = interaction.options.getString('timers', true) === 'off';
@@ -51,18 +51,20 @@ export class ConfigCommand extends LambdabotCommand {
         thresholdConfig = interaction.options.getInteger('threshold') ?? 'default';
         defenseTimerConfig = interaction.options.getInteger('defensetimer') ?? 90;
 
-        if (thresholdConfig < 5) {
-          return interaction.reply(this.minimumThresholdError(thresholdConfig));
-        } else if (defenseTimerConfig && defenseTimerConfig < 5) {
-          return interaction.reply(this.minimumDefenseTimerError(defenseTimerConfig));
-        } else if (thresholdConfig > 900000) {
-          return interaction.reply(this.maximumThresholdError(thresholdConfig));
+        if (thresholdConfig !== 'default') {
+          if (thresholdConfig < 5) {
+            return await interaction.reply(this.minimumThresholdError(thresholdConfig));
+          } else if (defenseTimerConfig && defenseTimerConfig < 5) {
+            return await  interaction.reply(this.minimumDefenseTimerError(defenseTimerConfig));
+          } else if (thresholdConfig > 900000) {
+            return await interaction.reply(this.maximumThresholdError(thresholdConfig));
+          }
         }
         // conversion to seconds
         defenseTimerConfig = defenseTimerConfig * 1000;
 
       } catch (err) {
-        return interaction.reply(errorProcessingCommand);
+        return await interaction.reply(errorProcessingCommand);
       }
     }
 

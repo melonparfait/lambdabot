@@ -1,7 +1,7 @@
-import { sendNewRoundMessages } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextChannel, UserManager } from 'discord.js';
-import { clueGiverOnly, gameNotInProgress, noActiveGameMessage as noActiveGame, updateGameInfo } from '../helpers/print.gameinfo';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
+import { clueGiverOnly, couldNotPin, gameInfo, gameNotInProgress, noActiveGameMessage as noActiveGame, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 export class SkipCommand extends LambdabotCommand {
@@ -15,18 +15,26 @@ export class SkipCommand extends LambdabotCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const game = this.gameManager.getGame(interaction.channelId);
     if (!game) {
-      return interaction.reply(noActiveGame);
+      return await interaction.reply(noActiveGame);
     } else if (game.status !== 'playing') {
-      return interaction.reply(gameNotInProgress);
+      return await interaction.reply(gameNotInProgress);
     } else if (interaction.user.id !== game.clueGiver()) {
-      return interaction.reply(clueGiverOnly);
+      return await interaction.reply(clueGiverOnly);
     } else if (game.round.oGuess) {
-      return interaction.reply(this.noSkipAfterGuess);
+      return await interaction.reply(this.noSkipAfterGuess);
     } else {
       game.round.generateNewValue();
-      const msgToReply = await sendNewRoundMessages(interaction,
-        game, this.clueManager, this.lambdaClient.users);
-      return interaction.reply(msgToReply);
+      createNewCluePrompt(game, this.clueManager);
+      await interaction.reply(roundStatus(game));
+      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+
+      const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
+      try {
+        return await clueGiver.send(clueGiverPrompt(game));
+      } catch (error) {
+        console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
+        return await interaction.followUp(unableToDMClueGiver(clueGiver));
+      }
     }
   }
 

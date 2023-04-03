@@ -56,6 +56,10 @@ export class Game {
     return this._settings.trackStats;
   }
 
+  get roundsPlayed(): number {
+    return this.roundCounter + 1;
+  }
+
   constructor(public readonly channelId: string,
       public readonly clues: Clue[], id?: string,
       settings?: GameSettings) {
@@ -70,6 +74,10 @@ export class Game {
     }
 
     this.resetTeams();
+  }
+
+  updateGame() {
+    
   }
 
   /**
@@ -153,11 +161,11 @@ export class Game {
     this.status = 'finished';
   }
 
-  newRound() {
+  newRound(newValue = true) {
     if (this.offenseTeamNumber() === 1) {
-      this.round = new Round(this.team1, this.team2);
+      this.round = new Round(this.team1, this.team2, newValue);
     } else {
-      this.round = new Round(this.team2, this.team1);
+      this.round = new Round(this.team2, this.team1, newValue);
     }
   }
 
@@ -240,8 +248,8 @@ export class Game {
   }
 
   determineWinner(): 'Team 1' | 'Team 2' | false {
-    const team1Won = this.team1.points >= this._settings.threshold;
-    const team2Won = this.team2.points >= this._settings.threshold;
+    const team1Won = this.team1.points >= this.threshold;
+    const team2Won = this.team2.points >= this.threshold;
     if (team1Won && !team2Won) {
       return 'Team 1';
     } else if (team2Won && !team1Won) {

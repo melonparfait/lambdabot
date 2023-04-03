@@ -1,43 +1,30 @@
 import { userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, TextChannel, UserManager } from 'discord.js';
+import { User } from 'discord.js';
 import { ClueManager } from '../services/clue-manager';
 import { Game } from '../models/game';
-import { roundStatus, clue, gameSettings, roster, gameInfo, couldNotPin } from './print.gameinfo';
+import { clue, gameInfo } from './print.gameinfo';
 
-export async function sendNewRoundMessages(interaction: ChatInputCommandInteraction,
-    game: Game, clueManager: ClueManager, userManager: UserManager) {
+export function createNewCluePrompt(game: Game, clueManager: ClueManager): void {
   game.currentClue = undefined;
 
-  let clueIndex = getClueIndex(clueManager.data);
-  if (game.playedClues.includes(clueIndex)) {
-    clueIndex = getClueIndex(clueManager.data);
-  }
+  let clueIndex: number;
+  do {
+    clueIndex = clueManager.generateClueIndex();
+  } while (game.playedClues.includes(clueIndex));
+
   game.addPlayedClue(clueIndex, clueManager.data.length);
   game.round.leftClue = clueManager.data[clueIndex].Lower;
   game.round.rightClue = clueManager.data[clueIndex].Higher;
-
-  const user = await userManager.fetch(game.round.clueGiver);
-
-  try {
-    await user.send(`\n**Round ${game.roundCounter + 1}:**`
-      + '\nYou\'re the clue giver!\n'
-      + clue(game.round, game.round.value)
-      + `\nThe target number is: ${game.round.value}`);
-  } catch (error) {
-    console.error(`Could not send the clue to ${user.tag}.\n`, error);
-    return `${userMention(game.round.clueGiver)} was the clue giver, `
-      + 'but I couldn\'t DM them. Do they have DMs disabled?';
-  }
-
-  try {
-    await game.pinnedInfo?.edit(gameInfo(game));
-    return(roundStatus(game));
-  } catch (err) {
-    console.log(err);
-    return couldNotPin;
-  }
 }
 
-export function getClueIndex(data: any) {
-  return Math.floor(Math.random() * data.length);
+export function clueGiverPrompt(game: Game): string {
+  return `\n**Round ${game.roundsPlayed}:**`
+      + '\nYou\'re the clue giver!\n'
+      + clue(game.round, game.round.value)
+      + `\nThe target number is: ${game.round.value}`;
+}
+
+export function unableToDMClueGiver(clueGiver: User): string {
+  return `${userMention(clueGiver.id)} was the clue giver, `
+    + 'but I couldn\'t DM them with the prompt.';
 }
