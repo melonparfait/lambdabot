@@ -1,6 +1,6 @@
-import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver, updatePin } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextChannel, UserManager } from 'discord.js';
+import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
 import { clueGiverOnly, couldNotPin, gameInfo, gameNotInProgress, noActiveGameMessage as noActiveGame, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -26,13 +26,7 @@ export class SkipCommand extends LambdabotCommand {
       game.round.generateNewValue();
       createNewCluePrompt(game, this.clueManager);
       await interaction.reply(roundStatus(game));
-
-      try {
-        await updatePin(game);
-      } catch (err) {
-        console.log(err);
-        await interaction.followUp(couldNotPin);
-      }
+      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
 
       const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
       try {

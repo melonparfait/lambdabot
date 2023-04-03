@@ -1,7 +1,7 @@
-import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver, updatePin } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { InteractionReplyOptions, ChatInputCommandInteraction } from 'discord.js';
-import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus } from '../helpers/print.gameinfo';
+import { InteractionReplyOptions, ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { Game } from '../models/game';
@@ -148,14 +148,7 @@ export class GuessCommand extends LambdabotCommand {
 
       game.newRound();
       createNewCluePrompt(game, this.clueManager);
-      await interaction.followUp(roundStatus(game));
-
-      try {
-        await updatePin(game);
-      } catch (err) {
-        console.log(err);
-        await interaction.followUp(couldNotPin);
-      }
+      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
 
       const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
       try {
@@ -209,7 +202,7 @@ export class GuessCommand extends LambdabotCommand {
   gameEndScoreboard(game: Game, winner: string) {
     return winner + ' has won the game!'
       + '\nFinal stats:'
-      + `\nRounds played: ${game.roundCounter}` + '\n'
+      + `\nRounds played: ${game.roundsPlayed}` + '\n'
       + scoreboard(game);
   }
 

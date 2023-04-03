@@ -100,7 +100,10 @@ describe('newgame command', () => {
       });
 
       it('should send a game info message to the channel', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWith(gameInfo(newGame));
+        expect(mockInteraction.reply).to.have.been.calledOnceWith({
+          content: 'Starting game...',
+          ephemeral: true
+        });
       });
 
       it('should pinned the sent message', () => {
@@ -139,7 +142,10 @@ describe('newgame command', () => {
     });
 
     it('should send a game info message to the channel', () => {
-      expect(mockInteraction.reply).to.have.been.calledOnceWith(gameInfo(newGame));
+      expect(mockInteraction.reply).to.have.been.calledOnceWith({
+        content: 'Starting game...',
+        ephemeral: true
+      });
     });
 
     it('should pinned the sent message', () => {

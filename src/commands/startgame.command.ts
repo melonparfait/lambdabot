@@ -1,8 +1,8 @@
 import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, TextChannel, UserManager } from 'discord.js';
-import { couldNotPin, gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus } from '../helpers/print.gameinfo';
+import { ChatInputCommandInteraction, CommandInteraction, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
+import { couldNotPin, gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver, updatePin } from '../helpers/newround';
+import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 
 export class StartGameCommand extends LambdabotCommand {
   isRestricted = false;
@@ -27,14 +27,12 @@ export class StartGameCommand extends LambdabotCommand {
       } else {
         game.start();
         createNewCluePrompt(game, this.clueManager);
-        await interaction.reply(roundStatus(game));
-  
-        try {
-          await updatePin(game);
-        } catch (err) {
-          console.log(err);
-          await interaction.followUp(couldNotPin);
-        }
+        await interaction.reply({
+          content: 'Starting game...',
+          ephemeral: true
+        });
+
+        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
   
         const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
         try {

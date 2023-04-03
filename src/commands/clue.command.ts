@@ -1,9 +1,8 @@
-import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
+import { LambdabotCommand } from '../helpers/lambda.interface';
 import { checkGamePhase } from '../helpers/command.errorchecks';
 import { clueGiverOnly, currentClue, gameNotInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, TextBasedChannel } from 'discord.js';
-import { GameManager } from '../services/game-manager';
+import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
 import { Game } from '../models/game';
 
 export class ClueCommand extends LambdabotCommand {

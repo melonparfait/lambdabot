@@ -18,7 +18,7 @@ export function createNewCluePrompt(game: Game, clueManager: ClueManager): void 
 }
 
 export function clueGiverPrompt(game: Game): string {
-  return `\n**Round ${game.roundCounter + 1}:**`
+  return `\n**Round ${game.roundsPlayed}:**`
       + '\nYou\'re the clue giver!\n'
       + clue(game.round, game.round.value)
       + `\nThe target number is: ${game.round.value}`;
@@ -27,8 +27,4 @@ export function clueGiverPrompt(game: Game): string {
 export function unableToDMClueGiver(clueGiver: User): string {
   return `${userMention(clueGiver.id)} was the clue giver, `
     + 'but I couldn\'t DM them with the prompt.';
-}
-
-export async function updatePin(game: Game) {
-  return await game.pinnedInfo?.edit(gameInfo(game));
 }

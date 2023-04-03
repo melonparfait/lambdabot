@@ -2,7 +2,7 @@ import { ClientEvents, Events, Client, Interaction, ChatInputCommandInteraction,
 import { EventTriggerType, LambdabotEvent } from '../helpers/lambda.interface';
 import { owner_id } from '../../keys.json';
 import { LambdaClient } from '../lambda-client';
-import { errorProcessingCommand } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, noPermissions } from '../helpers/print.gameinfo';
 
 export class InteractionCreateEvent extends LambdabotEvent {
   name = <keyof ClientEvents>Events.InteractionCreate;
@@ -22,7 +22,7 @@ export class InteractionCreateEvent extends LambdabotEvent {
       const command = this.lambdaClient.commands.get(interaction.commandName);
     
       if (!command || (command.isRestricted && interaction.user.id !== owner_id)) {
-        return await interaction.reply(errorProcessingCommand);
+        return await interaction.reply(noPermissions);
       }
     
       if (command.isGuildOnly && interaction?.channel?.type !== ChannelType.GuildText) {
@@ -53,7 +53,7 @@ export class InteractionCreateEvent extends LambdabotEvent {
             return await interaction.followUp(errorProcessingCommand);
           }
         } else {
-          return await interaction.channel?.send(errorProcessingCommand.content);
+          return await interaction.channel?.send(<string>errorProcessingCommand.content);
         }
       } catch (error2) {
         console.log(error2);

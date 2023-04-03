@@ -1,4 +1,4 @@
-import { Database, OPEN_CREATE, verbose } from 'sqlite3';
+import { Database, verbose } from 'sqlite3';
 import { PlayerStats } from '../helpers/print.stats';
 import { OffenseScore } from '../models/scoring.results';
 
@@ -13,7 +13,7 @@ const genPerformanceTable = `CREATE TABLE IF NOT EXISTS performances(
   miss INT UNSIGNED DEFAULT 0,
   PRIMARY KEY(user_id, game_id),
   FOREIGN KEY (game_id)
-    REFERENCES games (game_id))`;
+  REFERENCES games (game_id))`;
 const genGamesTable = `CREATE TABLE IF NOT EXISTS games(
   game_id TEXT PRIMARY KEY,
   channel_id TEXT NOT NULL,
@@ -35,21 +35,20 @@ export class DBService {
       console.log('Already connected to a database.');
       return;
     }
+    verbose();
+    this.db = new Database('../../lambda-test.db', err => {
+      if (err) {
+        console.log(`Unable to establish connection to database: ${err}`);
+      } else {
+        this._connected = true;
+        console.log('Connected to database!');
 
-    this.db = new Database('./db/data.db',
-      err => {
-        if (err) {
-          console.log(`Unable to establish connection to database: ${err}`);
-        } else {
-          this._connected = true;
-          console.log('Connected to database!');
-
-          this.db.serialize(() => {
-            this.db.run(genPerformanceTable)
-              .run(genGamesTable);
-          });
-        }
-      });
+        this.db.serialize(() => {
+          this.db.run(genPerformanceTable);
+          this.db.run(genGamesTable);
+        });
+      }
+    });
   }
 
   disconnect() {
