@@ -148,6 +148,7 @@ export class GuessCommand extends LambdabotCommand {
 
       game.newRound();
       createNewCluePrompt(game, this.clueManager);
+      await interaction.channel?.send(roundStatus(game));
       await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
 
       const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);

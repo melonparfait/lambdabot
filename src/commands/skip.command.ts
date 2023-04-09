@@ -1,7 +1,7 @@
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
-import { clueGiverOnly, couldNotPin, gameInfo, gameNotInProgress, noActiveGameMessage as noActiveGame, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
+import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { clueGiverOnly, gameNotInProgress, noActiveGameMessage as noActiveGame, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 export class SkipCommand extends LambdabotCommand {

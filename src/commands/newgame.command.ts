@@ -1,8 +1,8 @@
 import { Game } from '../models/game';
-import { LambdabotCommand } from '../helpers/lambda.interface';
+import { LambdabotCommand, ComponentCustomId } from '../helpers/lambda.interface';
 import { errorProcessingCommand, gameAlreadyExists, newGameStarted, updateGameInfo } from '../helpers/print.gameinfo';
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import { ButtonStyle, ChatInputCommandInteraction, ComponentType, TextBasedChannel } from 'discord.js';
 
 export class NewGameCommand extends LambdabotCommand {
   isRestricted = false;
@@ -44,8 +44,20 @@ export class NewGameCommand extends LambdabotCommand {
       content: 'Starting game...',
       ephemeral: true
     });
+
+    const joinButtonRow = new ActionRowBuilder<ButtonBuilder>()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(ComponentCustomId.JoinButton)
+          .setLabel('Join')
+          .setStyle(ButtonStyle.Primary)
+      );
+
     await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
-    return await interaction.followUp(newGameStarted(interaction.user.id));
+    return await interaction.channel?.send({
+      content: newGameStarted(interaction.user.id),
+      components: [joinButtonRow]
+    });
   }
 }
 

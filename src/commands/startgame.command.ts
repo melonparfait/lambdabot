@@ -1,6 +1,6 @@
-import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
-import { couldNotPin, gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { gameAlreadyExists, noActiveGameMessage, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 
@@ -22,16 +22,12 @@ export class StartGameCommand extends LambdabotCommand {
     } else {
       const team1Difference = Math.max(2 - game.team1.players.length, 0);
       const team2Difference = Math.max(2 - game.team2.players.length, 0);
-      if (team1Difference || team2Difference) {
-        return await interaction.reply(this.insufficientPlayersMessage(team1Difference, team2Difference));
-      } else {
+      // if (team1Difference || team2Difference) {
+      //   return await interaction.reply(this.insufficientPlayersMessage(team1Difference, team2Difference));
+      // } else {
         game.start();
         createNewCluePrompt(game, this.clueManager);
-        await interaction.reply({
-          content: 'Starting game...',
-          ephemeral: true
-        });
-
+        await interaction.reply(roundStatus(game));
         await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
   
         const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
@@ -41,7 +37,7 @@ export class StartGameCommand extends LambdabotCommand {
           console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
           return await interaction.followUp(unableToDMClueGiver(clueGiver));
         }
-      }
+      // }
     }
   }
 

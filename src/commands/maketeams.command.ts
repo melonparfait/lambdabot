@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { gameAlreadyExists, noActiveGameMessage, roster, updateGameInfo } from '../helpers/print.gameinfo';
+import { gameAlreadyExists, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
 
 class MakeTeamsCommand extends LambdabotCommand {
   isRestricted = false;
@@ -50,7 +50,7 @@ class MakeTeamsCommand extends LambdabotCommand {
           return interaction.reply(this.invalidArgument(arg));
       }
 
-      await interaction.reply(roster(game));
+      await interaction.reply('Created teams!');
       await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
     }
   };

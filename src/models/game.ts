@@ -18,6 +18,7 @@ export class Game {
   team2: GameTeam;
   roundCounter: number;
   round: Round;
+  /** The clue given by the clue giver to their team */
   currentClue: string | undefined;
   pinnedInfo: Message | undefined;
   playedClues: number[] = [];

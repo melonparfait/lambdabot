@@ -1,8 +1,7 @@
-import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
-import { checkGamePhase } from '../helpers/command.errorchecks';
-import { errorProcessingCommand, gameSettings, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { errorProcessingCommand, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
 import { GameManager } from '../services/game-manager';
 
 export class ConfigCommand extends LambdabotCommand {
@@ -81,8 +80,7 @@ export class ConfigCommand extends LambdabotCommand {
   }
 
   sendUpdatedSettings(channelId: string, gameManager: GameManager) {
-    return 'Changed the settings to:\n'
-    + gameSettings(gameManager.getGame(channelId));
+    return 'Changed game settings.';
   }
 
   minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {

@@ -1,5 +1,5 @@
 import { Awaitable, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, Client, ClientEvents, CommandInteraction, Events, InteractionResponse, Message, UserManager } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, Client, ClientEvents, CommandInteraction, Events, InteractionResponse, Message, UserManager } from 'discord.js';
 import { ClueManager } from '../services/clue-manager';
 import { DBService } from '../services/db.service';
 import { GameManager } from '../services/game-manager';
@@ -48,6 +48,17 @@ export abstract class LambdabotCommand {
   };
 }
 
+export abstract class LambdabotComponentHandler {
+  lambdaClient: LambdaClient;
+  componentId: ComponentCustomId;
+
+  abstract handleCommand(interaction: ButtonInteraction): Awaitable<any>;
+
+  configureInteractions(client: LambdaClient) {
+    this.lambdaClient = client;
+  }
+}
+
 export enum EventTriggerType {
   once,
   on
@@ -64,3 +75,7 @@ export abstract class LambdabotEvent {
 }
 
 export type GamePhase = 'setup' | 'playing' | 'finished';
+
+export enum ComponentCustomId {
+  JoinButton = 'join-button'
+}
