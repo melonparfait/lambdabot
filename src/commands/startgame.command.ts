@@ -1,6 +1,6 @@
-import { DiscordMessage, LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, CommandInteraction, TextBasedChannel, TextChannel, UserManager } from 'discord.js';
-import { couldNotPin, gameAlreadyExists, gameInfo, gameSettings, noActiveGameMessage, roster, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
+import { LambdabotCommand } from '../helpers/lambda.interface';
+import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { gameAlreadyExists, noActiveGameMessage, roundStatus, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 
@@ -27,12 +27,8 @@ export class StartGameCommand extends LambdabotCommand {
       } else {
         game.start();
         createNewCluePrompt(game, this.clueManager);
-        await interaction.reply({
-          content: 'Starting game...',
-          ephemeral: true
-        });
-
-        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+        await interaction.reply(roundStatus(game));
+        await updateGameInfoForInteraction(this.gameManager, interaction);
   
         const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
         try {

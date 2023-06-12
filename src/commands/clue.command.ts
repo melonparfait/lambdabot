@@ -1,6 +1,6 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { checkGamePhase } from '../helpers/command.errorchecks';
-import { clueGiverOnly, currentClue, gameNotInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { clueGiverOnly, currentClue, gameNotInProgress, noActiveGameMessage, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
 import { Game } from '../models/game';
@@ -27,7 +27,7 @@ export class ClueCommand extends LambdabotCommand {
     } else {
       game.currentClue = interaction.options.getString('clue', true);
       await interaction.reply(this.replyMsg(interaction.user.id, game));
-      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+      await updateGameInfoForInteraction(this.gameManager, interaction);
     }
   }
   replyMsg(userId: string, gameRef: Game) {

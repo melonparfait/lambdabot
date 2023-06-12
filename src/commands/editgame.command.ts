@@ -1,6 +1,6 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
-import { noGameInChannel, updateGameInfo } from '../helpers/print.gameinfo';
+import { noGameInChannel, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, channelMention } from '@discordjs/builders';
 import { Game } from '../models/game';
 import { pastebin_key, pastebin_user_token } from '../../keys.json';
@@ -75,10 +75,11 @@ export class EditGameCommand extends LambdabotCommand {
           
           this.gameManager.addGame(channelId, game);
           await interaction.followUp(this.editedGame(channelId));
-          return await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
         } catch (error) {
           return await interaction.followUp(this.errorParsingGameString(error));
         }
+        return await updateGameInfoForInteraction(this.gameManager, interaction);
+
       default:
         return await interaction.reply({
           content: 'Invalid subcommand for editing a game',

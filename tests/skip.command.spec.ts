@@ -5,10 +5,11 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import * as SkipCommand from '../src/commands/skip.command';
-import { gameInfo, noActiveGameMessage, setupOnly, updateGameInfo, gameNotInProgress, clueGiverOnly, roundStatus } from '../src/helpers/print.gameinfo';
+import { noActiveGameMessage, gameNotInProgress, clueGiverOnly, roundStatus, getGameDetails } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -22,7 +23,7 @@ describe('skip command', () => {
   let mockUserManager: MockUserManager;
   
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>SkipCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/skip.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
@@ -143,8 +144,10 @@ describe('skip command', () => {
         });
 
         it('should edit the pinned message with the game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been
-            .calledOnceWith(gameInfo(gameRef));
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
 
         it('should reply with the game\'s round status', () => {

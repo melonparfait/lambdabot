@@ -1,4 +1,4 @@
-import { ClientEvents, Events, Client, Interaction, ChatInputCommandInteraction, ChannelType, InteractionReplyOptions } from 'discord.js';
+import { ClientEvents, Events, Client, Interaction, ChatInputCommandInteraction, ChannelType, InteractionReplyOptions, ButtonInteraction } from 'discord.js';
 import { EventTriggerType, LambdabotEvent } from '../helpers/lambda.interface';
 import { owner_id } from '../../keys.json';
 import { LambdaClient } from '../lambda-client';
@@ -9,12 +9,39 @@ export class InteractionCreateEvent extends LambdabotEvent {
   eventTriggerType = EventTriggerType.on;
   lambdaClient: LambdaClient;
 
-  isTokenStillValid(interaction: Interaction) {
+  static async interactionErrorResponse(interaction: ChatInputCommandInteraction | ButtonInteraction, error: any) {
+    console.log(error);
+    try {
+      if (InteractionCreateEvent.isTokenStillValid(interaction)) {
+        if (!interaction.replied) {
+          return await interaction.reply(errorProcessingCommand);
+        } else {
+          return await interaction.followUp(errorProcessingCommand);
+        }
+      } else {
+        return await interaction.channel?.send(<string>errorProcessingCommand.content);
+      }
+    } catch (error2) {
+      console.log(error2);
+    }
+  }
+
+  static isTokenStillValid(interaction: Interaction) {
     const elapsedTime = Date.now() - interaction.createdTimestamp;
     return elapsedTime < 3 * 1000;
   }
 
   async execute(interaction: Interaction) {
+    if (interaction.isButton()) {
+      interaction = <ButtonInteraction>interaction;
+      try {
+        const componentHandler = this.lambdaClient.componentHandlers.get(interaction.customId);
+        return await componentHandler?.handleCommand(interaction);
+      } catch (error) {
+        return InteractionCreateEvent.interactionErrorResponse(interaction, error);
+      }
+    }
+
     if (!interaction.isChatInputCommand()) return;
     interaction = <ChatInputCommandInteraction>interaction;
 
@@ -44,20 +71,7 @@ export class InteractionCreateEvent extends LambdabotEvent {
       return await command.execute(interaction);
 
     } catch (error) {
-      console.log(error);
-      try {
-        if (this.isTokenStillValid(interaction)) {
-          if (!interaction.replied) {
-            return await interaction.reply(errorProcessingCommand);
-          } else {
-            return await interaction.followUp(errorProcessingCommand);
-          }
-        } else {
-          return await interaction.channel?.send(<string>errorProcessingCommand.content);
-        }
-      } catch (error2) {
-        console.log(error2);
-      }
+      InteractionCreateEvent.interactionErrorResponse(interaction, error);
     }
   }
 }

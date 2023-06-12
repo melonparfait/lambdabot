@@ -7,6 +7,7 @@ import { CooldownManager } from './services/cooldown-manager';
 import { GameManager } from './services/game-manager';
 import { ClueManager } from './services/clue-manager';
 import { EventLoader } from './services/event-loader';
+import { ComponentHandlerLoader } from './services/component-handler-loader';
 
 let mode: 'dev' | 'prod';
 if (!(process?.argv[2] === 'dev' || process?.argv[2] === 'prod')) {
@@ -19,10 +20,18 @@ if (!(process?.argv[2] === 'dev' || process?.argv[2] === 'prod')) {
 const dbService = new DBService();
 const commandLoader = new CommandLoader();
 const eventsLoader = new EventLoader();
+const componentHandlerLoader = new ComponentHandlerLoader();
 const cooldownManager = new CooldownManager();
 const gameManager = new GameManager();
 const clueManager = new ClueManager();
-const lambdaClient = new LambdaClient(dbService, commandLoader, eventsLoader, cooldownManager, gameManager, clueManager);
+const lambdaClient = new LambdaClient(
+  dbService,
+  commandLoader,
+  eventsLoader,
+  componentHandlerLoader,
+  cooldownManager,
+  gameManager,
+  clueManager);
 const session = new AuthSession(lambdaClient);
 
 session.authorize()
@@ -41,6 +50,14 @@ session.authorize()
       await lambdaClient.initializeEvents();
     } catch (err) {
       console.log(`Unable to load events: ${err}`);
+      session.close();
+      exit(1);
+    }
+
+    try {
+      await lambdaClient.initializeInteractionHandlers();
+    } catch (err) {
+      console.log(`Unable to load component handlers: ${err}`);
       session.close();
       exit(1);
     }

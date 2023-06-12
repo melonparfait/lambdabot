@@ -5,10 +5,11 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import * as ClueCommand from '../src/commands/clue.command';
-import { gameInfo, noActiveGameMessage, gameNotInProgress, clueGiverOnly } from '../src/helpers/print.gameinfo';
+import { noActiveGameMessage, gameNotInProgress, clueGiverOnly, getGameDetails } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -21,7 +22,7 @@ describe('clue command', () => {
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>ClueCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/clue.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;
@@ -110,8 +111,11 @@ describe('clue command', () => {
         expect(gameRef.currentClue).to.equal(givenClue);
       });
 
-      xit('should update the pinned info', () => {
-        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+      it('should update the pinned info', () => {
+        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+        const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+        const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+        expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
       });
 
       it('should send a message to the channel with the clue', () => {

@@ -1,8 +1,8 @@
 import { Game } from '../models/game';
-import { LambdabotCommand } from '../helpers/lambda.interface';
-import { errorProcessingCommand, gameAlreadyExists, newGameStarted, updateGameInfo } from '../helpers/print.gameinfo';
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { LambdabotCommand, ComponentCustomId } from '../helpers/lambda.interface';
+import { errorProcessingCommand, gameAlreadyExists, newGameStarted, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
+import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
+import { ButtonStyle, ChatInputCommandInteraction, ComponentType, TextBasedChannel } from 'discord.js';
 
 export class NewGameCommand extends LambdabotCommand {
   isRestricted = false;
@@ -44,8 +44,24 @@ export class NewGameCommand extends LambdabotCommand {
       content: 'Starting game...',
       ephemeral: true
     });
-    await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
-    return await interaction.followUp(newGameStarted(interaction.user.id));
+
+    const joinButtonRow = new ActionRowBuilder<ButtonBuilder>()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(ComponentCustomId.JoinButton)
+          .setLabel('Join')
+          .setStyle(ButtonStyle.Primary)
+      );
+
+    try {
+      await updateGameInfoForInteraction(this.gameManager, interaction);
+    } catch (error) {
+      return await interaction.followUp(unableToUpdateGameInfo);
+    }
+    return await interaction.channel?.send({
+      content: newGameStarted(interaction.user.id),
+      components: [joinButtonRow]
+    });
   }
 }
 

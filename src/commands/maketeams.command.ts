@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { gameAlreadyExists, noActiveGameMessage, roster, updateGameInfo } from '../helpers/print.gameinfo';
+import { assignmentAlgorithms, assignmentResponses, gameAlreadyExists, noActiveGameMessage, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 
 class MakeTeamsCommand extends LambdabotCommand {
   isRestricted = false;
@@ -15,7 +15,7 @@ class MakeTeamsCommand extends LambdabotCommand {
       .setDescription('Choose how to assign players to a team. (Options: random)')
       .setRequired(true)
       .addChoices(
-        { name: 'random', value: 'random' }
+        { name: 'random', value: assignmentAlgorithms.random }
     ))
     .addStringOption(option => option.setName('reset')
       .setDescription('Reset teams before assignment?')
@@ -34,7 +34,7 @@ class MakeTeamsCommand extends LambdabotCommand {
     } else {
       const arg = interaction.options.getString('assignmentmode', true);
 
-      if (!['random'].includes(arg)) {
+      if (!Object.keys(assignmentAlgorithms).includes(arg)) {
         return interaction.reply(this.invalidArgument(arg));
       }
 
@@ -43,21 +43,21 @@ class MakeTeamsCommand extends LambdabotCommand {
       }
 
       switch(arg) {
-        case 'random':
+        case assignmentAlgorithms.random:
           game.assignRandomTeams();
           break;
         default:
           return interaction.reply(this.invalidArgument(arg));
       }
 
-      await interaction.reply(roster(game));
-      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+      await interaction.reply(assignmentResponses[arg]);
+      await updateGameInfoForInteraction(this.gameManager, interaction);
     }
   };
 
   invalidArgument(arg: string): InteractionReplyOptions {
     return {
-      content: `Sorry, ${arg} isn't a valid argument. Please use either \`random\` or \`resetrandom\`.`,
+      content: `Sorry, ${arg} isn't a valid argument. Please use \`random\`.`,
       ephemeral: true
     }
   }

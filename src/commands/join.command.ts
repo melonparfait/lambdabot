@@ -1,9 +1,7 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { remove } from 'lodash';
-import { gameInProgress, noActiveGameMessage, updateGameInfo } from '../helpers/print.gameinfo';
+import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfoForInteraction, userJoinedGame } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
-import { GameManager } from '../services/game-manager';
+import { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
 
 export class JoinCommand extends LambdabotCommand {
   isRestricted = false;
@@ -41,7 +39,7 @@ export class JoinCommand extends LambdabotCommand {
             || (game.team2.players.includes(userId) && teamArg === '2')) {
           return interaction.reply(this.alreadyOnTeam(teamArg));
         } else if (teamArg === 'no_team' && game.unassignedPlayers.includes(userId)) {
-          return interaction.reply(this.alreadyInGame);
+          return interaction.reply(alreadyInGame);
         }
         const newPlayer = game.join(userId);
         const prevTeam = game.team1.players.includes(userId) ? '1'
@@ -56,23 +54,18 @@ export class JoinCommand extends LambdabotCommand {
 
         const msg = teamArg === 'no_team'
           ? newPlayer
-            ? this.userJoinedGame(userId)
+            ? userJoinedGame(userId)
             : this.userLeftTeam(userId, prevTeam)
           : this.teamJoinedMsg(newPlayer, userId, teamArg);
         await interaction.reply(msg);
-        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+        return await updateGameInfoForInteraction(this.gameManager, interaction);
       } else if (game.join(userId)) {
-        await interaction.reply(this.userJoinedGame(userId));
-        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+        await interaction.reply(userJoinedGame(userId));
+        return await updateGameInfoForInteraction(this.gameManager, interaction);
       } else {
-        return interaction.reply(this.alreadyInGame);
+        return interaction.reply(alreadyInGame);
       }
     }
-  }
-
-  alreadyInGame: InteractionReplyOptions = {
-    content: 'Sorry, you\'re already in the game!',
-    ephemeral: true
   }
 
   alreadyOnTeam(teamArg: string): InteractionReplyOptions {
@@ -80,10 +73,6 @@ export class JoinCommand extends LambdabotCommand {
       content: `You're already on team ${teamArg}!`,
       ephemeral: true
     }
-  }
-
-  userJoinedGame(userId: string): string {
-    return `${userMention(userId)} joined the game!`;
   }
 
   userLeftTeam(userId: string, teamNumber: string): string {

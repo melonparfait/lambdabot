@@ -2,8 +2,8 @@ import { isEmpty } from 'lodash';
 import { Game } from '../models/game';
 import { Round } from '../models/round';
 import { GameManager } from '../services/game-manager';
-import { channelMention, userMention } from '@discordjs/builders';
-import { APIEmbedField, EmbedBuilder, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { bold, channelMention, userMention } from '@discordjs/builders';
+import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions, InteractionUpdateOptions, TextBasedChannel } from 'discord.js';
 
 export const clueGiverOnly: InteractionReplyOptions = {
   content: 'Sorry, only the clue giver can use this command!',
@@ -57,26 +57,23 @@ export function noGameInChannel(channelId: string): InteractionReplyOptions {
 }
 
 export function newGameStarted(byUser: string) {
-  return `${userMention(byUser)} started a new Wavelength game! Use \`/join\` to get in!`;
+  return `${userMention(byUser)} started a new Wavelength game! Use \`/join\` or the button below to get in!`;
+}
+
+export const alreadyInGame: InteractionReplyOptions = {
+  content: 'Sorry, you\'re already in the game!',
+  ephemeral: true
+}
+
+export function userJoinedGame(userId: string): string {
+  return `${userMention(userId)} joined the game!`;
 }
 
 export function roundStatus(game: Game): string {
-  return `**Round: ${game.roundsPlayed}**`
+  return bold(`Round: ${game.roundsPlayed}`)
     + `\nTeam ${game.offenseTeamNumber()} guesses.`
     + `\n${userMention(game.round.clueGiver)} is the clue giver.`
     + `\n${clue(game.round)}`;
-}
-
-export function gameSettings(game: Game): string {
-  const threshold = game.isDefaultThreshold ? `default (${game.threshold})` : game.threshold;
-  const asyncLabel = game.asyncPlay ? 'disabled' : 'enabled';
-  const trackStats = game.trackStats ? 'enabled' : 'disabled';
-  const counterGuess = !game.asyncPlay ? `\n├─ Counter guess timer: ${game.dGuessTime / 1000}` : '';
-  return '**Settings**'
-    + `\n├─ Points to win: ${threshold}`
-    + counterGuess
-    + `\n├─ Track stats: ${trackStats}`
-    + `\n└─ Timers: ${asyncLabel}`;
 }
 
 export function spectrumBar(target?: number, side?: 'higher' | 'lower'): string {
@@ -109,7 +106,7 @@ export function currentClue(game: Game): string | undefined {
 }
 
 export function scoreboard(game: Game): string {
-  return '**Scoreboard**'
+  return bold('Scoreboard')
     + '\nTeam 1'
     + `\n├─ Players: ${game.team1.players.map(id => userMention(id)).join(', ')}`
     + `\n└─ Points: ${game.team1.points}`
@@ -118,64 +115,21 @@ export function scoreboard(game: Game): string {
     + `\n└─ Points: ${game.team2.points}`;
 }
 
-export function roster(game: Game): string {
-  const team1Players = game.team1.players.length
-    ? game.team1.players.map(id => userMention(id)).join(', ')
-    : 'No one is currently on Team 1.';
-  const team2Players = game.team2.players.length
-    ? game.team2.players.map(id => userMention(id)).join(', ')
-    : 'No one is currently on Team 2.';
-
-  let output = '**Roster**'
-    + '\nTeam 1'
-    + `\n└─ Players: ${team1Players}`
-    + '\nTeam 2'
-    + `\n└─ Players: ${team2Players}`;
-
-  const unassigned = game.unassignedPlayers;
-  if (unassigned.length) {
-    output += `\nUnassigned\n└─ Players: ${unassigned.map(id => userMention(id)).join(', ')}`;
+export async function updateGameInfoForInteraction(gameManager: GameManager,
+    interaction: ChatInputCommandInteraction | ButtonInteraction) {
+  try {
+    const channel = <TextBasedChannel>interaction.channel;
+    const game = gameManager.getGame(channel.id);
+    let embed: EmbedBuilder = getGameDetails(game);
+    return await updatePin(game, embed, channel);
+  } catch (error) {
+    return await interaction.followUp(unableToUpdateGameInfo);
   }
-
-  return output;
 }
 
-export function gameInfo(game: Game): string {
-  let response = `**Game Status**: ${game.status}\n`;
-  switch(game.status) {
-    case 'setup':
-      response += (gameSettings(game) + '\n' + roster(game));
-      break;
-    case 'playing':
-      response += (gameSettings(game) + '\n' + roundStatus(game));
-      if (game.currentClue) {
-        response += ('\n' + currentClue(game));
-      }
-      response += ('\n' + scoreboard(game));
-      break;
-    default:
-      response += scoreboard(game);
-  }
-  return response;
-}
-
-export async function updateGameInfo(channel: TextBasedChannel, gameManager: GameManager) {
-  const game = gameManager.getGame(channel.id);
-
-  let embed: EmbedBuilder;
-  switch (game.status) {
-    case 'setup':
-      embed = beforeGameDetails(game);
-      return await updatePin(game, embed, channel);
-    case 'playing':
-      embed = duringGameDetails(game);
-      return await updatePin(game, embed, channel);
-    case 'finished':
-      embed = afterGameDetails(game);
-      return await updatePin(game, embed, channel);
-    default:
-      return await channel.send(<string>noGameInChannel(channel.id).content);
-  }
+export const unableToUpdateGameInfo: InteractionReplyOptions ={
+  content: 'Unable to update game info',
+  ephemeral: true
 }
 
 export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBasedChannel) {
@@ -199,6 +153,24 @@ export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBa
       console.log(err);
       return await channel.send(couldNotPin);
     }
+  }
+}
+
+export function getGameDetails(game: Game): EmbedBuilder {
+  if (!game || !game?.status) {
+    console.log('Game not found');
+    throw new Error('Unable to get details for game');
+  }
+  switch (game.status) {
+    case 'setup':
+      return beforeGameDetails(game);
+    case 'playing':
+      return duringGameDetails(game);
+    case 'finished':
+      return afterGameDetails(game);
+    default:
+      console.log('Unable to get details for game');
+      throw new Error('Unable to get details for game');
   }
 }
 
@@ -315,4 +287,12 @@ export function gameSettingsEmbedFields(game: Game): APIEmbedField[] {
   }
 
   return fields;
+}
+
+export enum assignmentAlgorithms {
+  random = 'random'
+}
+
+export const assignmentResponses: {[s in assignmentAlgorithms]: string} = {
+  random: 'Created teams randomly!'
 }

@@ -5,8 +5,9 @@ import * as sinon from 'sinon';
 import { GameManager } from '../src/services/game-manager';
 import * as MakeTeamsCommand from '../src/commands/maketeams.command';
 import { Game } from '../src/models/game';
-import { gameAlreadyExists, gameInfo, noActiveGameMessage, roster } from '../src/helpers/print.gameinfo';
+import { assignmentResponses, gameAlreadyExists, getGameDetails, noActiveGameMessage } from '../src/helpers/print.gameinfo';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -26,7 +27,7 @@ describe('maketeams command', () => {
   }
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>MakeTeamsCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/maketeams.command');
     gameManager = new GameManager();
     command.gameManager = gameManager;
 
@@ -105,12 +106,15 @@ describe('maketeams command', () => {
         expect(assignRandomTeamsSpy).to.have.been.calledOnce;
       });
 
-      xit('should update the pinned game info', () => {
-        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+      it('should update the pinned game info', () => {
+        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+        const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+        const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+        expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
       });
 
       it('should send a message with the new settings', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWith(roster(gameRef));
+        expect(mockInteraction.reply).to.have.been.calledOnceWith(assignmentResponses.random);
       });
     });
 
@@ -132,12 +136,15 @@ describe('maketeams command', () => {
         expect(assignRandomTeamsSpy).to.have.been.calledOnce;
       });
 
-      xit('should update the pinned game info', () => {
-        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+      it('should update the pinned game info', () => {
+        expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+        const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+        const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+        expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
       });
 
       it('should send a message with the new settings', () => {
-        expect(mockInteraction.reply).to.have.been.calledOnceWith(roster(gameRef));
+        expect(mockInteraction.reply).to.have.been.calledOnceWith(assignmentResponses.random);
       });
     });
 
