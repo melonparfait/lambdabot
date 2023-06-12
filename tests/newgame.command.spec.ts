@@ -5,9 +5,10 @@ import * as chai from 'chai';
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import { Game } from '../src/models/game';
-import { gameAlreadyExists, gameInfo, newGameStarted } from '../src/helpers/print.gameinfo';
+import { gameAlreadyExists, getGameDetails, newGameStarted } from '../src/helpers/print.gameinfo';
 import { DEFAULT_SETTINGS, GameSettings } from '../src/models/game.settings';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -20,7 +21,7 @@ describe('newgame command', () => {
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>NewGameCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/newgame.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
 
@@ -78,6 +79,7 @@ describe('newgame command', () => {
         mockInteraction.reply.resetHistory();
         mockInteraction.followUp.resetHistory();
         mockInteraction.messagePin.resetHistory();
+        mockInteraction.channelSend.resetHistory();
         gameManager.getGame(TEST_CHANNEL_ID).status = 'finished';
         oldGame = gameManager.getGame(TEST_CHANNEL_ID);
         await command.execute(mockInteraction.interactionInstance);
@@ -99,11 +101,17 @@ describe('newgame command', () => {
         expect(newGame.players).includes(TEST_USER_ID);
       });
 
-      it('should send a game info message to the channel', () => {
+      it('should reply saying that the game is starting', () => {
         expect(mockInteraction.reply).to.have.been.calledOnceWith({
           content: 'Starting game...',
           ephemeral: true
         });
+      });
+
+      it('should send a game info message to the channel', () => {
+        const actualWithoutTimestamp = _.omit(mockInteraction.channelSend.getCall(0).args[0].embeds[0], ['data', 'timestamp']);
+        const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(newGame), ['data', 'timestamp']);
+        expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
       });
 
       it('should pinned the sent message', () => {
@@ -111,7 +119,7 @@ describe('newgame command', () => {
       });
 
       it('should have notified the channel that a game started', () => {
-        expect(mockInteraction.followUp).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
+        expect(mockInteraction.channelSend.getCall(1).args[0].content).to.equal(newGameStarted(TEST_USER_ID));
       });
     });
 
@@ -122,6 +130,9 @@ describe('newgame command', () => {
 
     beforeEach(async () => {
       gameManager.resetCollection();
+      mockInteraction.channelSend.resetHistory();
+      mockInteraction.reply.resetHistory();
+      mockInteraction.messagePin.resetHistory();
       await command.execute(mockInteraction.interactionInstance);
       newGame = gameManager.getGame(TEST_CHANNEL_ID);
     });
@@ -141,11 +152,17 @@ describe('newgame command', () => {
       expect(newGame.players).includes(TEST_USER_ID);
     });
 
-    it('should send a game info message to the channel', () => {
+    it('should reply saying that the game is starting', () => {
       expect(mockInteraction.reply).to.have.been.calledOnceWith({
         content: 'Starting game...',
         ephemeral: true
       });
+    });
+
+    it('should send a game info message to the channel', () => {
+      const actualWithoutTimestamp = _.omit(mockInteraction.channelSend.getCall(0).args[0].embeds[0], ['data', 'timestamp']);
+      const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(newGame), ['data', 'timestamp']);
+      expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
     });
 
     it('should pinned the sent message', () => {
@@ -153,7 +170,7 @@ describe('newgame command', () => {
     });
 
     it('should have notified the channel that a game started', () => {
-      expect(mockInteraction.followUp).to.have.been.calledOnceWith(newGameStarted(TEST_USER_ID));
+      expect(mockInteraction.channelSend.getCall(1).args[0].content).to.equal(newGameStarted(TEST_USER_ID));
     });
   });
 });

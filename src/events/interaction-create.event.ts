@@ -36,9 +36,9 @@ export class InteractionCreateEvent extends LambdabotEvent {
       interaction = <ButtonInteraction>interaction;
       try {
         const componentHandler = this.lambdaClient.componentHandlers.get(interaction.customId);
-        await componentHandler?.handleCommand(interaction);
+        return await componentHandler?.handleCommand(interaction);
       } catch (error) {
-        InteractionCreateEvent.interactionErrorResponse(interaction, error);
+        return InteractionCreateEvent.interactionErrorResponse(interaction, error);
       }
     }
 

@@ -3,7 +3,7 @@ import { Game } from '../models/game';
 import { Round } from '../models/round';
 import { GameManager } from '../services/game-manager';
 import { bold, channelMention, userMention } from '@discordjs/builders';
-import { APIEmbedField, EmbedBuilder, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions, InteractionUpdateOptions, TextBasedChannel } from 'discord.js';
 
 export const clueGiverOnly: InteractionReplyOptions = {
   content: 'Sorry, only the clue giver can use this command!',
@@ -115,23 +115,21 @@ export function scoreboard(game: Game): string {
     + `\n└─ Points: ${game.team2.points}`;
 }
 
-export async function updateGameInfo(channel: TextBasedChannel, gameManager: GameManager) {
-  const game = gameManager.getGame(channel.id);
-
-  let embed: EmbedBuilder;
-  switch (game.status) {
-    case 'setup':
-      embed = beforeGameDetails(game);
-      return await updatePin(game, embed, channel);
-    case 'playing':
-      embed = duringGameDetails(game);
-      return await updatePin(game, embed, channel);
-    case 'finished':
-      embed = afterGameDetails(game);
-      return await updatePin(game, embed, channel);
-    default:
-      return await channel.send(<string>noGameInChannel(channel.id).content);
+export async function updateGameInfoForInteraction(gameManager: GameManager,
+    interaction: ChatInputCommandInteraction | ButtonInteraction) {
+  try {
+    const channel = <TextBasedChannel>interaction.channel;
+    const game = gameManager.getGame(channel.id);
+    let embed: EmbedBuilder = getGameDetails(game);
+    return await updatePin(game, embed, channel);
+  } catch (error) {
+    return await interaction.followUp(unableToUpdateGameInfo);
   }
+}
+
+export const unableToUpdateGameInfo: InteractionReplyOptions ={
+  content: 'Unable to update game info',
+  ephemeral: true
 }
 
 export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBasedChannel) {
@@ -155,6 +153,24 @@ export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBa
       console.log(err);
       return await channel.send(couldNotPin);
     }
+  }
+}
+
+export function getGameDetails(game: Game): EmbedBuilder {
+  if (!game || !game?.status) {
+    console.log('Game not found');
+    throw new Error('Unable to get details for game');
+  }
+  switch (game.status) {
+    case 'setup':
+      return beforeGameDetails(game);
+    case 'playing':
+      return duringGameDetails(game);
+    case 'finished':
+      return afterGameDetails(game);
+    default:
+      console.log('Unable to get details for game');
+      throw new Error('Unable to get details for game');
   }
 }
 
@@ -271,4 +287,12 @@ export function gameSettingsEmbedFields(game: Game): APIEmbedField[] {
   }
 
   return fields;
+}
+
+export enum assignmentAlgorithms {
+  random = 'random'
+}
+
+export const assignmentResponses: {[s in assignmentAlgorithms]: string} = {
+  random: 'Created teams randomly!'
 }

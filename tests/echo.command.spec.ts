@@ -18,7 +18,7 @@ describe('echo command', () => {
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>EchoCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/echo.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;

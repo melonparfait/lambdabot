@@ -1,6 +1,6 @@
 import { ButtonInteraction, TextBasedChannel } from 'discord.js';
 import { LambdabotComponentHandler, ComponentCustomId } from '../helpers/lambda.interface';
-import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfo, userJoinedGame } from '../helpers/print.gameinfo';
+import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfoForInteraction, userJoinedGame } from '../helpers/print.gameinfo';
 
 export class JoinButtonHandler extends LambdabotComponentHandler {
   componentId = ComponentCustomId.JoinButton;
@@ -17,7 +17,7 @@ export class JoinButtonHandler extends LambdabotComponentHandler {
     } else {
       if (game.join(userId)) {
         await interaction.reply(userJoinedGame(userId));
-        await updateGameInfo(<TextBasedChannel>interaction.channel, gameManager);
+        await updateGameInfoForInteraction(gameManager, interaction);
       } else {
         return interaction.reply(alreadyInGame);
       }

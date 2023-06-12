@@ -1,5 +1,5 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { errorProcessingCommand, noActiveGameMessage, setupOnly, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, noActiveGameMessage, noGameInChannel, setupOnly, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
 import { GameManager } from '../services/game-manager';
@@ -76,7 +76,7 @@ export class ConfigCommand extends LambdabotCommand {
     });
 
     await interaction.reply(this.sendUpdatedSettings(interaction.channelId, this.gameManager));
-    await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+    return await updateGameInfoForInteraction(this.gameManager, interaction);
   }
 
   sendUpdatedSettings(channelId: string, gameManager: GameManager) {

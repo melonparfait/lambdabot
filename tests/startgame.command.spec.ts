@@ -21,7 +21,7 @@ describe('startgame command', () => {
   let mockUserManager: MockUserManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>StartGameCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/startgame.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {

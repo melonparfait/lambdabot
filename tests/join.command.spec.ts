@@ -1,13 +1,14 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import { Game } from '../src/models/game';
 import * as JoinCommand from '../src/commands/join.command';
-import { gameInfo, gameInProgress, noActiveGameMessage } from '../src/helpers/print.gameinfo';
+import { alreadyInGame, gameInProgress, getGameDetails, noActiveGameMessage, userJoinedGame } from '../src/helpers/print.gameinfo';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -20,7 +21,7 @@ describe('join command', () => {
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>JoinCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/join.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
 
@@ -93,19 +94,22 @@ describe('join command', () => {
           joinSpy.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
           mockInteraction.reply.resetHistory();
-          await command.execute(mockInteraction.interactionInstance)
+          await command.execute(mockInteraction.interactionInstance);
         });
 
         it('should let the player join the game', () => {
           expect(joinSpy).to.have.been.calledOnceWith(TEST_USER_ID);
         });
 
-        xit('should update the pinned game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned game info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
 
         it('should send a reply with a message that the user joined the game', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.userJoinedGame(TEST_USER_ID));
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(userJoinedGame(TEST_USER_ID));
         });
       });
 
@@ -127,8 +131,11 @@ describe('join command', () => {
           expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '1');
         });
 
-        xit('should update the pinned game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned game info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
 
         it('should send a reply that the user joined the game on team 1', () => {
@@ -154,8 +161,11 @@ describe('join command', () => {
           expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '2');
         });
 
-        xit('should update the pinned game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned game info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
 
         it('should send a reply that the user joined the game on team 2', () => {
@@ -180,8 +190,11 @@ describe('join command', () => {
           expect(addPlayerToTeamSpy).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned game info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
 
         it('should send a reply that the user joined the game on a team', () => {
@@ -197,7 +210,7 @@ describe('join command', () => {
         });
 
         it('should reply that the user joined the game', () => {
-          expect(mockInteraction.reply).to.have.been.calledOnceWith(command.userJoinedGame(TEST_USER_ID));
+          expect(mockInteraction.reply).to.have.been.calledOnceWith(userJoinedGame(TEST_USER_ID));
         });
       });
     });
@@ -223,7 +236,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
           });
         });
   
@@ -257,8 +270,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '2');
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on team 2', () => {
@@ -283,8 +299,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnce;
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on a team', () => {
@@ -326,7 +345,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
           });
         });
   
@@ -348,8 +367,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '1');
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on team 1', () => {
@@ -386,8 +408,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnce;
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on a team', () => {
@@ -425,7 +450,7 @@ describe('join command', () => {
           });
   
           it('should send a reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
           });
         });
   
@@ -447,8 +472,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '1');
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on team 1', () => {
@@ -474,8 +502,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnceWith(TEST_USER_ID, '2');
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on team 2', () => {
@@ -500,8 +531,11 @@ describe('join command', () => {
             expect(addPlayerToTeamSpy).to.have.been.calledOnce;
           });
   
-          xit('should update the pinned game info', () => {
-            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+          it('should update the pinned game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
           });
   
           it('should send a reply that the user joined the game on a team', () => {
@@ -517,7 +551,7 @@ describe('join command', () => {
           });
   
           it('should reply that the user is already in the game', () => {
-            expect(mockInteraction.reply).to.have.been.calledOnceWith(command.alreadyInGame);
+            expect(mockInteraction.reply).to.have.been.calledOnceWith(alreadyInGame);
           });
         });
       });

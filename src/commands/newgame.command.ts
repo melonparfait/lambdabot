@@ -1,6 +1,6 @@
 import { Game } from '../models/game';
 import { LambdabotCommand, ComponentCustomId } from '../helpers/lambda.interface';
-import { errorProcessingCommand, gameAlreadyExists, newGameStarted, updateGameInfo } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameAlreadyExists, newGameStarted, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import { ButtonStyle, ChatInputCommandInteraction, ComponentType, TextBasedChannel } from 'discord.js';
 
@@ -53,7 +53,11 @@ export class NewGameCommand extends LambdabotCommand {
           .setStyle(ButtonStyle.Primary)
       );
 
-    await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+    try {
+      await updateGameInfoForInteraction(this.gameManager, interaction);
+    } catch (error) {
+      return await interaction.followUp(unableToUpdateGameInfo);
+    }
     return await interaction.channel?.send({
       content: newGameStarted(interaction.user.id),
       components: [joinButtonRow]

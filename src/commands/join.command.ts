@@ -1,9 +1,7 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { remove } from 'lodash';
-import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfo, userJoinedGame } from '../helpers/print.gameinfo';
+import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfoForInteraction, userJoinedGame } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
-import { GameManager } from '../services/game-manager';
+import { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
 
 export class JoinCommand extends LambdabotCommand {
   isRestricted = false;
@@ -60,10 +58,10 @@ export class JoinCommand extends LambdabotCommand {
             : this.userLeftTeam(userId, prevTeam)
           : this.teamJoinedMsg(newPlayer, userId, teamArg);
         await interaction.reply(msg);
-        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+        return await updateGameInfoForInteraction(this.gameManager, interaction);
       } else if (game.join(userId)) {
         await interaction.reply(userJoinedGame(userId));
-        await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+        return await updateGameInfoForInteraction(this.gameManager, interaction);
       } else {
         return interaction.reply(alreadyInGame);
       }

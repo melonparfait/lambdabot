@@ -1,7 +1,7 @@
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { InteractionReplyOptions, ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
-import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus, updateGameInfo } from '../helpers/print.gameinfo';
+import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus, updateGameInfoForInteraction, unableToUpdateGameInfo } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { Game } from '../models/game';
@@ -149,7 +149,7 @@ export class GuessCommand extends LambdabotCommand {
       game.newRound();
       createNewCluePrompt(game, this.clueManager);
       await interaction.channel?.send(roundStatus(game));
-      await updateGameInfo(<TextBasedChannel>interaction.channel, this.gameManager);
+      await updateGameInfoForInteraction(this.gameManager, interaction);
 
       const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
       try {

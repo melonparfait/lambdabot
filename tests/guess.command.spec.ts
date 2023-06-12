@@ -4,13 +4,13 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
-import * as GuessCommand from '../src/commands/guess.command';
 import { Game } from '../src/models/game';
-import { gameInfo, gameNotInProgress, noActiveGameMessage, roundStatus } from '../src/helpers/print.gameinfo';
+import { gameNotInProgress, getGameDetails, noActiveGameMessage, roundStatus } from '../src/helpers/print.gameinfo';
 import { DBService } from '../src/services/db.service';
 import { instance, mock } from 'ts-mockito';
 import { ScoringResults } from '../src/models/scoring.results';
 import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
@@ -34,7 +34,7 @@ describe('guess command', () => {
   let roundValue: number;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>GuessCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/guess.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
@@ -288,6 +288,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -314,8 +315,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
     
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -323,8 +324,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -338,6 +342,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -364,8 +369,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
 
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -373,8 +378,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -388,6 +396,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -414,8 +423,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
 
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -423,8 +432,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -449,6 +461,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -483,8 +496,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
 
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(2).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -492,8 +505,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -624,6 +640,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -650,8 +667,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
     
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -659,8 +676,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -674,6 +694,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -700,8 +721,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
 
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -709,8 +730,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 
@@ -724,6 +748,7 @@ describe('guess command', () => {
           mockInteraction.followUp.resetHistory();
           mockInteraction.reply.resetHistory();
           mockInteraction.editPinnedMsg.resetHistory();
+          mockInteraction.channelSend.resetHistory();
           await command.execute(mockInteraction.interactionInstance);
         });
 
@@ -750,8 +775,8 @@ describe('guess command', () => {
           expect(scoreSpy).to.have.been.calledOnce;
         });
 
-        it('should reply to the interaction with the new round status', () => {
-          expect(mockInteraction.followUp.getCall(1).args[0]).to.equal(roundStatus(gameRef));
+        it('should send a message to the channel with the new round status', () => {
+          expect(mockInteraction.channelSend.getCall(0).args[0]).to.equal(roundStatus(gameRef));
         });
 
         it('should message the user info about the round', () => {
@@ -759,8 +784,11 @@ describe('guess command', () => {
           expect(clueGiver?.send).to.have.been.calledOnce;
         });
 
-        xit('should update the pinned info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnceWith(gameInfo(gameRef));
+        it('should update the pinned info', () => {
+          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
         });
       });
 

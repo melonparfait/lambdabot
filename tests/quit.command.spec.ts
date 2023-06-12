@@ -20,7 +20,7 @@ describe('quit command', () => {
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>QuitCommand;
+    command = <LambdabotCommand><unknown>require('../src/commands/quit.command');
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;

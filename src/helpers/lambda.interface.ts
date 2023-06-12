@@ -1,4 +1,4 @@
-import { Awaitable, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
 import { ButtonInteraction, ChatInputCommandInteraction, Client, ClientEvents, CommandInteraction, Events, InteractionResponse, Message, UserManager } from 'discord.js';
 import { ClueManager } from '../services/clue-manager';
 import { DBService } from '../services/db.service';
@@ -37,7 +37,7 @@ export abstract class LambdabotCommand {
   cooldownManager: CooldownManager;
 
   /** The function to run when the command is executed */
-  abstract execute(interaction: ChatInputCommandInteraction): Awaitable<any>;
+  abstract execute(interaction: ChatInputCommandInteraction): Promise<any>;
 
   setLambdaClient(client: LambdaClient) {
     this.lambdaClient = client;
@@ -52,7 +52,7 @@ export abstract class LambdabotComponentHandler {
   lambdaClient: LambdaClient;
   componentId: ComponentCustomId;
 
-  abstract handleCommand(interaction: ButtonInteraction): Awaitable<any>;
+  abstract handleCommand(interaction: ButtonInteraction): Promise<any>;
 
   configureInteractions(client: LambdaClient) {
     this.lambdaClient = client;
@@ -68,7 +68,7 @@ export abstract class LambdabotEvent {
   name: keyof ClientEvents;
   eventTriggerType: EventTriggerType;
   lambdaClient: LambdaClient;
-  abstract execute(...args: any): Awaitable<void>;
+  abstract execute(...args: any): Promise<void>;
   setLambdaClient(client: LambdaClient) {
     this.lambdaClient = client;
   };
