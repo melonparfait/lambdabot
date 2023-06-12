@@ -5,7 +5,7 @@
   "main": "index.js",
   "module": "main.js",
   "scripts": {
-    "test": "mocha --require ts-node/register ./tests/*.spec.ts --exit",
+    "test": "env TS_NODE_PROJECT='./tests/tsconfig.spec.json' mocha --require ts-node/register ./tests/*.spec.ts --exit",
     "lint": "eslint --ext ts,tsx src/*",
     "dev": "./node_modules/.bin/ts-node src/index.ts dev",
     "prod": "./node_modules/.bin/ts-node src/index.ts prod"
