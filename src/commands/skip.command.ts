@@ -11,7 +11,15 @@ export class SkipCommand extends LambdabotCommand {
   isGuildOnly = true;
   data = new SlashCommandBuilder()
     .setName('skip')
-    .setDescription('Get a new clue');
+    .setDescription('Get a new clue. By default, this will not get a new target #.')
+    .addStringOption(option => option
+      .setName('newtarget')
+      .setDescription('Choose whether or not to get a new target.')
+      .setRequired(false)
+      .addChoices(
+        { name: 'Yes', value: 'on' },
+        { name: 'No', value: 'off' },
+      ));
   async execute(interaction: ChatInputCommandInteraction) {
     const game = this.gameManager.getGame(interaction.channelId);
     if (!game) {
@@ -23,7 +31,9 @@ export class SkipCommand extends LambdabotCommand {
     } else if (game.round.oGuess) {
       return await interaction.reply(this.noSkipAfterGuess);
     } else {
-      game.round.generateNewValue();
+      if (interaction.options.getString('newtarget') === 'on') {
+        game.round.generateNewValue();
+      }
       createNewCluePrompt(game, this.clueManager);
       await interaction.reply(roundStatus(game));
       await updateGameInfoForInteraction(this.gameManager, interaction);

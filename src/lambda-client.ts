@@ -9,7 +9,7 @@ import { CooldownManager } from './services/cooldown-manager';
 import { GameManager } from './services/game-manager';
 import { ClueManager } from './services/clue-manager';
 
-export class LambdaClient extends Client {
+export class LambdaClient extends Client<true> {
   /** A collection of the client's command set keyed by command name */
   commands: Collection<string, LambdabotCommand>;
   events: Collection<keyof ClientEvents, LambdabotEvent>;

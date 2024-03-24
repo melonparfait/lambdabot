@@ -30,6 +30,7 @@ export class ClueCommand extends LambdabotCommand {
       await updateGameInfoForInteraction(this.gameManager, interaction);
     }
   }
+
   replyMsg(userId: string, gameRef: Game) {
     const clueMsg = currentClue(gameRef);
     return clueMsg + `\n${gameRef.offenseTeam.players

@@ -93,13 +93,14 @@ export function spectrumBar(target?: number, side?: 'higher' | 'lower'): string 
 }
 
 export function clue(round: Round, guess?: number): string {
-  return 'The clue is:'
+  return 'The scale is:'
   + `\n${round.leftClue} 0 [${spectrumBar(guess)}] 100 ${round.rightClue}`;
 }
 
 export function currentClue(game: Game): string | undefined {
   if (game.currentClue) {
-    return `${userMention(game.clueGiver())} gave this clue: ${game.currentClue}`;
+    return `${userMention(game.clueGiver())} gave this clue: ${game.currentClue}` + '\n'
+      + clue(game.round);
   } else {
     return undefined;
   }

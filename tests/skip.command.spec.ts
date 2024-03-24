@@ -136,23 +136,51 @@ describe('skip command', () => {
           mockInteraction.reply.resetHistory();
           gameRef.pinnedInfo = mockInteraction.messageInstance;
           mockInteraction.editPinnedMsg.resetHistory();
-          await command.execute(mockInteraction.interactionInstance);
         });
 
-        it('should generate a new value for the round', () => {
-          expect(newRoundValueSpy).to.have.been.calledOnce;
+        context('if the newtarget subcommand was not provided', () => {
+          beforeEach(async() => {
+            await command.execute(mockInteraction.interactionInstance);
+          });  
+
+          it('should not generate a new value for the round', () => {
+            expect(newRoundValueSpy).to.not.have.been.called;
+          });
+  
+          it('should edit the pinned message with the game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
+          });
+  
+          it('should reply with the game\'s round status', () => {
+            expect(mockInteraction.reply).to.have.been
+              .calledOnceWith(roundStatus(gameRef));
+          });
         });
 
-        it('should edit the pinned message with the game info', () => {
-          expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
-          const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
-          const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
-          expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
-        });
+        context('if the newtarget subcommand was provided', () => {
+          beforeEach(async() => {
+            mockInteraction.setInteractionInput('string', 'newtarget', 'on');
+            await command.execute(mockInteraction.interactionInstance);
+          });  
 
-        it('should reply with the game\'s round status', () => {
-          expect(mockInteraction.reply).to.have.been
-            .calledOnceWith(roundStatus(gameRef));
+          it('should generate a new value for the round', () => {
+            expect(newRoundValueSpy).to.have.been.calledOnce;
+          });
+  
+          it('should edit the pinned message with the game info', () => {
+            expect(mockInteraction.editPinnedMsg).to.have.been.calledOnce;
+            const actualWithoutTimestamp = _.omit(mockInteraction.editPinnedMsg.lastCall.args[0].embeds[0], ['data', 'timestamp']);
+            const expectedDetailsWithoutTimestamp = _.omit(getGameDetails(gameRef), ['data', 'timestamp']);
+            expect(actualWithoutTimestamp).to.deep.equal(expectedDetailsWithoutTimestamp);
+          });
+  
+          it('should reply with the game\'s round status', () => {
+            expect(mockInteraction.reply).to.have.been
+              .calledOnceWith(roundStatus(gameRef));
+          });
         });
       });
     });

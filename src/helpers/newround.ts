@@ -1,4 +1,4 @@
-import { bold, userMention } from '@discordjs/builders';
+import { bold, channelMention, userMention } from '@discordjs/builders';
 import { User } from 'discord.js';
 import { ClueManager } from '../services/clue-manager';
 import { Game } from '../models/game';
@@ -21,7 +21,8 @@ export function clueGiverPrompt(game: Game): string {
   return bold(`Round ${game.roundsPlayed}:`)
     + '\nYou\'re the clue giver!\n'
     + clue(game.round, game.round.value)
-    + `\nThe target number is: ${game.round.value}`;
+    + `\nThe target number is: ${game.round.value}.`
+    + `\nChannel link: ${channelMention(game.channelId)}`;
 }
 
 export function unableToDMClueGiver(clueGiver: User): string {
