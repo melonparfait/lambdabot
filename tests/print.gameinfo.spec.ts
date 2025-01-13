@@ -4,24 +4,12 @@ import { clue, gameSettingsEmbedFields, spectrumBar } from '../src/helpers/print
 import { Round } from '../src/models/round';
 import { GameTeam } from '../src/models/team';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import { DiscordMessage } from '../src/helpers/lambda.interface';
 
 let game: Game;
-let message: DiscordMessage;
-const lastMessagePinSpy = sinon.spy();
-const channelSendSpy = sinon.spy();
 
 describe('Printing output tests', () => {
   beforeEach(() => {
     game = new Game('testGame', []);
-    message = <unknown>{
-      client: { game: game },
-      channel: {
-        lastMessage: { pin: lastMessagePinSpy },
-        send: channelSendSpy,
-      },
-    } as DiscordMessage;
   });
 
   xdescribe('game settings', () => {
@@ -63,10 +51,5 @@ describe('Printing output tests', () => {
   });
 
   describe('updateGameInfo', () => {
-    // xit('should update the game info', (done) => {
-    //   updateGameInfo(message).then(() => {
-    //     console.log('sendArgs: ', channelSendSpy.getCalls());
-    //   }).then(done).catch(done);
-    // });
   });
 });

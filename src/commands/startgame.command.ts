@@ -56,4 +56,4 @@ export class StartGameCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new StartGameCommand();
+export default new StartGameCommand();

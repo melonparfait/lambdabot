@@ -36,7 +36,8 @@ export class DBService {
       return;
     }
 
-    this.db = new Database('./db/data.db',
+    this.db = new Database('../../lambda-test.db',
+      // './db/data.db',
       err => {
         if (err) {
           console.log(`Unable to establish connection to database: ${err}`);

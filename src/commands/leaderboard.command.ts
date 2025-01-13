@@ -1,8 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, InteractionReplyOptions, UserManager } from 'discord.js';
-import { ClueManager } from '../services/clue-manager';
-import { DBService } from '../services/db.service';
-import { GameManager } from '../services/game-manager';
+import { ChatInputCommandInteraction } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { errorProcessingCommand } from '../helpers/print.gameinfo';
 import { printLeaderboard, trimLeaderboard } from '../helpers/print.leaderboard';
@@ -62,4 +59,4 @@ export class LeaderboardCommand extends LambdabotCommand {
   noTrackedStats = 'No games with tracked stats have been played yet on this channel. Start a new one with `/newgame`!'
 }
 
-module.exports = new LeaderboardCommand();
+export default new LeaderboardCommand();

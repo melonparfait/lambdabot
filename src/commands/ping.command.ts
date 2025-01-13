@@ -15,4 +15,4 @@ export class PingCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new PingCommand();
+export default new PingCommand();

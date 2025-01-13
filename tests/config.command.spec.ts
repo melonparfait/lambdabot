@@ -2,21 +2,21 @@ import { expect } from 'chai';
 import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
-import * as ConfigCommand from '../src/commands/config.command';
 import { getGameDetails, noActiveGameMessage, setupOnly } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 import _ from 'lodash';
+import configCommand, { ConfigCommand } from '../src/commands/config.command';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('config command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: ConfigCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
@@ -29,7 +29,7 @@ describe('config command', () => {
   }
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/config.command');
+    command = configCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;
@@ -157,7 +157,7 @@ describe('config command', () => {
         configureUserInput(mockInteraction, asyncConfig, trackStatsConfig, thresholdConfig, defenseTimerConfig);
         mockInteraction.reply.resetHistory();
 
-        await command.execute(mockInteraction.interactionInstance, gameManager);
+        await command.execute(mockInteraction.interactionInstance);
       });
   
       it('should reply with an minimum defense timer error', () => {

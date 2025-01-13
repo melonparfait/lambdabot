@@ -1,27 +1,28 @@
 import { expect } from 'chai';
-import * as NewGameCommand from '../src/commands/newgame.command';
 import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import { Game } from '../src/models/game';
 import { gameAlreadyExists, getGameDetails, newGameStarted } from '../src/helpers/print.gameinfo';
 import { DEFAULT_SETTINGS, GameSettings } from '../src/models/game.settings';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 import * as _ from 'lodash';
+import { MessageFlags } from 'discord.js';
+import newgameCommand, { NewGameCommand } from '../src/commands/newgame.command';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('newgame command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: NewGameCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/newgame.command');
+    command = newgameCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
 
@@ -104,7 +105,7 @@ describe('newgame command', () => {
       it('should reply saying that the game is starting', () => {
         expect(mockInteraction.reply).to.have.been.calledOnceWith({
           content: 'Starting game...',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
       });
 
@@ -155,7 +156,7 @@ describe('newgame command', () => {
     it('should reply saying that the game is starting', () => {
       expect(mockInteraction.reply).to.have.been.calledOnceWith({
         content: 'Starting game...',
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     });
 

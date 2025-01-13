@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, Collection, CommandInteractionOptionResolver, Message, TextBasedChannel, TextChannel, User, UserManager } from 'discord.js';
+import { ChannelType, ChatInputCommandInteraction, Collection, CommandInteractionOptionResolver, Message, TextBasedChannel, TextChannel, User, UserManager } from 'discord.js';
 import _ from 'lodash';
 import * as sinon from 'sinon';
 import { anyString, anything, instance, mock, reset, resetCalls, when } from 'ts-mockito';
-import { LambdaClient } from '../lambda-client';
+import { Round } from '../models/round';
+import { GameTeam } from '../models/team';
 
 export enum CommandArgType {
   boolean, integer, string, number
@@ -66,6 +67,8 @@ export class MockInteraction {
     this.mockChannel = mock(TextChannel);
     this.channelInstance = instance(this.mockChannel);
     when(this.mockChannel.id).thenReturn(this.channelId);
+    when(this.mockChannel.type).thenReturn(ChannelType.GuildText);
+    when(this.mockChannel.isSendable()).thenReturn(true);
     when(this.mockChannel.send(anything())).thenCall(arg => this.channelSend(arg));
 
     this.messagePin = sinon.stub().resolves(this.messageInstance);
@@ -266,3 +269,14 @@ export class MockUser {
     reset(this.mockUser);
   }
 }
+
+export function createFakeRound(roundValue?: number, dGuess?): Round {
+  const round = new Round(new GameTeam([]), new GameTeam([]), false);
+  round.value = roundValue ?? round.value;
+  round.dGuess = dGuess ?? round.dGuess;
+  return round;
+}
+
+export type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;

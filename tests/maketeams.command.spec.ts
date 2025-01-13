@@ -2,20 +2,20 @@ import { expect } from 'chai';
 import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
-import * as MakeTeamsCommand from '../src/commands/maketeams.command';
+import makeTeamsCommand, { MakeTeamsCommand } from '../src/commands/maketeams.command';
 import { Game } from '../src/models/game';
 import { assignmentResponses, gameAlreadyExists, getGameDetails, noActiveGameMessage } from '../src/helpers/print.gameinfo';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 import * as _ from 'lodash';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('maketeams command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: MakeTeamsCommand;
   let gameManager: GameManager;
   let gameRef: Game;
   let assignRandomTeamsSpy: sinon.SinonSpy;
@@ -27,7 +27,7 @@ describe('maketeams command', () => {
   }
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/maketeams.command');
+    command = makeTeamsCommand;
     gameManager = new GameManager();
     command.gameManager = gameManager;
 

@@ -5,7 +5,7 @@ import { version } from '../../package.json';
 
 export class VersionCommand extends LambdabotCommand {
   isRestricted = true;
-  cooldown?: 0;
+  cooldown = 0;
   hasChannelCooldown = true;
   isGuildOnly = false;
   data = new SlashCommandBuilder()
@@ -16,4 +16,4 @@ export class VersionCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new VersionCommand();
+export default new VersionCommand();

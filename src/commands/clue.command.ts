@@ -2,7 +2,7 @@ import { LambdabotCommand } from '../helpers/lambda.interface';
 import { checkGamePhase } from '../helpers/command.errorchecks';
 import { clueGiverOnly, currentClue, gameNotInProgress, noActiveGameMessage, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import { Game } from '../models/game';
 
 export class ClueCommand extends LambdabotCommand {
@@ -39,4 +39,4 @@ export class ClueCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new ClueCommand();
+export default new ClueCommand();

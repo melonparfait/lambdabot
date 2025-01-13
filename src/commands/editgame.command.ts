@@ -1,8 +1,7 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessageFlags } from 'discord.js';
 import { noGameInChannel, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, channelMention } from '@discordjs/builders';
-import { Game } from '../models/game';
 import { pastebin_key, pastebin_user_token } from '../../keys.json';
 import axios from 'axios';
 import { PastebinGamedata } from '../models/pastebin.gamedata';
@@ -29,7 +28,7 @@ export class EditGameCommand extends LambdabotCommand {
 
         await interaction.reply({
           content: 'Retrieving data from pastebin...',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
 
         try {
@@ -44,7 +43,7 @@ export class EditGameCommand extends LambdabotCommand {
         } catch (error) {
           return await interaction.followUp({
             content: `Unable to retrieve data from pastebin: ${error}`,
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
           })
         }
 
@@ -83,7 +82,7 @@ export class EditGameCommand extends LambdabotCommand {
       default:
         return await interaction.reply({
           content: 'Invalid subcommand for editing a game',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
     }
   }
@@ -91,16 +90,16 @@ export class EditGameCommand extends LambdabotCommand {
   editedGame(channelId: string): InteractionReplyOptions {
     return {
       content: `Updated the game in channel ${channelMention(channelId)}`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
   
   errorParsingGameString(error: any): InteractionReplyOptions {
     return {
       content: `Error parsing game data from input: ${error}`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
 }
 
-module.exports = new EditGameCommand();
+export default new EditGameCommand();

@@ -1,7 +1,6 @@
-import { Client, ClientEvents, Collection, Events, GatewayIntentBits } from 'discord.js';
+import { Client, ClientEvents, Collection, GatewayIntentBits } from 'discord.js';
 import { DBService } from './services/db.service';
 import { EventTriggerType, LambdabotCommand, LambdabotComponentHandler, LambdabotEvent } from './helpers/lambda.interface';
-import neatCSV = require('csv-parser');
 import { CommandLoader } from './services/command-loader';
 import { EventLoader } from './services/event-loader';
 import { ComponentHandlerLoader } from './services/component-handler-loader';
@@ -22,7 +21,12 @@ export class LambdaClient extends Client<true> {
       public cooldownManager: CooldownManager,
       public gameManager: GameManager,
       public clueManager: ClueManager) {
-    super({ intents: [GatewayIntentBits.Guilds] });
+    super({ intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+      GatewayIntentBits.GuildMembers
+    ] });
   }
 
   async initializeCommands(mode: 'dev' | 'prod') {

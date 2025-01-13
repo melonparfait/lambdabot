@@ -1,27 +1,34 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction, MockUser, MockUserManager } from '../src/utils/testing-helpers';
+import { MockInteraction, MockUser, MockUserManager } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import { noActiveGameMessage, gameAlreadyExists, roundStatus } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
-import * as  StartGameCommand from '../src/commands/startgame.command';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import startgameCommand, { StartGameCommand } from '../src/commands/startgame.command';
+import { LambdaClient } from '../src/lambda-client';
+import { mock } from 'ts-mockito';
+import { DBService } from '../src/services/db.service';
+import { CommandLoader } from '../src/services/command-loader';
+import { EventLoader } from '../src/services/event-loader';
+import { ComponentHandlerLoader } from '../src/services/component-handler-loader';
+import { CooldownManager } from '../src/services/cooldown-manager';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('startgame command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: StartGameCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
   let mockUserManager: MockUserManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/startgame.command');
+    command = startgameCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     clueManager.data = [...Array(100).keys()].map(index => { return {
@@ -33,9 +40,14 @@ describe('startgame command', () => {
 
     command.gameManager = gameManager;
     command.clueManager = clueManager;
-    command.lambdaClient = {
-      users: mockUserManager.userManagerInstance
-    };
+    command.lambdaClient = new LambdaClient(mock(DBService),
+      <CommandLoader><unknown>sinon.mock(CommandLoader),
+      <EventLoader><unknown>sinon.mock(EventLoader),
+      <ComponentHandlerLoader><unknown>sinon.mock(ComponentHandlerLoader),
+      <CooldownManager><unknown>sinon.mock(CooldownManager),
+      gameManager,
+      clueManager);
+    command.lambdaClient.users = mockUserManager.userManagerInstance;
   });
 
   it('should create', () => {
@@ -73,7 +85,6 @@ describe('startgame command', () => {
     let player2: MockUser;
     let player3: MockUser;
     let player4: MockUser;
-    let player5: MockUser;
 
     beforeEach(() => {
       gameRef = new Game(TEST_CHANNEL_ID, clueManager.data);
@@ -83,7 +94,6 @@ describe('startgame command', () => {
       player2 = new MockUser('player2');
       player3 = new MockUser('player3');
       player4 = new MockUser('player4');
-      player5 = new MockUser('player5');
     });
 
     context('if there are not enough players on team 1', () => {

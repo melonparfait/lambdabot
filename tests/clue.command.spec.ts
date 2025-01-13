@@ -1,28 +1,27 @@
 import { expect } from 'chai';
-import { CommandArgType, MockInteraction, MockUser } from '../src/utils/testing-helpers';
+import { MockInteraction, MockUser } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
-import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
-import * as ClueCommand from '../src/commands/clue.command';
 import { noActiveGameMessage, gameNotInProgress, clueGiverOnly, getGameDetails } from '../src/helpers/print.gameinfo';
 import { Game } from '../src/models/game';
 import { Round } from '../src/models/round';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 import * as _ from 'lodash';
+import clueCommand, { ClueCommand } from '../src/commands/clue.command';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('clue command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: ClueCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/clue.command');
+    command = clueCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;

@@ -25,4 +25,4 @@ export class JoinButtonHandler extends LambdabotComponentHandler {
   }
 }
 
-module.exports = new JoinButtonHandler();
+export default new JoinButtonHandler();

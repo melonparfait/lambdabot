@@ -1,7 +1,7 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { errorProcessingCommand, noActiveGameMessage, noGameInChannel, setupOnly, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessageFlags, TextBasedChannel } from 'discord.js';
 import { GameManager } from '../services/game-manager';
 
 export class ConfigCommand extends LambdabotCommand {
@@ -86,23 +86,23 @@ export class ConfigCommand extends LambdabotCommand {
   minimumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
     return {
       content: `Sorry, the minimum threshold is 5 points. (You tried to set it to ${threshold}.)`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
   
   minimumDefenseTimerError(dTimer: number): InteractionReplyOptions {
     return {
       content: `Sorry, the minimum defense timer is 5 seconds. (You tried to set it to ${dTimer}.)`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
   
   maximumThresholdError(threshold: number | 'default'): InteractionReplyOptions {
     return {
       content: `Sorry, that threshold (${threshold}) is too big. please give me a smaller number.`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
 }
 
-module.exports = new ConfigCommand();
+export default new ConfigCommand();

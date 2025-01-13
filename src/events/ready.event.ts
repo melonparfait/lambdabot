@@ -9,4 +9,4 @@ export class ReadyEvent extends LambdabotEvent {
   }
 }
 
-module.exports = new ReadyEvent();
+export default new ReadyEvent();

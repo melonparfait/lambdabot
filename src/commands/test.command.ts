@@ -1,8 +1,8 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { APIEmbedField, ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
-import { EmbedBuilder, SlashCommandBuilder, userMention } from '@discordjs/builders';
+import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, TextBasedChannel } from 'discord.js';
+import { SlashCommandBuilder, userMention } from '@discordjs/builders';
 import { Game } from '../models/game';
-import { clue, couldNotPin, newGameStarted, noGameInChannel } from '../helpers/print.gameinfo';
+import { clue, noGameInChannel, updatePin } from '../helpers/print.gameinfo';
 import { isEmpty } from 'lodash';
 
 export class TestCommand extends LambdabotCommand {
@@ -22,50 +22,25 @@ export class TestCommand extends LambdabotCommand {
         embed = this.beforeGameDetails(game);
         await interaction.reply({
           content: 'Updating pinned info...',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         })
-        return await this.updatePin(game, embed, <TextBasedChannel>interaction.channel);
+        return await updatePin(game, embed, <TextBasedChannel>interaction.channel);
       case 'playing':
         embed = this.duringGameDetails(game);
         await interaction.reply({
           content: 'Updating pinned info...',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         })
-        return await this.updatePin(game, embed, <TextBasedChannel>interaction.channel);
+        return await updatePin(game, embed, <TextBasedChannel>interaction.channel);
       case 'finished':
         embed = this.afterGameDetails(game);
         await interaction.reply({
           content: 'Updating pinned info...',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         })
-        return await this.updatePin(game, embed, <TextBasedChannel>interaction.channel);
+        return await updatePin(game, embed, <TextBasedChannel>interaction.channel);
       default:
         return await interaction.reply(noGameInChannel(interaction.channelId));
-    }
-
-  }
-
-  async updatePin(game: Game, embed: EmbedBuilder, channel: TextBasedChannel) {
-    if (game.pinnedInfo) {
-      try {
-        return await game.pinnedInfo.edit({
-          embeds: [embed]
-        });
-      } catch (err) {
-        console.log(err);
-        return await channel.send(couldNotPin);
-      }
-    } else {
-      const msg = await channel.send({
-        embeds: [embed]
-      });
-      try {
-        game.pinnedInfo = msg;
-        return await msg.pin();
-      } catch (err) {
-        console.log(err);
-        return await channel.send(couldNotPin);
-      }
     }
   }
 
@@ -182,4 +157,4 @@ export class TestCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new TestCommand();
+export default new TestCommand();

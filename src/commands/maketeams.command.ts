@@ -1,9 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessageFlags } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { assignmentAlgorithms, assignmentResponses, gameAlreadyExists, noActiveGameMessage, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 
-class MakeTeamsCommand extends LambdabotCommand {
+export class MakeTeamsCommand extends LambdabotCommand {
   isRestricted = false;
   cooldown = 2;
   hasChannelCooldown = true;
@@ -58,9 +58,9 @@ class MakeTeamsCommand extends LambdabotCommand {
   invalidArgument(arg: string): InteractionReplyOptions {
     return {
       content: `Sorry, ${arg} isn't a valid argument. Please use \`random\`.`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
 }
 
-module.exports = new MakeTeamsCommand();
+export default new MakeTeamsCommand();

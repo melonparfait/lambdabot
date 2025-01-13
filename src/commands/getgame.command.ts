@@ -1,5 +1,5 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { noGameInChannel } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { pastebin_key, pastebin_user_token } from '../../keys.json';
@@ -24,7 +24,7 @@ export class GetGameCommand extends LambdabotCommand {
 
     await interaction.reply({
       content: 'Sending info to pastebin...',
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
 
     const gameData = this.gameManager.getGame(channelId);
@@ -45,16 +45,16 @@ export class GetGameCommand extends LambdabotCommand {
       });
       return await interaction.followUp({
         content: `Successfully sent data to pastebin: ${response.data}`,
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     } catch (error) {
       console.log(error);
       return await interaction.followUp({
         content: 'Unable to send data to pastebin.',
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
   }
 }
 
-module.exports = new GetGameCommand();
+export default new GetGameCommand();

@@ -1,25 +1,34 @@
-import { ClientEvents, Events, Client, Interaction, ChatInputCommandInteraction, ChannelType, InteractionReplyOptions, ButtonInteraction } from 'discord.js';
+import { ClientEvents, Events, Interaction, ChatInputCommandInteraction, ChannelType, ButtonInteraction, TextBasedChannel, MessagePayload, MessageCreateOptions, MessageFlags } from 'discord.js';
 import { EventTriggerType, LambdabotEvent } from '../helpers/lambda.interface';
 import { owner_id } from '../../keys.json';
-import { LambdaClient } from '../lambda-client';
 import { errorProcessingCommand, noPermissions } from '../helpers/print.gameinfo';
 
 export class InteractionCreateEvent extends LambdabotEvent {
   name = <keyof ClientEvents>Events.InteractionCreate;
   eventTriggerType = EventTriggerType.on;
-  lambdaClient: LambdaClient;
 
   static async interactionErrorResponse(interaction: ChatInputCommandInteraction | ButtonInteraction, error: any) {
     console.log(error);
+    let channel = interaction.channel;
     try {
-      if (InteractionCreateEvent.isTokenStillValid(interaction)) {
-        if (!interaction.replied) {
-          return await interaction.reply(errorProcessingCommand);
-        } else {
-          return await interaction.followUp(errorProcessingCommand);
-        }
+      if (channel === null) {
+        throw new Error('interaction channel was null')
+      } else if (channel?.partial) {
+        channel = await channel.fetch();
+      }
+
+      if (!channel.isSendable()) {
+        throw new Error('cannot send messages to this channel');
       } else {
-        return await interaction.channel?.send(<string>errorProcessingCommand.content);
+        if (InteractionCreateEvent.isTokenStillValid(interaction)) {
+          if (!interaction.replied) {
+            return await interaction.reply(errorProcessingCommand);
+          } else {
+            return await interaction.followUp(errorProcessingCommand);
+          }
+        } else {
+          return await channel.send(<string>errorProcessingCommand.content);
+        }
       }
     } catch (error2) {
       console.log(error2);
@@ -55,7 +64,7 @@ export class InteractionCreateEvent extends LambdabotEvent {
       if (command.isGuildOnly && interaction?.channel?.type !== ChannelType.GuildText) {
         return await interaction.reply({
           content: 'I can\'t execute that command outside of a server text channel!',
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
       }
     
@@ -64,7 +73,7 @@ export class InteractionCreateEvent extends LambdabotEvent {
         return await interaction.reply({
           content: `Please wait ${cooldownCheckResult.timeLeft} more second(s)
                     before reusing the \`${command.data.name}\` command.`,
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
       }
 
@@ -76,4 +85,4 @@ export class InteractionCreateEvent extends LambdabotEvent {
   }
 }
 
-module.exports = new InteractionCreateEvent();
+export default new InteractionCreateEvent();
