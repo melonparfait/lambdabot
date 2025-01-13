@@ -1,12 +1,12 @@
 import { Game } from '../models/game';
 import { LambdabotCommand, ComponentCustomId } from '../helpers/lambda.interface';
-import { errorProcessingCommand, gameAlreadyExists, newGameStarted, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
+import { errorProcessingCommand, gameAlreadyExists, newGameStarted, sendMessageToChannel, unableToUpdateGameInfo, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from '@discordjs/builders';
-import { ButtonStyle, ChatInputCommandInteraction, ComponentType, TextBasedChannel } from 'discord.js';
+import { ButtonStyle, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 
 export class NewGameCommand extends LambdabotCommand {
   isRestricted = false;
-  cooldown?: 5;
+  cooldown = 5;
   hasChannelCooldown = true;
   isGuildOnly = true;
   data = new SlashCommandBuilder()
@@ -42,7 +42,7 @@ export class NewGameCommand extends LambdabotCommand {
     gameContext.join(interaction.user.id);
     await interaction.reply({
       content: 'Starting game...',
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
 
     const joinButtonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -55,14 +55,19 @@ export class NewGameCommand extends LambdabotCommand {
 
     try {
       await updateGameInfoForInteraction(this.gameManager, interaction);
+      const channel = interaction.channel;
+      if (channel === null) {
+        throw new Error('could not find channel');
+      } else {
+        return await sendMessageToChannel(channel, {
+          content: newGameStarted(interaction.user.id),
+          components: [joinButtonRow]
+        });
+      }
     } catch (error) {
       return await interaction.followUp(unableToUpdateGameInfo);
     }
-    return await interaction.channel?.send({
-      content: newGameStarted(interaction.user.id),
-      components: [joinButtonRow]
-    });
   }
 }
 
-module.exports = new NewGameCommand();
+export default new NewGameCommand();

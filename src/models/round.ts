@@ -40,7 +40,7 @@ export class Round {
 
   private normalWithCenter(sigma = 6, center = 0.5) {
     while (true) {
-      let num = this.normal() / sigma + 0.0 + center;
+      const num = this.normal() / sigma + 0.0 + center;
       if (0 <= num && num <= 1) return num;
     }
   }

@@ -1,10 +1,9 @@
-import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
-import { ButtonInteraction, ChatInputCommandInteraction, Client, ClientEvents, CommandInteraction, Events, InteractionResponse, Message, UserManager } from 'discord.js';
+import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
+import { ButtonInteraction, ChatInputCommandInteraction, ClientEvents, Message } from 'discord.js';
 import { ClueManager } from '../services/clue-manager';
 import { DBService } from '../services/db.service';
 import { GameManager } from '../services/game-manager';
 import { LambdaClient } from '../lambda-client';
-import { Game } from '../models/game';
 import { CooldownManager } from '../services/cooldown-manager';
 
 export interface DiscordMessage extends Message {
@@ -28,7 +27,7 @@ export abstract class LambdabotCommand {
   isGuildOnly: boolean;
 
   /** The command metadata */
-  data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | SlashCommandSubcommandsOnlyBuilder;
+  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 
   lambdaClient: LambdaClient;
   gameManager: GameManager;

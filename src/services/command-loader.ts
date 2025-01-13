@@ -5,15 +5,13 @@ import { APIApplicationCommand, Routes } from 'discord-api-types/v9';
 import { exit } from 'process';
 import { bot_token, client_id, dev_guild_id } from '../../keys.json';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ApplicationCommand, ApplicationCommandData, Collection } from 'discord.js';
-import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
+import { Collection } from 'discord.js';
+import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
 
 export class CommandLoader {
-  rest = new REST({ version: '10' }).setToken(bot_token);
-  apiCommandData: (SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup"> | SlashCommandSubcommandsOnlyBuilder)[] = [];
+  rest = new REST().setToken(bot_token);
+  apiCommandData: (SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder)[] = [];
   commandDirectory = path.resolve(__dirname, '../commands');
-
-  constructor() {}
 
   async getCommands(): Promise<Collection<string, LambdabotCommand>> {
     const commands = new Collection<string, LambdabotCommand>();
@@ -22,7 +20,8 @@ export class CommandLoader {
 
     for (const file of commandFiles) {
       try {
-        const newCommand: LambdabotCommand = await import(`${this.commandDirectory}/${file}`);
+        const commandRaw: { default: LambdabotCommand } = await import(`${this.commandDirectory}/${file}`);
+        const newCommand = commandRaw.default;
         commands.set(newCommand.data.name, newCommand);
         console.log(`Got command: ${newCommand.data.name}`);
         this.apiCommandData.push(newCommand.data);

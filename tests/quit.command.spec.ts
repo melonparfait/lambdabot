@@ -2,25 +2,25 @@ import { expect } from 'chai';
 import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
-import * as QuitCommand from '../src/commands/quit.command';
+import quitCommand, { QuitCommand } from '../src/commands/quit.command';
 import { Game } from '../src/models/game';
 import { noActiveGameMessage } from '../src/helpers/print.gameinfo';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('quit command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: QuitCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/quit.command');
+    command = quitCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;

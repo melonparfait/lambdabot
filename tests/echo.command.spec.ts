@@ -1,24 +1,23 @@
 import { expect } from 'chai';
-import * as EchoCommand from '../src/commands/echo.command';
-import { CommandArgType, MockInteraction } from '../src/utils/testing-helpers';
+import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
-import { SinonStub } from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
+import echoCommand, { EchoCommand } from '../src/commands/echo.command';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('echo command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: EchoCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/echo.command');
+    command = echoCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
     command.gameManager = gameManager;

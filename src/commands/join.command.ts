@@ -1,7 +1,7 @@
 import { LambdabotCommand } from '../helpers/lambda.interface';
 import { alreadyInGame, gameInProgress, noActiveGameMessage, updateGameInfoForInteraction, userJoinedGame } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
-import { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessageFlags } from 'discord.js';
 
 export class JoinCommand extends LambdabotCommand {
   isRestricted = false;
@@ -71,7 +71,7 @@ export class JoinCommand extends LambdabotCommand {
   alreadyOnTeam(teamArg: string): InteractionReplyOptions {
     return {
       content: `You're already on team ${teamArg}!`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
 
@@ -84,4 +84,4 @@ export class JoinCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new JoinCommand();
+export default new JoinCommand();

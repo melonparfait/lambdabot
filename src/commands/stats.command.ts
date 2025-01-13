@@ -23,9 +23,9 @@ export class StatsCommand extends LambdabotCommand {
       .setDescription('Player to report stats about')
       .setRequired(false));
   async execute(interaction: ChatInputCommandInteraction) {
-    let isGlobal = interaction.options.getString('global');
-    let player = interaction.options.getUser('player', false) ?? interaction.user ;
-    let channel = isGlobal === 'yes' ? undefined : interaction.channelId;
+    const isGlobal = interaction.options.getString('global');
+    const player = interaction.options.getUser('player', false) ?? interaction.user ;
+    const channel = isGlobal === 'yes' ? undefined : interaction.channelId;
     if (interaction.channel?.type !== ChannelType.GuildText && isGlobal !== 'yes') {
       return interaction.reply(this.channelStatsOnlyForGuild);
     }
@@ -40,4 +40,4 @@ export class StatsCommand extends LambdabotCommand {
   channelStatsOnlyForGuild = 'Sorry, you can only view channel stats in a server.';
 }
 
-module.exports = new StatsCommand();
+export default new StatsCommand();

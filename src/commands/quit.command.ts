@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { couldNotUnPin, noActiveGameMessage } from '../helpers/print.gameinfo';
+import { couldNotUnPin, noActiveGameMessage, sendMessageToChannel } from '../helpers/print.gameinfo';
 
 export class QuitCommand extends LambdabotCommand {
   isRestricted = false;
@@ -22,8 +22,13 @@ export class QuitCommand extends LambdabotCommand {
       try {
         await game.pinnedInfo?.unpin();
       } catch (err) {
-        interaction.channel?.send(couldNotUnPin);
-        console.log(err);
+        const channel = interaction.channel;
+        if (channel === null) {
+          console.log('could not find a channel for this interaction');
+        } else {
+          sendMessageToChannel(channel, couldNotUnPin);
+          console.log(err);
+        }
       }
       return interaction.reply(this.stoppedGameMsg);
     }
@@ -32,4 +37,4 @@ export class QuitCommand extends LambdabotCommand {
   stoppedGameMsg = 'I stopped the current game.';
 }
 
-module.exports = new QuitCommand();
+export default new QuitCommand();

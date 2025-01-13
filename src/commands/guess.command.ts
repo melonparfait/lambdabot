@@ -1,6 +1,6 @@
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { InteractionReplyOptions, ChatInputCommandInteraction, TextBasedChannel } from 'discord.js';
+import { InteractionReplyOptions, ChatInputCommandInteraction, TextBasedChannel, ChannelType, MessageFlags } from 'discord.js';
 import { clue, currentClue, couldNotPin, noActiveGameMessage, gameNotInProgress, errorProcessingCommand, scoreboard, roundStatus, updateGameInfoForInteraction, unableToUpdateGameInfo } from '../helpers/print.gameinfo';
 import { ScoringResults, OffenseScore } from '../models/scoring.results';
 import { SlashCommandBuilder, userMention } from '@discordjs/builders';
@@ -11,7 +11,7 @@ export class GuessCommand extends LambdabotCommand {
   isRestricted = false;
   hasChannelCooldown = true;
   isGuildOnly = true;
-  cooldown?: 3;
+  cooldown = 3;
   data = new SlashCommandBuilder()
     .setName('guess')
     .setDescription('Parent command for guessing')
@@ -148,15 +148,25 @@ export class GuessCommand extends LambdabotCommand {
 
       game.newRound();
       createNewCluePrompt(game, this.clueManager);
-      await interaction.channel?.send(roundStatus(game));
-      await updateGameInfoForInteraction(this.gameManager, interaction);
-
-      const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
+      const gameChannel = interaction.channel;
       try {
-        return await clueGiver.send(clueGiverPrompt(game));
+        if (gameChannel?.type === ChannelType.GuildText) {
+          await gameChannel.send(roundStatus(game));
+          await updateGameInfoForInteraction(this.gameManager, interaction);
+
+          const clueGiver = await this.lambdaClient.users.fetch(game.round.clueGiver);
+          try {
+            return await clueGiver.send(clueGiverPrompt(game));
+          } catch (error) {
+            console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
+            return await interaction.followUp(unableToDMClueGiver(clueGiver));
+          }
+        } else {
+          throw (new Error(`invalid channel type: ${gameChannel?.type}`));
+        }
       } catch (error) {
-        console.error(`Could not send the clue to ${clueGiver.tag}.\n`, error);
-        return await interaction.followUp(unableToDMClueGiver(clueGiver));
+        console.error(error);
+
       }
     }
   }
@@ -220,44 +230,44 @@ export class GuessCommand extends LambdabotCommand {
 
   noClueYet: InteractionReplyOptions = {
     content: 'The clue giver on your team hasn\'t given a clue yet!',
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 
   noGuessYet: InteractionReplyOptions = {
     content: 'The opposing team hasn\'t made a guess yet!',
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 
   clueGiverCannotGuess: InteractionReplyOptions = {
     content: 'You can\'t guess as the clue giver! No cheating!',
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 
   wrongTeamCannotGuess(teamNumber: number): InteractionReplyOptions {
     return {
       content: `Sorry, only members from Team ${teamNumber} can guess!`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   };
 
   wrongTeamCannotCounter(teamNumber: number): InteractionReplyOptions {
     return {
       content: `Sorry, only members from Team ${teamNumber} can try to guess higher or lower!`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   };
 
   alreadyGuessed(guess: number): InteractionReplyOptions {
     return {
       content: `You can only guess once, and it looks like your team already guessed ${guess}.`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     }
   }
 
   invalidInteger: InteractionReplyOptions = {
     content: 'Sorry, you can only guess an integer between 1 and 100.',
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 }
 
-module.exports = new GuessCommand();
+export default new GuessCommand();

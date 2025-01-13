@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import { LambdabotCommand } from '../helpers/lambda.interface';
 
 export class EchoCommand extends LambdabotCommand {
@@ -19,4 +19,4 @@ export class EchoCommand extends LambdabotCommand {
   }
 }
 
-module.exports = new EchoCommand();
+export default new EchoCommand();

@@ -2,26 +2,26 @@ import { expect } from 'chai';
 import { MockInteraction } from '../src/utils/testing-helpers';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai'
 import { GameManager } from '../src/services/game-manager';
 import { ClueManager } from '../src/services/clue-manager';
 import { Game } from '../src/models/game';
-import * as JoinCommand from '../src/commands/join.command';
 import { alreadyInGame, gameInProgress, getGameDetails, noActiveGameMessage, userJoinedGame } from '../src/helpers/print.gameinfo';
-import { LambdabotCommand } from '../src/helpers/lambda.interface';
 import * as _ from 'lodash';
+import joinCommand, { JoinCommand } from '../src/commands/join.command';
 
 const TEST_USER_ID = '54321';
 const TEST_CHANNEL_ID = '12345';
 
 describe('join command', () => {
-  chai.use(require('sinon-chai'));
+  chai.use(sinonChai);
   let mockInteraction: MockInteraction;
-  let command: LambdabotCommand & any;
+  let command: JoinCommand;
   let gameManager: GameManager;
   let clueManager: ClueManager;
 
   beforeEach(() => {
-    command = <LambdabotCommand><unknown>require('../src/commands/join.command');
+    command = joinCommand;
     gameManager = new GameManager();
     clueManager = new ClueManager();
 
@@ -288,7 +288,7 @@ describe('join command', () => {
             joinSpy.resetHistory();
             mockInteraction.editPinnedMsg.resetHistory();
             mockInteraction.reply.resetHistory();
-            await command.execute(mockInteraction.interactionInstance, gameManager)
+            await command.execute(mockInteraction.interactionInstance)
           });
   
           it('should let the player join the game', () => {

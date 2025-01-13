@@ -14,7 +14,8 @@ export class EventLoader {
 
     for (const file of eventFiles) {
       try {
-        const newEvent: LambdabotEvent = await import(`${this.eventsDirectory}/${file}`);
+        const eventRaw: { default: LambdabotEvent } = await import(`${this.eventsDirectory}/${file}`);
+        const newEvent = eventRaw.default;
         events.set(newEvent.name, newEvent);
         console.log(`Got event: ${newEvent.name}`);
       } catch (error) {

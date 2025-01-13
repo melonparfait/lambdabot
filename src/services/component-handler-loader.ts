@@ -14,9 +14,10 @@ export class ComponentHandlerLoader {
 
     for (const file of componentInteractionFiles) {
       try {
-        const newComponentInteraction: LambdabotComponentHandler = await import(`${this.handlersDirectory}/${file}`);
-        componentInteractions.set(newComponentInteraction.componentId, newComponentInteraction);
-        console.log(`Got component handler: ${newComponentInteraction.componentId}`);
+        const rawCompInteraction: { default: LambdabotComponentHandler } = await import(`${this.handlersDirectory}/${file}`);
+        const newCompInteraction = rawCompInteraction.default;
+        componentInteractions.set(newCompInteraction.componentId, newCompInteraction);
+        console.log(`Got component handler: ${newCompInteraction.componentId}`);
       } catch (error) {
         console.log(error);
         exit(1);

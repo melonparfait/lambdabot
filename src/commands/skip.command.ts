@@ -1,6 +1,6 @@
 import { clueGiverPrompt, createNewCluePrompt, unableToDMClueGiver } from '../helpers/newround';
 import { LambdabotCommand } from '../helpers/lambda.interface';
-import { ChatInputCommandInteraction, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessageFlags, TextBasedChannel } from 'discord.js';
 import { clueGiverOnly, gameNotInProgress, noActiveGameMessage as noActiveGame, roundStatus, updateGameInfoForInteraction } from '../helpers/print.gameinfo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -50,8 +50,8 @@ export class SkipCommand extends LambdabotCommand {
 
   noSkipAfterGuess: InteractionReplyOptions = {
     content: 'Sorry, your team already made a guess, so you can\'t skip anymore!',
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 }
 
-module.exports = new SkipCommand();
+export default new SkipCommand();

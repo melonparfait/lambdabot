@@ -3,46 +3,47 @@ import { Game } from '../models/game';
 import { Round } from '../models/round';
 import { GameManager } from '../services/game-manager';
 import { bold, channelMention, userMention } from '@discordjs/builders';
-import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions, InteractionUpdateOptions, TextBasedChannel } from 'discord.js';
+import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions, MessageCreateOptions, MessageFlags, MessagePayload, TextBasedChannel } from 'discord.js';
+import { InteractionCreateEvent } from '../events/interaction-create.event';
 
 export const clueGiverOnly: InteractionReplyOptions = {
   content: 'Sorry, only the clue giver can use this command!',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 }
 
 export const gameInProgress: InteractionReplyOptions = {
   content: 'Sorry, it looks like the game is already running.',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const gameNotInProgress: InteractionReplyOptions = {
   content: 'Sorry, it looks like the game isn\'t in progress yet.',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 }
 
 export const noActiveGameMessage: InteractionReplyOptions = {
   content: 'No one has started a game yet. Use the `/newgame` command to start one!',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const gameAlreadyExists: InteractionReplyOptions = {
   content: 'It looks like there\'s already a game running in this channel.',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const errorProcessingCommand: InteractionReplyOptions = {
   content: 'There was an error processing that command.',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const noPermissions: InteractionReplyOptions = {
   content: 'Sorry, you don\'t have permissions to use that command!',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const setupOnly: InteractionReplyOptions = {
   content: 'Sorry, this command can only be used during game setup.',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 };
 
 export const couldNotPin = 'I couldn\'t pin the game info to this channel. Do I have permission to manage messages on this channel?';
@@ -52,7 +53,7 @@ export function noGameInChannel(channelId: string): InteractionReplyOptions {
   return {
     content: `No game exists in channel ${
       channelMention(channelId)}.`,
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   }
 }
 
@@ -62,7 +63,7 @@ export function newGameStarted(byUser: string) {
 
 export const alreadyInGame: InteractionReplyOptions = {
   content: 'Sorry, you\'re already in the game!',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
 }
 
 export function userJoinedGame(userId: string): string {
@@ -121,7 +122,7 @@ export async function updateGameInfoForInteraction(gameManager: GameManager,
   try {
     const channel = <TextBasedChannel>interaction.channel;
     const game = gameManager.getGame(channel.id);
-    let embed: EmbedBuilder = getGameDetails(game);
+    const embed: EmbedBuilder = getGameDetails(game);
     return await updatePin(game, embed, channel);
   } catch (error) {
     return await interaction.followUp(unableToUpdateGameInfo);
@@ -130,7 +131,25 @@ export async function updateGameInfoForInteraction(gameManager: GameManager,
 
 export const unableToUpdateGameInfo: InteractionReplyOptions ={
   content: 'Unable to update game info',
-  ephemeral: true
+  flags: MessageFlags.Ephemeral
+}
+
+export async function sendMessageToChannel(channel: TextBasedChannel, msg: string | MessagePayload | MessageCreateOptions) {
+  try {
+    if (channel === null) {
+      throw new Error('interaction channel was null')
+    } else if (channel?.partial) {
+      channel = await channel.fetch();
+    }
+
+    if (!channel.isSendable()) {
+      throw new Error('cannot send messages to this channel');
+    } else {
+      return await channel.send(msg);
+    }
+  } catch (error) {
+    console.log('error trying to send message: ', msg, '\n', error);
+  }
 }
 
 export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBasedChannel) {
@@ -141,18 +160,22 @@ export async function updatePin(game: Game, embed: EmbedBuilder, channel: TextBa
       });
     } catch (err) {
       console.log(err);
-      return await channel.send(couldNotPin);
+      return await sendMessageToChannel(channel, couldNotPin);
     }
   } else {
-    const msg = await channel.send({
+    const msg = await sendMessageToChannel(channel, {
       embeds: [embed]
     });
     try {
-      game.pinnedInfo = msg;
-      return await msg.pin();
+      if (msg === undefined) {
+        throw new Error('unable to pin the message');
+      } else {
+        game.pinnedInfo = msg; 
+        return await msg.pin();
+      }
     } catch (err) {
       console.log(err);
-      return await channel.send(couldNotPin);
+      return await sendMessageToChannel(channel, couldNotPin);
     }
   }
 }
