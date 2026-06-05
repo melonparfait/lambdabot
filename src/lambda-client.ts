@@ -24,8 +24,7 @@ export class LambdaClient extends Client<true> {
     super({ intents: [
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-      GatewayIntentBits.GuildMembers
+      GatewayIntentBits.MessageContent
     ] });
   }
 
